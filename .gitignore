@@ -1,0 +1,10 @@
+*
+!*.*
+!Makefile
+
+!*/
+*.o
+obj/
+bin/
+assets/
+vgcore*
