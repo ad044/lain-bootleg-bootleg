@@ -1,22 +1,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include "scene.h"
 #include "sprite.h"
 #include "texture.h"
+#include "timeutil.h"
 
-// could be abstracted into a general loader which takes in a scene name
-// fetches resources, and then does the rest of the computations (which are generic)
-Scene *get_initial_scene()
+Scene *get_menu(TextureCache *texture_cache)
 {
 	Sprite sprites[] = {
-
-	    make_sprite(make_texture("assets/ui/main_ui_closed.png"),
-			"main_ui_closed", (vec2){1.0f, 0.0f},
-			(vec2){0.8f, 0.8f}),
-
-	    make_sprite(make_texture("assets/579"), "lain", (vec2){0.0f, 0.0f},
+	    make_sprite(texture_cache, "main_ui_closed", "main_ui_closed",
+			(vec2){1.0f, 0.0f}, (vec2){0.8f, 0.8f}),
+	    make_sprite(texture_cache, "lain", "lain", (vec2){0.0f, 0.0f},
 			(vec2){0.8f, 0.8f})};
 
 	int sprite_count = sizeof(sprites) / sizeof(sprites[0]);
@@ -44,7 +41,7 @@ Scene *get_initial_scene()
 	return scene;
 }
 
-void draw_scene(Scene *scene, shader_cache *shaders, unsigned int VAO)
+void draw_scene(Scene *scene, ShaderCache *shaders, unsigned int VAO)
 {
 	for (int i = 0; i < scene->sprite_count; i++) {
 		draw_sprite(&scene->sprites[i],

@@ -13,7 +13,8 @@ typedef struct {
   vec2 size;
 } Sprite;
 
-Sprite make_sprite(Texture texture, char *name, vec2 initial_pos, vec2 size);
+Sprite make_sprite(TextureCache *cache, char *texture_name, char *name,
+		   vec2 initial_pos, vec2 size);
 void draw_sprite(Sprite *sprite, ShaderProgram shader, GLuint VAO);
 
 unsigned int init_sprite_vao();

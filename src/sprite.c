@@ -8,9 +8,10 @@
 #include "sprite.h"
 #include "texture.h"
 
-Sprite make_sprite(Texture texture, char *name, vec2 initial_pos, vec2 size)
+Sprite make_sprite(TextureCache *cache, char *texture_name, char *name,
+		   vec2 initial_pos, vec2 size)
 {
-	return (Sprite){.texture = texture,
+	return (Sprite){.texture = texture_cache_get(cache, texture_name),
 			.name = name,
 			.pos = {initial_pos[0], initial_pos[1]},
 			.size = {size[0], size[1]}};

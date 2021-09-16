@@ -28,15 +28,15 @@ int main(void)
 
 	glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
-	GLFWwindow *window =
+	GLFWwindow *menu_window =
 	    glfwCreateWindow(INIT_WIDTH, INIT_HEIGHT, "lain", NULL, NULL);
-	if (!window) {
+	if (!menu_window) {
 		printf("Failed to initialize window.\n");
 		glfwTerminate();
 		return -1;
 	}
 
-	glfwMakeContextCurrent(window);
+	glfwMakeContextCurrent(menu_window);
 	glfwSwapInterval(1);
 	glfwSetErrorCallback(error_callback);
 
@@ -51,12 +51,12 @@ int main(void)
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	Engine engine;
-	if (!engine_init(&engine, window)) {
+	if (!engine_init(&engine, menu_window)) {
 		printf("Failed to initialize engine. Exiting.\n");
 		return -1;
 	};
 
-	while (!glfwWindowShouldClose(window)) {
+	while (!glfwWindowShouldClose(menu_window)) {
 		engine_render(&engine);
 	}
 

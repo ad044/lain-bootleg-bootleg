@@ -14,6 +14,8 @@ static GLchar *read_shader_source(const char *path);
 static GLuint compile_shader(GLenum shader_type, const GLchar *shader_source);
 static GLint check_shader_compile_errors(GLuint shader);
 static GLint check_shader_program_link_errors(GLuint program);
+static uint64_t shader_hash(const void *item, uint64_t seed0, uint64_t seed1);
+static int shader_compare(const void *a, const void *b, void *udata);
 
 static uint64_t shader_hash(const void *item, uint64_t seed0, uint64_t seed1)
 {
@@ -122,7 +124,7 @@ void shaderProgramSetMat4(ShaderProgram program, const GLchar *name,
 			   (const GLfloat *)mat);
 }
 
-int shader_cache_init(shader_cache **cache)
+int shader_cache_init(ShaderCache **cache)
 {
 	*cache = hashmap_new(sizeof(Shader), 0, 0, 0, shader_hash,
 			     shader_compare, NULL);
@@ -138,7 +140,7 @@ int shader_cache_init(shader_cache **cache)
 	return 1;
 }
 
-ShaderProgram shader_cache_get(shader_cache *cache, char *shader_name)
+ShaderProgram shader_cache_get(ShaderCache *cache, char *shader_name)
 {
 	Shader *cached_shader =
 	    hashmap_get(cache, &(Shader){.name = shader_name});
@@ -149,9 +151,9 @@ ShaderProgram shader_cache_get(shader_cache *cache, char *shader_name)
 	return cached_shader->id;
 }
 
-void shader_cache_put(shader_cache *cache, char *name, ShaderProgram shader_id)
+void shader_cache_put(ShaderCache *cache, char *shader_name, ShaderProgram shader_id)
 {
-	hashmap_set(cache, &(Shader){.name = name, .id = shader_id});
+	hashmap_set(cache, &(Shader){.name = shader_name, .id = shader_id});
 }
 
 static GLchar *read_shader_source(const char *path)
