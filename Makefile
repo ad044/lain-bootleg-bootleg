@@ -16,6 +16,11 @@ LDFLAGS=-lglfw -lX11 -lXxf86vm -lpthread -lXrandr -lXinerama -lXcursor -lXi -lGL
 
 all: $(EXE)
 
+DEBUG ?= 0
+ifeq ($(DEBUG), 1)
+    CFLAGS += -g
+endif
+
 $(EXE): $(OBJ) | $(BIN_DIR)
 	$(CC) $(LDFLAGS) $^ $(LDLIBS) -o $@
 

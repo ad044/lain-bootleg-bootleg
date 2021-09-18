@@ -1,14 +1,12 @@
 #pragma once
+#include "resource_cache.h"
 #include "shader.h"
 #include "sprite.h"
 #include "timeutil.h"
 
 typedef struct {
-    int sprite_count;
-    Sprite *sprites;
+	SpriteMap *sprite_map;
 } Scene;
 
-Scene *get_menu();
-void draw_scene(Scene *scene, ShaderCache *shaders, unsigned int VAO);
-void update_menu(Scene *scene, GameTime *current_time);
-
+//todo
+void draw_scene(Scene *scene, ResourceCache *resource_cache);
