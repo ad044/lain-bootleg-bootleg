@@ -1,6 +1,4 @@
 #pragma once
-#include <GLFW/glfw3.h>
-
 #include "menu.h"
 #include "resource_cache.h"
 #include "scene.h"
@@ -8,10 +6,11 @@
 #include "texture.h"
 #include "timeutil.h"
 
+#include <GLFW/glfw3.h>
+
 typedef struct {
 	ResourceCache *resource_cache;
 	Menu *menu;
-	Scene current_scene;
 	GLFWwindow *menu_window;
 } Engine;
 

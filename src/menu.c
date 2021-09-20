@@ -1,52 +1,62 @@
+#include <stdio.h>
 #include <stdlib.h>
 
-#include "hashmap.h"
+#include "index_buffer.h"
 #include "menu.h"
-#include "sprite.h"
+#include "shader.h"
+#include "texture.h"
 #include "timeutil.h"
+#include "vertex_array.h"
+#include "vertex_buffer.h"
 
 int init_menu(ResourceCache *resource_cache, Menu **menu)
 {
 	// allocate mem for the menu struct
 	*menu = malloc(sizeof(Menu));
 	if (*menu == NULL) {
-		printf("Failed to allocate memory for the scene.\n");
+		printf("Failed to allocate memory for the menu.\n");
 		return 0;
 	}
 
-	// allocate mem for menu sprites
-	if (!(sprite_map_init(&(*menu)->sprite_map))) {
-		printf("Failed to initialize menu sprites.\n");
-		return 0;
-	}
+	// texture slot definitions
+	TextureSlot texture_slots[] = {
+	    (TextureSlot){.texture_id = texture_cache_get(
+			      resource_cache->textures, "lain"),
+			  .texture_index = 0,
+			  .name = "lain_ui"},
+	    (TextureSlot){.texture_id = texture_cache_get(
+			      resource_cache->textures, "main_ui_closed"),
+			  .texture_index = 1,
+			  .name = "main_ui"}};
 
-	Sprite *lain = make_sprite(resource_cache, "lain", "lain");
-	sprite_set_size(lain, (vec2){1.0f, 1.0f});
-	sprite_set_pos(lain, (vec2){0.0f, 0.0f});
+	unsigned int texture_slot_count =
+	    sizeof(texture_slots) / sizeof(TextureSlot);
 
-	Sprite *main_ui_closed =
-	    make_sprite(resource_cache, "main_ui_closed", "main_ui_closed");
-	sprite_set_size(main_ui_closed, (vec2){1.0f, 1.0f});
-	sprite_set_pos(main_ui_closed, (vec2){0.0f, 0.0f});
-
-	Sprite *sprites[] = {
-	    lain,
-	    main_ui_closed,
+	// sprite definitions
+	Sprite sprites[] = {
+	    // lain
+	    (Sprite){.pos = {-1.0f, -1.0f},
+		     .size = {1.0f, 2.0f},
+		     .texture_index = 0},
+	    // main ui
+	    (Sprite){.pos = {-0.0f, -1.0f},
+		     .size = {1.0f, 2.0f},
+		     .texture_index = 1},
 	};
 
-	int sprite_count = sizeof(sprites) / sizeof(sprites[0]);
+	unsigned int sprite_count = sizeof(sprites) / sizeof(Sprite);
 
-	// populate sprite map
-	for (int i = 0; i < sprite_count; i++) {
-		sprite_map_put((*menu)->sprite_map, sprites[i]);
-	}
+	// which shader to use
+	ShaderProgram shader =
+	    shader_cache_get(resource_cache->shaders, "sprite");
+
+	if (!(init_scene(&(*menu)->scene, sprites, sprite_count, texture_slots,
+			 texture_slot_count, shader))) {
+		printf("Failed to initialize menu.\n");
+		return 0;
+	};
 
 	return 1;
 }
 
 void update_menu(Menu *menu) { get_current_time(menu->current_time); }
-
-void draw_menu(Menu *menu, GLuint *VAO)
-{
-	draw_spritemap(menu->sprite_map, VAO);
-}

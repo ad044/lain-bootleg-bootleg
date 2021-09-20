@@ -1,5 +1,4 @@
 #include <GL/glew.h>
-#include <GLFW/glfw3.h>
 #include <SOIL/SOIL.h>
 #include <stdio.h>
 #include <string.h>
@@ -8,7 +7,6 @@
 #include "hashmap.h"
 #include "scene.h"
 #include "shader.h"
-#include "sprite.h"
 #include "texture.h"
 
 #define INIT_WIDTH 161 // 161

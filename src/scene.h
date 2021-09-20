@@ -1,12 +1,26 @@
 #pragma once
-#include "resource_cache.h"
+
+#include "hashmap.h"
 #include "shader.h"
-#include "sprite.h"
-#include "timeutil.h"
+#include "stdlib.h"
+#include "texture.h"
+
+#include <cglm/types.h>
 
 typedef struct {
-	SpriteMap *sprite_map;
+	vec2 pos;
+	vec2 size;
+	unsigned int texture_index;
+} Sprite;
+
+typedef struct {
+	GLuint VAO;
+	unsigned int index_count;
+	TextureSlotMap *texture_slot_map;
+	ShaderProgram current_shader;
 } Scene;
 
-//todo
-void draw_scene(Scene *scene, ResourceCache *resource_cache);
+int init_scene(Scene **scene, Sprite *sprites, unsigned int sprite_count,
+	       TextureSlot *texture_slots, unsigned int texture_slot_count,
+	       ShaderProgram shader);
+void draw_scene(Scene *scene);

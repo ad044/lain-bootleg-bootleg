@@ -1,6 +1,5 @@
 #include <GL/glew.h>
 #include <GL/glext.h>
-#include <GLFW/glfw3.h>
 #include <cglm/types.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -112,16 +111,12 @@ static GLint check_shader_program_link_errors(GLuint program)
 	return success;
 }
 
-void shaderProgramSetVec3(ShaderProgram program, const GLchar *name, vec3 vec)
+void shader_program_set_samplers(ShaderProgram program, const GLchar *name,
+				 const GLint *samplers,
+				 const GLint sampler_count)
 {
-	glUniform3fv(glGetUniformLocation(program, name), 1, vec);
-}
-
-void shaderProgramSetMat4(ShaderProgram program, const GLchar *name,
-			  const mat4 mat)
-{
-	glUniformMatrix4fv(glGetUniformLocation(program, name), 1, GL_FALSE,
-			   (const GLfloat *)mat);
+	glUniform1iv(glGetUniformLocation(program, name), sampler_count,
+		     samplers);
 }
 
 int shader_cache_init(ShaderCache **cache)
@@ -140,6 +135,8 @@ int shader_cache_init(ShaderCache **cache)
 	return 1;
 }
 
+void shader_bind(ShaderProgram shader) { glUseProgram(shader); }
+
 ShaderProgram shader_cache_get(ShaderCache *cache, char *shader_name)
 {
 	Shader *cached_shader =
@@ -151,7 +148,8 @@ ShaderProgram shader_cache_get(ShaderCache *cache, char *shader_name)
 	return cached_shader->id;
 }
 
-void shader_cache_put(ShaderCache *cache, char *shader_name, ShaderProgram shader_id)
+void shader_cache_put(ShaderCache *cache, char *shader_name,
+		      ShaderProgram shader_id)
 {
 	hashmap_set(cache, &(Shader){.name = shader_name, .id = shader_id});
 }

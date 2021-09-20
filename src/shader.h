@@ -1,6 +1,5 @@
 #pragma once
-#include <GLFW/glfw3.h>
-#include <cglm/cglm.h>
+#include <GL/glew.h>
 #include <cglm/types.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -18,8 +17,9 @@ void shader_cache_put(ShaderCache *cache, char *shader_name,
 		      ShaderProgram shader_id);
 ShaderProgram create_shader(const char *vertex_shader_path,
 			    const char *fragment_shader_path);
-void shaderProgramSetVec3(ShaderProgram program, const GLchar *name, vec3 vec);
-void shaderProgramSetMat4(ShaderProgram program, const GLchar *name,
-			  const mat4 mat);
+void shader_program_set_samplers(ShaderProgram program, const GLchar *name,
+				    const GLint *samplers,
+				    const GLint sampler_count);
+void shader_bind(ShaderProgram shader);
 // todo
 void shader_cache_free(ShaderCache *cache);
