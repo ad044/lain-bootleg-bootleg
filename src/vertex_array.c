@@ -2,9 +2,8 @@
 #include "index_buffer.h"
 #include "vertex_buffer.h"
 
-void init_vertex_array(GLuint *VAO, GLfloat vertices[],
-			    GLuint vertices_size, GLuint indices[],
-			    GLuint indices_size)
+void init_vertex_array(GLuint *VAO, GLfloat vertices[], GLuint vertices_size,
+		       GLuint indices[], GLuint indices_size)
 {
 	GLuint VBO, IBO;
 
@@ -19,13 +18,13 @@ void init_vertex_array(GLuint *VAO, GLfloat vertices[],
 	bind_index_buffer(IBO);
 
 	// position
-	set_vertex_attrib_pointer(0, 2, 5 * sizeof(float), (void *)0);
+	set_vertex_attrib_pointer(0, 2, 5 * sizeof(GLfloat), (void *)0);
 	// texture coords
-	set_vertex_attrib_pointer(1, 2, 5 * sizeof(float),
-				  (void *)(2 * sizeof(float)));
+	set_vertex_attrib_pointer(1, 2, 5 * sizeof(GLfloat),
+				  (void *)(2 * sizeof(GLfloat)));
 	// texture id
-	set_vertex_attrib_pointer(2, 1, 5 * sizeof(float),
-				  (void *)(4 * sizeof(float)));
+	set_vertex_attrib_pointer(2, 1, 5 * sizeof(GLfloat),
+				  (void *)(4 * sizeof(GLfloat)));
 }
 
 void bind_vertex_array(GLuint VAO) { glBindVertexArray(VAO); }

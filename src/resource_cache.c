@@ -1,6 +1,6 @@
 #include <GL/glew.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "index_buffer.h"
 #include "resource_cache.h"
@@ -32,6 +32,5 @@ int init_resource_cache(ResourceCache **resource_cache)
 
 	// preload textures into cache
 	preload_textures((*resource_cache)->textures);
-
 	return 1;
 }

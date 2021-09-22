@@ -4,7 +4,6 @@
 #include "scene.h"
 #include "shader.h"
 #include "texture.h"
-#include "timeutil.h"
 
 #include <GLFW/glfw3.h>
 

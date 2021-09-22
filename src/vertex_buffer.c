@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "scene.h"
 #include "vertex_buffer.h"
 
 // some of the enums will be hardcoded so i dont have to clutter user code with
@@ -16,29 +17,37 @@ void put_sprites_into_buffer(GLfloat *buffer, Sprite *sprites,
 		// top right
 		buffer[offset + 0] = curr.pos[0] + curr.size[0];
 		buffer[offset + 1] = curr.pos[1] + curr.size[1];
-		buffer[offset + 2] = 1.0f;
-		buffer[offset + 3] = 1.0f;
+		buffer[offset + 2] =
+		    curr.texture_offset[0] +
+		    (curr.texture_size[0] ? 1.0f / curr.texture_size[0] : 1.0f);
+		buffer[offset + 3] =
+		    curr.texture_offset[1] +
+		    (curr.texture_size[1] ? 1.0f / curr.texture_size[1] : 1.0f);
 		buffer[offset + 4] = curr.texture_index;
 
 		// bottom right
 		buffer[offset + 5] = curr.pos[0] + curr.size[0];
 		buffer[offset + 6] = curr.pos[1];
-		buffer[offset + 7] = 1.0f;
-		buffer[offset + 8] = 0.0f;
+		buffer[offset + 7] =
+		    curr.texture_offset[0] +
+		    (curr.texture_size[0] ? 1.0f / curr.texture_size[0] : 1.0f);
+		buffer[offset + 8] = curr.texture_offset[1];
 		buffer[offset + 9] = curr.texture_index;
 
 		// bottom left
 		buffer[offset + 10] = curr.pos[0];
 		buffer[offset + 11] = curr.pos[1];
-		buffer[offset + 12] = 0.0f;
-		buffer[offset + 13] = 0.0f;
+		buffer[offset + 12] = curr.texture_offset[0];
+		buffer[offset + 13] = curr.texture_offset[1];
 		buffer[offset + 14] = curr.texture_index;
 
 		// top left
 		buffer[offset + 15] = curr.pos[0];
 		buffer[offset + 16] = curr.pos[1] + curr.size[1];
-		buffer[offset + 17] = 0.0f;
-		buffer[offset + 18] = 1.0f;
+		buffer[offset + 17] = curr.texture_offset[0];
+		buffer[offset + 18] =
+		    curr.texture_offset[1] +
+		    (curr.texture_size[1] ? 1.0f / curr.texture_size[1] : 1.0f);
 		buffer[offset + 19] = curr.texture_index;
 
 		offset += 20;

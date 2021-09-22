@@ -17,6 +17,16 @@ void error_callback(int error, const char *description)
 	fprintf(stderr, "Code: %d\nError: %s\n", error, description);
 }
 
+void GLAPIENTRY gl_debug_message_callback(GLenum source, GLenum type, GLuint id,
+					  GLenum severity, GLsizei length,
+					  const GLchar *message,
+					  const void *userParam)
+{
+//	fprintf(stderr, "\ntype = 0x%x, severity = 0x%x, message = %s\n", type,
+//		severity, message);
+//	printf("%d", 4);
+}
+
 int main(void)
 {
 	if (!glfwInit()) {
@@ -37,6 +47,7 @@ int main(void)
 	glfwMakeContextCurrent(menu_window);
 	glfwSwapInterval(1);
 	glfwSetErrorCallback(error_callback);
+	glEnable(GL_DEBUG_OUTPUT);
 
 	if (glewInit() != GLEW_OK) {
 		printf("Failed to initialize glew.\n");
@@ -47,6 +58,9 @@ int main(void)
 	// enable alpha support
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	// set debug message cb
+	glDebugMessageCallback(gl_debug_message_callback, 0);
 
 	Engine engine;
 	if (!engine_init(&engine, menu_window)) {

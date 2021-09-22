@@ -1,31 +1,45 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <time.h>
 
 #include "index_buffer.h"
 #include "menu.h"
 #include "shader.h"
 #include "texture.h"
-#include "timeutil.h"
 #include "vertex_array.h"
 #include "vertex_buffer.h"
+
+static void get_current_time(char *timestr);
 
 int init_menu(ResourceCache *resource_cache, Menu **menu)
 {
 	// allocate mem for the menu struct
 	*menu = malloc(sizeof(Menu));
+
 	if (*menu == NULL) {
 		printf("Failed to allocate memory for the menu.\n");
 		return 0;
 	}
 
+	// allocate mem for time string
+	(*menu)->current_time = malloc(sizeof(char) * 8);
+	if ((*menu)->current_time == NULL) {
+		printf("Failed to allocate memory for the menu clock.\n");
+		return 0;
+	}
+
 	// texture slot definitions
 	TextureSlot texture_slots[] = {
-	    (TextureSlot){.texture_id = texture_cache_get(
-			      resource_cache->textures, "lain"),
-			  .texture_index = 0,
-			  .name = "lain_ui"},
-	    (TextureSlot){.texture_id = texture_cache_get(
-			      resource_cache->textures, "main_ui_closed"),
+	    (TextureSlot){
+		.texture_id =
+		    texture_cache_get(resource_cache->textures, "lain")->id,
+		.texture_index = 0,
+		.name = "lain_ui"},
+	    (TextureSlot){.texture_id =
+			      texture_cache_get(resource_cache->textures,
+						"main_ui_closed")
+				  ->id,
 			  .texture_index = 1,
 			  .name = "main_ui"}};
 
@@ -59,4 +73,24 @@ int init_menu(ResourceCache *resource_cache, Menu **menu)
 	return 1;
 }
 
+static void get_current_time(char *timestr)
+{
+	time_t t;
+	struct tm *tmp;
+
+	time(&t);
+
+	tmp = localtime(&t);
+
+	strftime(timestr, sizeof(char) * 8, "%p%I:%M", tmp);
+}
+
 void update_menu(Menu *menu) { get_current_time(menu->current_time); }
+
+void draw_menu(ResourceCache *resource_cache, Menu *menu)
+{
+	draw_scene(menu->scene);
+
+	draw_clock(texture_cache_get(resource_cache->textures, "white_font"),
+		   menu->current_time);
+}

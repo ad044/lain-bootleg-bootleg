@@ -11,10 +11,10 @@
 static int texture_slot_compare(const void *a, const void *b, void *udata);
 static uint64_t texture_slot_hash(const void *item, uint64_t seed0,
 				  uint64_t seed1);
+static bool texture_slot_bind(const void *item, void *udata);
 
 static uint64_t texture_hash(const void *item, uint64_t seed0, uint64_t seed1);
 static int texture_compare(const void *a, const void *b, void *udata);
-static bool texture_slot_bind(const void *item, void *udata);
 
 int init_texture(Texture *texture, char *image_path)
 {
@@ -33,10 +33,14 @@ int init_texture(Texture *texture, char *image_path)
 		return 0;
 	}
 
+	texture->width = (GLfloat) width;
+	texture->height = (GLfloat) height;
+	texture->nr_channels = nr_channels;
+
 	glGenTextures(1, &texture->id);
 	glBindTexture(GL_TEXTURE_2D, texture->id);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA,
-		     GL_UNSIGNED_BYTE, data);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture->width, texture->height,
+		     0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 	glGenerateMipmap(GL_TEXTURE_2D);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -70,15 +74,15 @@ static int texture_compare(const void *a, const void *b, void *udata)
 	return strcmp(ua->name, ub->name);
 }
 
-GLuint texture_cache_get(TextureCache *cache, char *texture_name)
+Texture *texture_cache_get(TextureCache *cache, char *texture_name)
 {
 	Texture *cached_texture =
 	    hashmap_get(cache, &(Texture){.name = texture_name});
 	if (cached_texture == NULL) {
 		printf("Failed to load cached texture %s.\n", texture_name);
-		return 0;
+		exit(1);
 	}
-	return cached_texture->id;
+	return cached_texture;
 }
 
 Texture *make_texture(char *image_path, char *name)

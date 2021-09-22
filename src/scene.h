@@ -11,6 +11,9 @@ typedef struct {
 	vec2 pos;
 	vec2 size;
 	unsigned int texture_index;
+	// optional parameters for when offsets/tiling are needed
+	vec2 texture_size;
+	vec2 texture_offset;
 } Sprite;
 
 typedef struct {
