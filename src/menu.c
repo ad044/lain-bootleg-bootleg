@@ -3,14 +3,46 @@
 #include <string.h>
 #include <time.h>
 
-#include "index_buffer.h"
 #include "menu.h"
 #include "shader.h"
+#include "text_renderer.h"
 #include "texture.h"
-#include "vertex_array.h"
-#include "vertex_buffer.h"
 
 static void get_current_time(char *timestr);
+static int init_menu_scene(Scene **scene, ResourceCache *resource_cache);
+
+static int init_menu_scene(Scene **scene, ResourceCache *resource_cache)
+{
+	// textures (will be bound in slots in order)
+	Texture *textures[] = {
+	    texture_cache_get(resource_cache->textures, "lain"),
+	    texture_cache_get(resource_cache->textures, "main_ui_closed"),
+	};
+	unsigned int texture_count = sizeof(textures) / sizeof(textures[0]);
+
+	// sprite definitions
+	Sprite sprites[] = {
+	    // lain
+	    (Sprite){
+		.pos = {0.0f, 0.0f}, .size = {1.0f, 2.0f}, .texture_index = 0},
+	    // main ui
+	    (Sprite){
+		.pos = {-0.0f, 0.0f}, .size = {1.0f, 2.0f}, .texture_index = 1},
+	};
+
+	unsigned int sprite_count = sizeof(sprites) / sizeof(Sprite);
+
+	ShaderProgram shader =
+	    shader_cache_get(resource_cache->shaders, "sprite");
+
+	if (!(init_scene(scene, sprites, sprite_count, textures, texture_count,
+			 shader))) {
+		printf("Failed to initialize menu scene.\n");
+		return 0;
+	};
+
+	return 1;
+}
 
 int init_menu(ResourceCache *resource_cache, Menu **menu)
 {
@@ -29,46 +61,22 @@ int init_menu(ResourceCache *resource_cache, Menu **menu)
 		return 0;
 	}
 
-	// texture slot definitions
-	TextureSlot texture_slots[] = {
-	    (TextureSlot){
-		.texture_id =
-		    texture_cache_get(resource_cache->textures, "lain")->id,
-		.texture_index = 0,
-		.name = "lain_ui"},
-	    (TextureSlot){.texture_id =
-			      texture_cache_get(resource_cache->textures,
-						"main_ui_closed")
-				  ->id,
-			  .texture_index = 1,
-			  .name = "main_ui"}};
+	/// scene definition
+	if (!(init_menu_scene(&(*menu)->scene, resource_cache))) {
+		return 0;
+	}
 
-	unsigned int texture_slot_count =
-	    sizeof(texture_slots) / sizeof(TextureSlot);
+	// clock
+	Texture *clock_texture =
+	    texture_cache_get(resource_cache->textures, "white_font");
 
-	// sprite definitions
-	Sprite sprites[] = {
-	    // lain
-	    (Sprite){.pos = {-1.0f, -1.0f},
-		     .size = {1.0f, 2.0f},
-		     .texture_index = 0},
-	    // main ui
-	    (Sprite){.pos = {-0.0f, -1.0f},
-		     .size = {1.0f, 2.0f},
-		     .texture_index = 1},
-	};
-
-	unsigned int sprite_count = sizeof(sprites) / sizeof(Sprite);
-
-	// which shader to use
-	ShaderProgram shader =
+	ShaderProgram clock_shader =
 	    shader_cache_get(resource_cache->shaders, "sprite");
 
-	if (!(init_scene(&(*menu)->scene, sprites, sprite_count, texture_slots,
-			 texture_slot_count, shader))) {
-		printf("Failed to initialize menu.\n");
+	if (!(init_text_sprite(&(*menu)->clock, clock_shader, clock_texture))) {
+		printf("Failed to initialize clock.\n");
 		return 0;
-	};
+	}
 
 	return 1;
 }
@@ -91,6 +99,5 @@ void draw_menu(ResourceCache *resource_cache, Menu *menu)
 {
 	draw_scene(menu->scene);
 
-	draw_clock(texture_cache_get(resource_cache->textures, "white_font"),
-		   menu->current_time);
+	/* draw_text(menu->clock, menu->current_time); */
 }

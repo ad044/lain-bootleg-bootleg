@@ -2,9 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "index_buffer.h"
 #include "resource_cache.h"
-#include "vertex_buffer.h"
 
 // i am not yet sure if &(*ptr) is too much voodoo, so i will stick with it
 int init_resource_cache(ResourceCache **resource_cache)

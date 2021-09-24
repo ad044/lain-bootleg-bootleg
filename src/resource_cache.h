@@ -1,6 +1,5 @@
 #pragma once
 #include "shader.h"
-#include "text_renderer.h"
 #include "texture.h"
 
 typedef struct {

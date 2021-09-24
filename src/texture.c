@@ -8,11 +8,6 @@
 #include "stb_image.h"
 #include "texture.h"
 
-static int texture_slot_compare(const void *a, const void *b, void *udata);
-static uint64_t texture_slot_hash(const void *item, uint64_t seed0,
-				  uint64_t seed1);
-static bool texture_slot_bind(const void *item, void *udata);
-
 static uint64_t texture_hash(const void *item, uint64_t seed0, uint64_t seed1);
 static int texture_compare(const void *a, const void *b, void *udata);
 
@@ -101,63 +96,6 @@ Texture *make_texture(char *image_path, char *name)
 void texture_cache_put(TextureCache *cache, Texture *texture)
 {
 	hashmap_set(cache, texture);
-}
-
-static int texture_slot_compare(const void *a, const void *b, void *udata)
-{
-	const TextureSlot *ua = a;
-	const TextureSlot *ub = b;
-	return strcmp(ua->name, ub->name);
-}
-
-static uint64_t texture_slot_hash(const void *item, uint64_t seed0,
-				  uint64_t seed1)
-{
-	const TextureSlot *texture_slot = item;
-	return hashmap_sip(texture_slot->name, strlen(texture_slot->name),
-			   seed0, seed1);
-}
-
-void texture_slot_map_put(TextureSlotMap *map, TextureSlot slot)
-{
-	hashmap_set(map, &slot);
-}
-
-int texture_slot_map_init(TextureSlotMap **map)
-{
-	*map = hashmap_new(sizeof(TextureSlot), 0, 0, 0, texture_slot_hash,
-			   texture_slot_compare, NULL);
-	if (*map == NULL) {
-		printf("Failed to allocate memory for texture slot map.\n");
-		return 0;
-	}
-
-	return 1;
-}
-
-static bool texture_slot_bind(const void *item, void *udata)
-{
-	const TextureSlot *texture_slot = item;
-	glBindTextureUnit(texture_slot->texture_index,
-			  texture_slot->texture_id);
-	return true;
-}
-
-void texture_slot_map_bind(TextureSlotMap *map)
-{
-	hashmap_scan(map, texture_slot_bind, NULL);
-}
-
-TextureSlot texture_slot_map_get(TextureSlotMap *map, char *texture_slot_name)
-{
-	TextureSlot *slot =
-	    hashmap_get(map, &(Texture){.name = texture_slot_name});
-	if (slot == NULL) {
-		printf("Failed to load cached texture %s.\n",
-		       texture_slot_name);
-		exit(1);
-	}
-	return *slot;
 }
 
 // perhaps this one can recursively search the texture directory

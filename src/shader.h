@@ -20,6 +20,5 @@ ShaderProgram create_shader(const char *vertex_shader_path,
 void shader_program_set_samplers(ShaderProgram program, const GLchar *name,
 				    const GLint *samplers,
 				    const GLint sampler_count);
-void shader_bind(ShaderProgram shader);
 // todo
 void shader_cache_free(ShaderCache *cache);

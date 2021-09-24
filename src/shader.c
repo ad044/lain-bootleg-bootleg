@@ -135,8 +135,6 @@ int shader_cache_init(ShaderCache **cache)
 	return 1;
 }
 
-void shader_bind(ShaderProgram shader) { glUseProgram(shader); }
-
 ShaderProgram shader_cache_get(ShaderCache *cache, char *shader_name)
 {
 	Shader *cached_shader =

@@ -22,9 +22,8 @@ void GLAPIENTRY gl_debug_message_callback(GLenum source, GLenum type, GLuint id,
 					  const GLchar *message,
 					  const void *userParam)
 {
-//	fprintf(stderr, "\ntype = 0x%x, severity = 0x%x, message = %s\n", type,
-//		severity, message);
-//	printf("%d", 4);
+	fprintf(stderr, "\ntype = 0x%x, severity = 0x%x, message = %s\n", type,
+		severity, message);
 }
 
 int main(void)

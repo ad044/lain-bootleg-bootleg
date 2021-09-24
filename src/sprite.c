@@ -1,18 +1,31 @@
-#include <cglm/types.h>
-#include <stdlib.h>
-#include <string.h>
+#include "sprite.h"
 
-#include "scene.h"
-#include "vertex_buffer.h"
+void init_sprite_vao(GLuint *VAO)
+{
+}
 
-// some of the enums will be hardcoded so i dont have to clutter user code with
-// gl things. will abstract as needed, if i wont need to, i wont.
+void generate_sprite_indices(GLuint *buffer, unsigned int index_count)
+{
+	unsigned int offset = 0;
+	for (int i = 0; i < index_count; i += 6) {
+		buffer[i + 0] = 0 + offset;
+		buffer[i + 1] = 1 + offset;
+		buffer[i + 2] = 3 + offset;
 
-void put_sprites_into_buffer(GLfloat *buffer, Sprite *sprites,
+		buffer[i + 3] = 1 + offset;
+		buffer[i + 4] = 2 + offset;
+		buffer[i + 5] = 3 + offset;
+
+		offset += 4;
+	};
+}
+
+// translates array of sprite definitions into vertex buffer
+void load_sprite_vertex_data(GLfloat *buffer, Sprite *sprites,
 			     unsigned int sprite_count)
 {
 	unsigned int offset = 0;
-	for (size_t i = 0; i < sprite_count; i++) {
+	for (int i = 0; i < sprite_count; i++) {
 		Sprite curr = sprites[i];
 		// top right
 		buffer[offset + 0] = curr.pos[0] + curr.size[0];
@@ -54,22 +67,24 @@ void put_sprites_into_buffer(GLfloat *buffer, Sprite *sprites,
 	};
 }
 
-void init_vertex_buffer(GLuint *VBO, const GLfloat *data, GLuint size)
+// loads sprite data into vbo/ibo
+void fill_buffer_data(Sprite *sprites, unsigned int sprite_count,
+		      unsigned int index_count)
 {
-	glGenBuffers(1, VBO);
+	unsigned int vertex_buffer_size = sprite_count * 4 * 5;
 
-	glBindBuffer(GL_ARRAY_BUFFER, *VBO);
-	glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
+	GLfloat vertices[vertex_buffer_size];
+	load_sprite_vertex_data(vertices, sprites, sprite_count);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices,
+		     GL_STATIC_DRAW);
+
+	GLuint indices[index_count];
+	generate_sprite_indices(indices, index_count);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices,
+		     GL_STATIC_DRAW);
 }
 
-// enables by default
-void set_vertex_attrib_pointer(GLuint index, GLint size, GLsizei stride,
-			       const void *pointer)
+unsigned int get_sprite_index_count(unsigned int sprite_count)
 {
-	glEnableVertexAttribArray(index);
-	glVertexAttribPointer(index, size, GL_FLOAT, GL_FALSE, stride, pointer);
+	return sprite_count * 6;
 }
-
-void bind_vertex_buffer(GLuint VBO) { glBindBuffer(GL_ARRAY_BUFFER, VBO); }
-
-void unbind_vertex_buffer(GLuint VBO) { glBindBuffer(GL_ARRAY_BUFFER, 0); }

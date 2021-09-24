@@ -1,7 +1,14 @@
 #pragma once
 
-#include <GL/glew.h>
+#include "resource_cache.h"
 #include "texture.h"
+#include <GL/glew.h>
 
-void draw_text(GLuint texture, char *text);
-void draw_clock(Texture *texture, char *time);
+typedef struct {
+	GLuint VAO;
+	ShaderProgram shader;
+	Texture *texture;
+} TextSprite;
+int init_text_sprite(TextSprite **text_sprite, ShaderProgram shader,
+		     Texture *texture);
+void draw_text(TextSprite *text_sprite, char *time);
