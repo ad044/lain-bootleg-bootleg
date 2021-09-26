@@ -4,13 +4,13 @@
 
 #include "resource_cache.h"
 #include "scene.h"
-#include "text_renderer.h"
+#include "text.h"
 
 typedef struct {
 	_Bool expanded;
-	char *current_time;
+	unsigned char *current_time;
 	Scene *scene;
-	TextSprite *clock;
+	Text *clock;
 } Menu;
 
 int init_menu(ResourceCache *resource_cache, Menu **menu);

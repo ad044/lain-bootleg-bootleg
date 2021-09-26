@@ -109,4 +109,8 @@ void preload_textures(TextureCache *cache)
 
 	texture_cache_put(
 	    cache, make_texture("assets/ui/white_font.png", "white_font"));
+
+	texture_cache_put(
+	    cache, make_texture("assets/ui/main_ui_bar.png", "main_ui_bar"));
+
 }

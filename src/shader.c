@@ -1,5 +1,4 @@
 #include <GL/glew.h>
-#include <GL/glext.h>
 #include <cglm/types.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -72,8 +71,7 @@ ShaderProgram create_shader(const char *vertex_shader_path,
 
 static GLuint compile_shader(GLenum shader_type, const GLchar *shader_source)
 {
-	GLuint shader;
-	shader = glCreateShader(shader_type);
+	GLuint shader = glCreateShader(shader_type);
 	glShaderSource(shader, 1, &shader_source, NULL);
 	glCompileShader(shader);
 	if (!check_shader_compile_errors(shader)) {
@@ -102,10 +100,10 @@ static GLint check_shader_program_link_errors(GLuint program)
 	GLint success;
 	GLchar log[512];
 
-	glGetProgramiv(program, GL_COMPILE_STATUS, &success);
+	glGetProgramiv(program, GL_LINK_STATUS, &success);
 	if (!success) {
 		glGetProgramInfoLog(program, 512, NULL, log);
-		printf("ERROR::SHADER::COMPILATION_FAILED\n%s\n", log);
+		printf("ERROR::SHADER::LINKING_FAILED\n%s\n", log);
 	}
 
 	return success;
