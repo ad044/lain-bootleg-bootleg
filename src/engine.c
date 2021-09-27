@@ -5,17 +5,25 @@
 #include "scene.h"
 #include "shader.h"
 #include "texture.h"
+#include "window.h"
 
-int engine_init(Engine *engine, GLFWwindow *menu_window)
+static void engine_renderloop(Engine *engine);
+// todo
+static void engine_stop(Engine *engine);
+
+int engine_init(Engine *engine)
 {
+	// init menu window
+	if (!(make_menu_window(&engine->menu_window))) {
+		printf("Failed to create menu window.\n");
+		return 0;
+	}
+
 	// initialize resource cache
 	if (!(init_resource_cache(&engine->resource_cache))) {
 		printf("Failed to initialize resource cache.\n");
 		return 0;
 	}
-
-	// set current context window inside engine
-	engine->menu_window = menu_window;
 
 	// init menu
 	if (!(init_menu(engine->resource_cache, &engine->menu))) {
@@ -26,14 +34,22 @@ int engine_init(Engine *engine, GLFWwindow *menu_window)
 	return 1;
 }
 
-void engine_render(Engine *engine)
+static void engine_renderloop(Engine *engine)
 {
-	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-	glClear(GL_COLOR_BUFFER_BIT);
+	while (!glfwWindowShouldClose(engine->menu_window)) {
+		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
 
-	update_menu(engine->menu);
-	draw_menu(engine->resource_cache, engine->menu);
+		update_menu(engine->menu);
+		draw_menu(engine->resource_cache, engine->menu);
 
-	glfwPollEvents();
-	glfwSwapBuffers(engine->menu_window);
+		glfwPollEvents();
+		glfwSwapBuffers(engine->menu_window);
+	}
+}
+
+void engine_run(Engine *engine)
+{
+	engine_renderloop(engine);
+	glfwTerminate();
 }

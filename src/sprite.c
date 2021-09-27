@@ -53,8 +53,8 @@ static GLfloat *get_sprite_vertices(GLfloat *buffer, Sprite *sprite)
 {
 	GLfloat vertices[] = {
 	    // top right
-	    sprite->pos.x + sprite->size.x,
-	    sprite->pos.y + sprite->size.y,
+	    sprite->pos.x + (sprite->size.x / 2),
+	    sprite->pos.y + (sprite->size.y / 2),
 	    sprite->texture_offset.x +
 		(sprite->texture_size.x ? 1.0f / sprite->texture_size.x : 1.0f),
 	    sprite->texture_offset.y +
@@ -62,23 +62,23 @@ static GLfloat *get_sprite_vertices(GLfloat *buffer, Sprite *sprite)
 	    sprite->texture_index,
 
 	    // bottom right
-	    sprite->pos.x + sprite->size.x,
-	    sprite->pos.y,
+	    sprite->pos.x + (sprite->size.x / 2),
+	    sprite->pos.y - (sprite->size.y / 2),
 	    sprite->texture_offset.x +
 		(sprite->texture_size.x ? 1.0f / sprite->texture_size.x : 1.0f),
 	    sprite->texture_offset.y,
 	    sprite->texture_index,
 
 	    // bottom left
-	    sprite->pos.x,
-	    sprite->pos.y,
+	    sprite->pos.x - (sprite->size.x / 2),
+	    sprite->pos.y - (sprite->size.y / 2),
 	    sprite->texture_offset.x,
 	    sprite->texture_offset.y,
 	    sprite->texture_index,
 
 	    // top left
-	    sprite->pos.x,
-	    sprite->pos.y + sprite->size.y,
+	    sprite->pos.x - (sprite->size.x / 2),
+	    sprite->pos.y + (sprite->size.y / 2),
 	    sprite->texture_offset.x,
 	    sprite->texture_offset.y +
 		(sprite->texture_size.y ? 1.0f / sprite->texture_size.y : 1.0f),

@@ -1,10 +1,11 @@
 #pragma once
 
-#include <stdbool.h>
-
 #include "resource_cache.h"
 #include "scene.h"
 #include "text.h"
+
+#include <GLFW/glfw3.h>
+#include <stdbool.h>
 
 typedef struct {
 	_Bool expanded;

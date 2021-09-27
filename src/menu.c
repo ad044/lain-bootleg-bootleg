@@ -8,6 +8,7 @@
 #include "shader.h"
 #include "text.h"
 #include "texture.h"
+#include "window.h"
 
 static void get_current_time(unsigned char *timestr);
 static int init_menu_scene(Scene **scene, ResourceCache *resource_cache);
@@ -24,17 +25,17 @@ static int init_menu_scene(Scene **scene, ResourceCache *resource_cache)
 
 	// sprite definitions
 	Sprite sprites[] = {// lain
-			    (Sprite){.pos = {-1.0f, -0.8f},
+			    (Sprite){.pos = {-0.5f, -0.0f},
 				     .size = {0.6f, 1.2f},
 				     .texture_index = 0,
 				     .z_index = 1},
 			    // main ui
-			    (Sprite){.pos = {-1.3f, -1.0f},
-				     .size = {2.0f, 2.0f},
+			    (Sprite){.pos = {-0.3f, -0.0f},
+				     .size = {2.0f, 2.8f},
 				     .texture_index = 1,
 				     .z_index = 0},
 			    // main ui bar
-			    (Sprite){.pos = {0.0f, -0.3f},
+			    (Sprite){.pos = {0.5f, -0.3f},
 				     .size = {1.6f, 0.2f},
 				     .texture_index = 2,
 				     .z_index = 2}};
@@ -65,7 +66,7 @@ static int init_clock(Text **clock, ResourceCache *resource_cache)
 		return 0;
 	}
 
-	(*clock)->pos = (Vector2D){-0.5f, -0.1f};
+	(*clock)->pos = (Vector2D){-0.1f, 0.1f};
 	(*clock)->size = (Vector2D){0.4f, 0.4f};
 
 	return 1;
