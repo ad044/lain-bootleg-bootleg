@@ -9,7 +9,6 @@
 
 typedef struct {
 	_Bool expanded;
-	unsigned char *current_time;
 	Scene *scene;
 	Text *clock;
 } Menu;

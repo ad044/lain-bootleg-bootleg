@@ -1,6 +1,7 @@
 #include <stdio.h>
 
 #include "engine.h"
+#include "input.h"
 #include "menu.h"
 #include "scene.h"
 #include "shader.h"
@@ -31,6 +32,10 @@ int engine_init(Engine *engine)
 		return 0;
 	}
 
+	// set sticky buttons to not miss state
+	glfwSetInputMode(engine->menu_window, GLFW_STICKY_MOUSE_BUTTONS,
+			 GLFW_TRUE);
+
 	return 1;
 }
 
@@ -41,6 +46,7 @@ static void engine_renderloop(Engine *engine)
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		update_menu(engine->menu);
+		handle_menu_click(engine->menu, engine->menu_window);
 		draw_menu(engine->resource_cache, engine->menu);
 
 		glfwPollEvents();

@@ -19,6 +19,9 @@ int init_resource_cache(ResourceCache **resource_cache)
 		return 0;
 	}
 
+	// preload shaders into cache
+	preload_shaders((*resource_cache)->shaders);
+
 	// initialize texture cache and fill it
 	// (for now i will try to preload every texture, which is currently)
 	// around 9 mb. if this proves to be problematic we can change the

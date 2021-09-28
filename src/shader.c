@@ -109,12 +109,30 @@ static GLint check_shader_program_link_errors(GLuint program)
 	return success;
 }
 
-void shader_program_set_samplers(ShaderProgram program, const GLchar *name,
-				 const GLint *samplers,
-				 const GLint sampler_count)
+void shader_program_set_texture_samplers(ShaderProgram program,
+					 const GLint *samplers,
+					 const GLint sampler_count)
 {
-	glUniform1iv(glGetUniformLocation(program, name), sampler_count,
+	glUniform1iv(glGetUniformLocation(program, "u_Textures"), sampler_count,
 		     samplers);
+}
+
+void shader_program_set_texture(ShaderProgram program, const GLint texture)
+{
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, texture);
+	glUniform1i(glGetUniformLocation(program, "u_Texture"), 0);
+}
+
+void preload_shaders(ShaderCache *cache)
+{
+	shader_cache_put(
+	    cache, "scene",
+	    create_shader("src/shaders/scene.vs", "src/shaders/scene.fs"));
+
+	shader_cache_put(
+	    cache, "text",
+	    create_shader("src/shaders/text.vs", "src/shaders/text.fs"));
 }
 
 int shader_cache_init(ShaderCache **cache)
@@ -125,11 +143,6 @@ int shader_cache_init(ShaderCache **cache)
 		printf("Failed to allocate memory for shader cache.\n");
 		return 0;
 	}
-
-	ShaderProgram sprite_shader =
-	    create_shader("src/shaders/sprite.vs", "src/shaders/sprite.fs");
-	shader_cache_put(*cache, "sprite", sprite_shader);
-
 	return 1;
 }
 

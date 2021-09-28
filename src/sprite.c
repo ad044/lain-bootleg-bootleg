@@ -1,7 +1,7 @@
 #include "sprite.h"
 
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 
 static GLfloat *get_sprite_vertices(GLfloat *buffer, Sprite *sprite);
 static int depth_sort_cmp(const void *a, const void *b);
@@ -21,32 +21,6 @@ void generate_sprite_indices(GLuint *buffer, unsigned int index_count)
 
 		offset += 4;
 	};
-}
-
-void init_sprite_buffers(GLuint *VAO, GLuint *VBO, GLuint *IBO)
-{
-	glGenVertexArrays(1, VAO);
-	glBindVertexArray(*VAO);
-
-	glGenBuffers(1, VBO);
-	glBindBuffer(GL_ARRAY_BUFFER, *VBO);
-
-	glGenBuffers(1, IBO);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, *IBO);
-
-	// position
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat),
-			      (void *)0);
-	// texture coords
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat),
-			      (void *)(2 * sizeof(GLfloat)));
-
-	// texture id
-	glEnableVertexAttribArray(2);
-	glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat),
-			      (void *)(4 * sizeof(GLfloat)));
 }
 
 static GLfloat *get_sprite_vertices(GLfloat *buffer, Sprite *sprite)
@@ -90,23 +64,17 @@ static GLfloat *get_sprite_vertices(GLfloat *buffer, Sprite *sprite)
 	return buffer;
 }
 
-// translates array of sprite definitions into vertex buffer
-void load_sprite_vertex_data(GLfloat *buffer, Sprite *sprites,
-			     unsigned int sprite_count)
-{
-	for (int i = 0; i < sprite_count; i++) {
-		buffer = get_sprite_vertices(buffer, &sprites[i]);
-	};
-}
-
 // loads sprite data into vbo/ibo
-void fill_buffer_data(Sprite *sprites, unsigned int sprite_count,
-		      unsigned int index_count)
+void fill_sprite_buffer_data(Sprite *sprites, unsigned int sprite_count,
+			     unsigned int index_count)
 {
 	unsigned int vertex_buffer_size = sprite_count * 4 * 5;
 
 	GLfloat vertices[vertex_buffer_size];
-	load_sprite_vertex_data(vertices, sprites, sprite_count);
+	GLfloat *buffer_p = vertices;
+	for (int i = 0; i < sprite_count; i++) {
+		buffer_p = get_sprite_vertices(buffer_p, &sprites[i]);
+	};
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices,
 		     GL_STATIC_DRAW);
 
@@ -118,7 +86,7 @@ void fill_buffer_data(Sprite *sprites, unsigned int sprite_count,
 
 static int depth_sort_cmp(const void *a, const void *b)
 {
-	return ((Sprite*)a)->z_index - ((Sprite*)b)->z_index;
+	return ((Sprite *)a)->z_index - ((Sprite *)b)->z_index;
 }
 
 void depth_sort(Sprite *sprites, unsigned int sprite_count)
@@ -129,4 +97,16 @@ void depth_sort(Sprite *sprites, unsigned int sprite_count)
 unsigned int get_sprite_index_count(unsigned int sprite_count)
 {
 	return sprite_count * 6;
+}
+
+_Bool is_sprite_within_bounds(Sprite sprite, Vector2D point)
+{
+	float left_x_bound = sprite.pos.x - sprite.size.x / 2;
+	float right_x_bound = sprite.pos.x + sprite.size.x / 2;
+
+	float left_y_bound = sprite.pos.y - sprite.size.y / 2;
+	float right_y_bound = sprite.pos.y + sprite.size.y / 2;
+
+	return (left_x_bound <= point.x && point.x <= right_x_bound) &&
+	       (left_y_bound <= point.y && point.y <= right_y_bound);
 }

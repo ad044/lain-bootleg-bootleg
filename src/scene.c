@@ -2,11 +2,37 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "render.h"
 #include "scene.h"
 #include "shader.h"
+#include "sprite.h"
 
-static void scene_to_render_data(RenderData *render_data, Scene *scene);
+static void init_scene_buffers(GLuint *VAO, GLuint *VBO, GLuint *IBO);
+
+static void init_scene_buffers(GLuint *VAO, GLuint *VBO, GLuint *IBO)
+{
+	glGenVertexArrays(1, VAO);
+	glBindVertexArray(*VAO);
+
+	glGenBuffers(1, VBO);
+	glBindBuffer(GL_ARRAY_BUFFER, *VBO);
+
+	glGenBuffers(1, IBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, *IBO);
+
+	// position
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat),
+			      (void *)0);
+	// texture coords
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat),
+			      (void *)(2 * sizeof(GLfloat)));
+
+	// texture id
+	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat),
+			      (void *)(4 * sizeof(GLfloat)));
+}
 
 int init_scene(Scene **scene, Sprite *sprites, unsigned int sprite_count,
 	       Texture **textures, unsigned int texture_count,
@@ -21,10 +47,10 @@ int init_scene(Scene **scene, Sprite *sprites, unsigned int sprite_count,
 	// sort by z index before passing down the pipeline
 	depth_sort(sprites, sprite_count);
 
-	init_sprite_buffers(&(*scene)->VAO, &(*scene)->VBO, &(*scene)->IBO);
+	init_scene_buffers(&(*scene)->VAO, &(*scene)->VBO, &(*scene)->IBO);
 	// fill buffers with sprites initially
-	fill_buffer_data(sprites, sprite_count,
-			 get_sprite_index_count(sprite_count));
+	fill_sprite_buffer_data(sprites, sprite_count,
+				get_sprite_index_count(sprite_count));
 
 	(*scene)->sprites = malloc(sizeof(Sprite) * sprite_count);
 	if ((*scene)->sprites == NULL) {
@@ -57,21 +83,24 @@ int init_scene(Scene **scene, Sprite *sprites, unsigned int sprite_count,
 	return 1;
 }
 
-static void scene_to_render_data(RenderData *render_data, Scene *scene)
-{
-	render_data->VAO = scene->VAO;
-	render_data->texture_count = scene->texture_count;
-	render_data->textures = scene->textures;
-	render_data->shader = scene->shader;
-	render_data->index_count = get_sprite_index_count(scene->sprite_count);
-	render_data->samplers = scene->samplers;
-}
-
 void draw_scene(Scene *scene)
 {
-	RenderData render_data;
+	// bind appropriate textures
+	for (int i = 0; i < scene->texture_count; i++) {
+		glActiveTexture(GL_TEXTURE0 + i);
+		glBindTexture(GL_TEXTURE_2D, scene->textures[i].id);
+	}
 
-	scene_to_render_data(&render_data, scene);
+	// bind shader and set texture samplers
+	glUseProgram(scene->shader);
+	shader_program_set_texture_samplers(scene->shader, scene->samplers,
+					    scene->texture_count);
 
-	render(render_data);
+	// bind vao
+	glBindVertexArray(scene->VAO);
+
+	// draw
+	glDrawElements(GL_TRIANGLES,
+		       get_sprite_index_count(scene->sprite_count),
+		       GL_UNSIGNED_INT, 0);
 }

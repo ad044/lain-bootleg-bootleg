@@ -17,8 +17,10 @@ void shader_cache_put(ShaderCache *cache, char *shader_name,
 		      ShaderProgram shader_id);
 ShaderProgram create_shader(const char *vertex_shader_path,
 			    const char *fragment_shader_path);
-void shader_program_set_samplers(ShaderProgram program, const GLchar *name,
-				    const GLint *samplers,
-				    const GLint sampler_count);
+void shader_program_set_texture_samplers(ShaderProgram program,
+					 const GLint *samplers,
+					 const GLint sampler_count);
+void shader_program_set_texture(ShaderProgram program, const GLint texture);
+void preload_shaders();
 // todo
 void shader_cache_free(ShaderCache *cache);

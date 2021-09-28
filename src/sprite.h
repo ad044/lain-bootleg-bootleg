@@ -2,6 +2,7 @@
 
 #include <GL/glew.h>
 #include <cglm/types.h>
+#include <stdbool.h>
 
 typedef struct {
 	GLfloat x;
@@ -15,13 +16,12 @@ typedef struct {
 	// optional parameters for when offsets/tiling are needed
 	Vector2D texture_size;
 	Vector2D texture_offset;
+	void (*on_click)(void);
 } Sprite;
 
 void generate_sprite_indices(GLuint *buffer, unsigned int index_count);
-void load_sprite_vertex_data(GLfloat *buffer, Sprite *sprites,
-			     unsigned int sprite_count);
-void fill_buffer_data(Sprite *sprites, unsigned int sprite_count,
-		      unsigned int index_count);
-void init_sprite_buffers(GLuint *VAO, GLuint *VBO, GLuint *IBO);
+void fill_sprite_buffer_data(Sprite *sprites, unsigned int sprite_count,
+			     unsigned int index_count);
 unsigned int get_sprite_index_count(unsigned int sprite_count);
 void depth_sort(Sprite *sprites, unsigned int sprite_count);
+_Bool is_sprite_within_bounds(Sprite sprite, Vector2D v_2);

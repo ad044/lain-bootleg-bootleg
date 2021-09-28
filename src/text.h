@@ -1,8 +1,8 @@
 #pragma once
 
 #include "resource_cache.h"
-#include "texture.h"
 #include "sprite.h"
+#include "texture.h"
 
 typedef struct {
 	GLuint VAO;
@@ -15,6 +15,8 @@ typedef struct {
 	unsigned char *current_text;
 	unsigned int sprite_count;
 } Text;
-int init_text_obj(Text **text_obj, ShaderProgram shader, Texture *texture);
-void update_text_obj(Text *text_obj, unsigned char *text);
+int init_text_obj(Text **text_obj, Texture *texture,
+		  ResourceCache *resource_cache);
+void update_text(Text *text_obj, unsigned char *text);
+void update_text_vertices(Text *text_obj, unsigned char *text);
 void draw_text(Text *text_obj);

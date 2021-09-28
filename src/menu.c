@@ -42,7 +42,7 @@ static int init_menu_scene(Scene **scene, ResourceCache *resource_cache)
 	unsigned int sprite_count = sizeof(sprites) / sizeof(sprites[0]);
 
 	ShaderProgram shader =
-	    shader_cache_get(resource_cache->shaders, "sprite");
+	    shader_cache_get(resource_cache->shaders, "scene");
 
 	if (!(init_scene(scene, sprites, sprite_count, textures, texture_count,
 			 shader))) {
@@ -58,16 +58,28 @@ static int init_clock(Text **clock, ResourceCache *resource_cache)
 	Texture *clock_texture =
 	    texture_cache_get(resource_cache->textures, "white_font");
 
-	ShaderProgram clock_shader =
-	    shader_cache_get(resource_cache->shaders, "sprite");
-
-	if (!(init_text_obj(clock, clock_shader, clock_texture))) {
+	if (!(init_text_obj(clock, clock_texture, resource_cache))) {
 		printf("Failed to initialize clock.\n");
 		return 0;
 	}
 
 	(*clock)->pos = (Vector2D){-0.1f, 0.1f};
 	(*clock)->size = (Vector2D){0.4f, 0.4f};
+
+	// allocate mem for time string
+	(*clock)->current_text = malloc(sizeof(char) * 8);
+	if ((*clock)->current_text == NULL) {
+		printf(
+		    "Failed to allocate memory for the menu clock string.\n");
+		return 0;
+	}
+
+	// the clock always consists of 6 sprites
+	(*clock)->sprite_count = 6;
+
+	// initialize current time and set vertices
+	get_current_time((*clock)->current_text);
+	update_text_vertices((*clock), (*clock)->current_text);
 
 	return 1;
 }
@@ -79,14 +91,6 @@ int init_menu(ResourceCache *resource_cache, Menu **menu)
 
 	if (*menu == NULL) {
 		printf("Failed to allocate memory for the menu.\n");
-		return 0;
-	}
-
-	// allocate mem for time string
-	(*menu)->current_time = malloc(sizeof(char) * 8);
-	if ((*menu)->current_time == NULL) {
-		printf(
-		    "Failed to allocate memory for the menu clock string.\n");
 		return 0;
 	}
 
@@ -117,8 +121,9 @@ static void get_current_time(unsigned char *timestr)
 
 void update_menu(Menu *menu)
 {
-	get_current_time(menu->current_time);
-	update_text_obj(menu->clock, menu->current_time);
+	unsigned char current_time[8];
+	get_current_time(current_time);
+	update_text(menu->clock, current_time);
 }
 
 void draw_menu(ResourceCache *resource_cache, Menu *menu)
