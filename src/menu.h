@@ -15,4 +15,6 @@ typedef struct {
 
 int init_menu(ResourceCache *resource_cache, Menu **menu);
 void update_menu(Menu *menu);
+int load_shrinked_menu_scene(Scene **scene, ResourceCache *resource_cache);
+int load_expanded_menu_scene(Scene **scene, ResourceCache *resource_cache);
 void draw_menu(ResourceCache *resource_cache, Menu *menu);

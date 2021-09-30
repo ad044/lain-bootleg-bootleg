@@ -1,7 +1,14 @@
 #include "sprite.h"
+#include "engine.h"
+#include "hashmap.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#define QUAD_VERTEX_COUNT 4
+#define ROWS_PER_QUAD_VERTEX 5
+#define QUAD_INDEX_COUNT 6
 
 static GLfloat *get_sprite_vertices(GLfloat *buffer, Sprite *sprite);
 static int depth_sort_cmp(const void *a, const void *b);
@@ -65,10 +72,11 @@ static GLfloat *get_sprite_vertices(GLfloat *buffer, Sprite *sprite)
 }
 
 // loads sprite data into vbo/ibo
-void fill_sprite_buffer_data(Sprite *sprites, unsigned int sprite_count,
-			     unsigned int index_count)
+void update_sprite_vertices(Sprite *sprites, unsigned int sprite_count,
+			    unsigned int index_count)
 {
-	unsigned int vertex_buffer_size = sprite_count * 4 * 5;
+	unsigned int vertex_buffer_size =
+	    sprite_count * ROWS_PER_QUAD_VERTEX * QUAD_VERTEX_COUNT;
 
 	GLfloat vertices[vertex_buffer_size];
 	GLfloat *buffer_p = vertices;
@@ -96,17 +104,17 @@ void depth_sort(Sprite *sprites, unsigned int sprite_count)
 
 unsigned int get_sprite_index_count(unsigned int sprite_count)
 {
-	return sprite_count * 6;
+	return sprite_count * QUAD_INDEX_COUNT;
 }
 
-_Bool is_sprite_within_bounds(Sprite sprite, Vector2D point)
+_Bool is_sprite_within_bounds(const Sprite *sprite, const Vector2D *point)
 {
-	float left_x_bound = sprite.pos.x - sprite.size.x / 2;
-	float right_x_bound = sprite.pos.x + sprite.size.x / 2;
+	float left_x = sprite->pos.x - sprite->size.x / 2;
+	float right_x = sprite->pos.x + sprite->size.x / 2;
 
-	float left_y_bound = sprite.pos.y - sprite.size.y / 2;
-	float right_y_bound = sprite.pos.y + sprite.size.y / 2;
+	float left_y = sprite->pos.y - sprite->size.y / 2;
+	float right_y = sprite->pos.y + sprite->size.y / 2;
 
-	return (left_x_bound <= point.x && point.x <= right_x_bound) &&
-	       (left_y_bound <= point.y && point.y <= right_y_bound);
+	return (left_x <= point->x && point->x <= right_x) &&
+	       (left_y <= point->y && point->y <= right_y);
 }

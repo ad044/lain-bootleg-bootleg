@@ -8,28 +8,17 @@
 #include "hashmap.h"
 #include "shader.h"
 
+#define MAX_SHADER_COUNT 10
+
 static GLchar *read_shader_source(const char *path);
 static GLuint compile_shader(GLenum shader_type, const GLchar *shader_source);
 static GLint check_shader_compile_errors(GLuint shader);
 static GLint check_shader_program_link_errors(GLuint program);
-static uint64_t shader_hash(const void *item, uint64_t seed0, uint64_t seed1);
-static int shader_compare(const void *a, const void *b, void *udata);
+static ShaderProgram create_shader(const char *vertex_shader_path,
+				   const char *fragment_shader_path);
 
-static uint64_t shader_hash(const void *item, uint64_t seed0, uint64_t seed1)
-{
-	const Shader *shader = item;
-	return hashmap_sip(shader->name, strlen(shader->name), seed0, seed1);
-}
-
-static int shader_compare(const void *a, const void *b, void *udata)
-{
-	const Shader *ua = a;
-	const Shader *ub = b;
-	return strcmp(ua->name, ub->name);
-}
-
-ShaderProgram create_shader(const char *vertex_shader_path,
-			    const char *fragment_shader_path)
+static ShaderProgram create_shader(const char *vertex_shader_path,
+				   const char *fragment_shader_path)
 {
 	GLchar *vertex_source = read_shader_source(vertex_shader_path);
 	if (vertex_source == NULL) {
@@ -124,50 +113,28 @@ void shader_program_set_texture(ShaderProgram program, const GLint texture)
 	glUniform1i(glGetUniformLocation(program, "u_Texture"), 0);
 }
 
-void preload_shaders(ShaderCache *cache)
+int shader_cache_init(ShaderProgram **shaders)
 {
-	shader_cache_put(
-	    cache, "scene",
-	    create_shader("src/shaders/scene.vs", "src/shaders/scene.fs"));
+	*shaders = malloc(sizeof(ShaderProgram) * MAX_SHADER_COUNT);
 
-	shader_cache_put(
-	    cache, "text",
-	    create_shader("src/shaders/text.vs", "src/shaders/text.fs"));
-}
-
-int shader_cache_init(ShaderCache **cache)
-{
-	*cache = hashmap_new(sizeof(Shader), 0, 0, 0, shader_hash,
-			     shader_compare, NULL);
-	if (*cache == NULL) {
+	if (*shaders == NULL) {
 		printf("Failed to allocate memory for shader cache.\n");
 		return 0;
 	}
+
+	(*shaders)[SCENE_SHADER] =
+	    create_shader("src/shaders/scene.vs", "src/shaders/scene.fs");
+	(*shaders)[TEXT_SHADER] =
+	    create_shader("src/shaders/text.vs", "src/shaders/text.fs");
+
 	return 1;
-}
-
-ShaderProgram shader_cache_get(ShaderCache *cache, char *shader_name)
-{
-	Shader *cached_shader =
-	    hashmap_get(cache, &(Shader){.name = shader_name});
-	if (cached_shader == NULL) {
-		printf("Failed to load cached shader.\n");
-		return 0;
-	}
-	return cached_shader->id;
-}
-
-void shader_cache_put(ShaderCache *cache, char *shader_name,
-		      ShaderProgram shader_id)
-{
-	hashmap_set(cache, &(Shader){.name = shader_name, .id = shader_id});
 }
 
 static GLchar *read_shader_source(const char *path)
 {
 	FILE *file = fopen(path, "rb");
 	if (file == NULL) {
-		printf("could not load file at %s\n", path);
+		printf("Could not load shader at %s\n.", path);
 		return NULL;
 	}
 

@@ -2,9 +2,15 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "resource_cache.h"
 #include "scene.h"
 #include "shader.h"
 #include "sprite.h"
+
+SceneTextureSlot make_texture_slot(int slot_id, Texture *texture)
+{
+	return (SceneTextureSlot){slot_id, texture};
+}
 
 static void init_scene_buffers(GLuint *VAO, GLuint *VBO, GLuint *IBO);
 
@@ -34,9 +40,9 @@ static void init_scene_buffers(GLuint *VAO, GLuint *VBO, GLuint *IBO)
 			      (void *)(4 * sizeof(GLfloat)));
 }
 
-int init_scene(Scene **scene, Sprite *sprites, unsigned int sprite_count,
-	       Texture **textures, unsigned int texture_count,
-	       ShaderProgram shader)
+int load_scene(Scene **scene, Sprite *sprites, unsigned int sprite_count,
+	       SceneTextureSlot *textures, unsigned int texture_count,
+	       ResourceCache *resource_cache)
 {
 	*scene = malloc(sizeof(Scene));
 	if (*scene == NULL) {
@@ -46,12 +52,13 @@ int init_scene(Scene **scene, Sprite *sprites, unsigned int sprite_count,
 
 	// sort by z index before passing down the pipeline
 	depth_sort(sprites, sprite_count);
-
+	// initialize vao, vbo, ibo
 	init_scene_buffers(&(*scene)->VAO, &(*scene)->VBO, &(*scene)->IBO);
-	// fill buffers with sprites initially
-	fill_sprite_buffer_data(sprites, sprite_count,
-				get_sprite_index_count(sprite_count));
+	// fill buffers with sprite vertices
+	update_sprite_vertices(sprites, sprite_count,
+			       get_sprite_index_count(sprite_count));
 
+	// copy sprites over to scene definition
 	(*scene)->sprites = malloc(sizeof(Sprite) * sprite_count);
 	if ((*scene)->sprites == NULL) {
 		printf("Failed to allocate memory for scene sprites.\n");
@@ -59,6 +66,7 @@ int init_scene(Scene **scene, Sprite *sprites, unsigned int sprite_count,
 	}
 	memcpy((*scene)->sprites, sprites, sizeof(Sprite) * sprite_count);
 
+	// texture stuff
 	(*scene)->textures = malloc(sizeof(Texture) * texture_count);
 	if ((*scene)->textures == NULL) {
 		printf("Failed to allocate memory for scene textures.\n");
@@ -72,23 +80,33 @@ int init_scene(Scene **scene, Sprite *sprites, unsigned int sprite_count,
 	}
 
 	for (int i = 0; i < texture_count; i++) {
-		(*scene)->textures[i] = *textures[i];
+		(*scene)->textures[i] = textures[i];
 		(*scene)->samplers[i] = i;
 	}
 
 	(*scene)->texture_count = texture_count;
 	(*scene)->sprite_count = sprite_count;
-	(*scene)->shader = shader;
+	(*scene)->shader = resource_cache->shaders[SCENE_SHADER];
 
 	return 1;
+}
+
+void update_scene(Scene *scene)
+{
+	glBindVertexArray(scene->VAO);
+	glBindBuffer(GL_ARRAY_BUFFER, scene->VBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, scene->IBO);
+
+	update_sprite_vertices(scene->sprites, scene->sprite_count,
+			       get_sprite_index_count(scene->sprite_count));
 }
 
 void draw_scene(Scene *scene)
 {
 	// bind appropriate textures
 	for (int i = 0; i < scene->texture_count; i++) {
-		glActiveTexture(GL_TEXTURE0 + i);
-		glBindTexture(GL_TEXTURE_2D, scene->textures[i].id);
+		glActiveTexture(GL_TEXTURE0 + scene->textures[i].slot_id);
+		glBindTexture(GL_TEXTURE_2D, scene->textures[i].texture->id);
 	}
 
 	// bind shader and set texture samplers

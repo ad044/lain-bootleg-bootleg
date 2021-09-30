@@ -3,7 +3,7 @@
 #include "texture.h"
 
 typedef struct {
-	ShaderCache *shaders;
+	ShaderProgram *shaders;
 	TextureCache *textures;
 } ResourceCache;
 int init_resource_cache(ResourceCache **resource_cache);

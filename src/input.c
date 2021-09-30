@@ -1,8 +1,8 @@
 #include "sprite.h"
 
-#include <GLFW/glfw3.h>
 #include <stdio.h>
 
+#include "engine.h"
 #include "input.h"
 
 static void get_normalized_mouse_pos(Vector2D *pos, GLFWwindow *window);
@@ -21,21 +21,22 @@ static void get_normalized_mouse_pos(Vector2D *pos, GLFWwindow *window)
 	pos->y = -(2 * (y_pos / height) - 1);
 }
 
-void handle_menu_click(Menu *menu, GLFWwindow *window)
+void handle_menu_click(GLFWwindow *window, int button, int action, int mods)
 {
-	static int old_state = GLFW_RELEASE;
-	int new_state = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
-	if (new_state == GLFW_PRESS && old_state == GLFW_RELEASE) {
+	Engine *engine = (Engine *)glfwGetWindowUserPointer(window);
+
+	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
 		Vector2D mouse_pos;
+		Scene *scene = engine->menu->scene;
+
 		get_normalized_mouse_pos(&mouse_pos, window);
-		// todo check for highest z index
-		for (int i = 0; i < menu->scene->sprite_count; i++) {
-			Sprite curr_sprite = menu->scene->sprites[i];
+
+		for (int i = 0; i < scene->sprite_count; i++) {
+			Sprite curr_sprite = scene->sprites[i];
 			if (curr_sprite.on_click != NULL &&
-			    is_sprite_within_bounds(curr_sprite, mouse_pos)) {
-				curr_sprite.on_click();
+			    is_sprite_within_bounds(&curr_sprite, &mouse_pos)) {
+				curr_sprite.on_click(engine);
 			}
 		}
 	}
-	old_state = new_state;
 }

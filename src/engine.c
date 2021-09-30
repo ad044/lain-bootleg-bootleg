@@ -14,8 +14,8 @@ static void engine_stop(Engine *engine);
 
 int engine_init(Engine *engine)
 {
-	// init menu window
-	if (!(make_menu_window(&engine->menu_window))) {
+	// init main (menu) window
+	if (!(make_menu_window(&engine->main_window))) {
 		printf("Failed to create menu window.\n");
 		return 0;
 	}
@@ -32,25 +32,25 @@ int engine_init(Engine *engine)
 		return 0;
 	}
 
-	// set sticky buttons to not miss state
-	glfwSetInputMode(engine->menu_window, GLFW_STICKY_MOUSE_BUTTONS,
-			 GLFW_TRUE);
+	// set user pointer to access engine inside callback function
+	glfwSetWindowUserPointer(engine->main_window, engine);
+	// set callbacks
+	glfwSetMouseButtonCallback(engine->main_window, handle_menu_click);
 
 	return 1;
 }
 
 static void engine_renderloop(Engine *engine)
 {
-	while (!glfwWindowShouldClose(engine->menu_window)) {
+	while (!glfwWindowShouldClose(engine->main_window)) {
 		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		update_menu(engine->menu);
-		handle_menu_click(engine->menu, engine->menu_window);
 		draw_menu(engine->resource_cache, engine->menu);
 
 		glfwPollEvents();
-		glfwSwapBuffers(engine->menu_window);
+		glfwSwapBuffers(engine->main_window);
 	}
 }
 
@@ -59,3 +59,4 @@ void engine_run(Engine *engine)
 	engine_renderloop(engine);
 	glfwTerminate();
 }
+

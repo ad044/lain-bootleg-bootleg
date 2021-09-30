@@ -15,8 +15,7 @@ const static uint16_t white_glyph_offsets[256] = {
     ['3'] = 160, ['4'] = 192, ['5'] = 224, ['6'] = 256, ['7'] = 288,
     ['8'] = 320, ['9'] = 352, [':'] = 384};
 
-static _Bool text_needs_update(Text *text_obj, unsigned char *text);
-static void init_text_buffers(GLuint *VAO, GLuint *VBO, GLuint *IBO);
+static void init_text_obj_buffers(GLuint *VAO, GLuint *VBO, GLuint *IBO);
 
 static void init_text_obj_buffers(GLuint *VAO, GLuint *VBO, GLuint *IBO)
 {
@@ -58,13 +57,13 @@ int init_text_obj(Text **text_obj, Texture *texture,
 	init_text_obj_buffers(&(*text_obj)->VAO, &(*text_obj)->VBO,
 			      &(*text_obj)->IBO);
 
-	(*text_obj)->shader = shader_cache_get(resource_cache->shaders, "text");
+	(*text_obj)->shader = resource_cache->shaders[TEXT_SHADER];
 	(*text_obj)->texture = texture;
 
 	return 1;
 }
 
-static _Bool text_needs_update(Text *text_obj, unsigned char *text)
+_Bool text_obj_needs_update(Text *text_obj, unsigned char *text)
 {
 	return (strcmp((char *)text_obj->current_text, (char *)text) != 0);
 }
@@ -102,15 +101,8 @@ void update_text_vertices(Text *text_obj, unsigned char *text)
 	glBindBuffer(GL_ARRAY_BUFFER, text_obj->VBO);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, text_obj->IBO);
 
-	fill_sprite_buffer_data(sprites, text_obj->sprite_count,
-				get_sprite_index_count(sprite_count));
-}
-
-void update_text(Text *text_obj, unsigned char *text)
-{
-	if (!text_needs_update(text_obj, text)) {
-		update_text_vertices(text_obj, text);
-	}
+	update_sprite_vertices(sprites, text_obj->sprite_count,
+			       get_sprite_index_count(sprite_count));
 }
 
 void draw_text(Text *text_obj)

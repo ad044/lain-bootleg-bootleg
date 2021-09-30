@@ -8,7 +8,7 @@
 typedef struct {
 	ResourceCache *resource_cache;
 	Menu *menu;
-	GLFWwindow *menu_window;
+	GLFWwindow *main_window;
 } Engine;
 
 int engine_init(Engine *engine);

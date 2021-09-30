@@ -5,47 +5,89 @@
 
 #include "menu.h"
 #include "resource_cache.h"
+#include "scene.h"
 #include "shader.h"
+#include "sprite.h"
 #include "text.h"
 #include "texture.h"
 #include "window.h"
 
 static void get_current_time(unsigned char *timestr);
-static int init_menu_scene(Scene **scene, ResourceCache *resource_cache);
 static int init_clock(Text **clock, ResourceCache *resource_cache);
 
-static int init_menu_scene(Scene **scene, ResourceCache *resource_cache)
+int load_expanded_menu_scene(Scene **scene, ResourceCache *resource_cache)
 {
-	// textures (will be bound in slots in order)
-	Texture *textures[] = {
-	    texture_cache_get(resource_cache->textures, "lain"),
-	    texture_cache_get(resource_cache->textures, "main_ui_closed"),
-	    texture_cache_get(resource_cache->textures, "main_ui_bar")};
+	SceneTextureSlot textures[] = {
+	    make_texture_slot(
+		0, texture_cache_get(resource_cache->textures, "lain")),
+
+	    make_texture_slot(1, texture_cache_get(resource_cache->textures,
+						   "main_ui_closed")),
+
+	    make_texture_slot(
+		2, texture_cache_get(resource_cache->textures, "main_ui_bar"))};
 	unsigned int texture_count = sizeof(textures) / sizeof(textures[0]);
 
-	// sprite definitions
-	Sprite sprites[] = {// lain
-			    (Sprite){.pos = {-0.5f, -0.0f},
+	Sprite sprites[] = {(Sprite){.pos = {-0.5f, -0.0f},
 				     .size = {0.6f, 1.2f},
 				     .texture_index = 0,
-				     .z_index = 1},
-			    // main ui
+				     .z_index = 1,
+				     .name = "lain"},
 			    (Sprite){.pos = {-0.3f, -0.0f},
-				     .size = {2.0f, 2.8f},
+				     .size = {2.0f, 2.0f},
 				     .texture_index = 1,
-				     .z_index = 0},
-			    // main ui bar
+				     .z_index = 0,
+				     .name = "main_ui"},
 			    (Sprite){.pos = {0.5f, -0.3f},
 				     .size = {1.6f, 0.2f},
 				     .texture_index = 2,
-				     .z_index = 2}};
+				     .z_index = 2,
+				     .on_click = shrink_main_window,
+				     .name = "main_ui_bar"}};
 	unsigned int sprite_count = sizeof(sprites) / sizeof(sprites[0]);
 
-	ShaderProgram shader =
-	    shader_cache_get(resource_cache->shaders, "scene");
+	if (!(load_scene(scene, sprites, sprite_count, textures, texture_count,
+			 resource_cache))) {
+		printf("Failed to initialize menu scene.\n");
+		return 0;
+	};
 
-	if (!(init_scene(scene, sprites, sprite_count, textures, texture_count,
-			 shader))) {
+	return 1;
+}
+
+int load_shrinked_menu_scene(Scene **scene, ResourceCache *resource_cache)
+{
+	SceneTextureSlot textures[] = {
+	    make_texture_slot(
+		0, texture_cache_get(resource_cache->textures, "lain")),
+
+	    make_texture_slot(1, texture_cache_get(resource_cache->textures,
+						   "main_ui_closed")),
+
+	    make_texture_slot(
+		2, texture_cache_get(resource_cache->textures, "main_ui_bar"))};
+	unsigned int texture_count = sizeof(textures) / sizeof(textures[0]);
+
+	Sprite sprites[] = {(Sprite){.pos = {-0.5f, -0.0f},
+				     .size = {0.6f, 1.2f},
+				     .texture_index = 0,
+				     .z_index = 1,
+				     .name = "lain"},
+			    (Sprite){.pos = {-0.3f, -0.0f},
+				     .size = {2.0f, 2.8f},
+				     .texture_index = 1,
+				     .z_index = 0,
+				     .name = "main_ui"},
+			    (Sprite){.pos = {0.5f, -0.3f},
+				     .size = {1.6f, 0.2f},
+				     .texture_index = 2,
+				     .z_index = 2,
+				     .on_click = expand_main_window,
+				     .name = "main_ui_bar"}};
+	unsigned int sprite_count = sizeof(sprites) / sizeof(sprites[0]);
+
+	if (!(load_scene(scene, sprites, sprite_count, textures, texture_count,
+			 resource_cache))) {
 		printf("Failed to initialize menu scene.\n");
 		return 0;
 	};
@@ -94,8 +136,8 @@ int init_menu(ResourceCache *resource_cache, Menu **menu)
 		return 0;
 	}
 
-	/// scene definition
-	if (!(init_menu_scene(&(*menu)->scene, resource_cache))) {
+	/// load scene
+	if (!(load_shrinked_menu_scene(&(*menu)->scene, resource_cache))) {
 		return 0;
 	}
 
@@ -123,7 +165,10 @@ void update_menu(Menu *menu)
 {
 	unsigned char current_time[8];
 	get_current_time(current_time);
-	update_text(menu->clock, current_time);
+
+	if (!text_obj_needs_update(menu->clock, current_time)) {
+		update_text_vertices(menu->clock, current_time);
+	}
 }
 
 void draw_menu(ResourceCache *resource_cache, Menu *menu)

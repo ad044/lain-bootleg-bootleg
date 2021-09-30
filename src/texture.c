@@ -53,6 +53,9 @@ int texture_cache_init(TextureCache **cache)
 		return 0;
 	}
 
+	// preload textures into cache
+	preload_textures(*cache);
+
 	return 1;
 }
 
@@ -80,22 +83,22 @@ Texture *texture_cache_get(TextureCache *cache, char *texture_name)
 	return cached_texture;
 }
 
-Texture *make_texture(char *image_path, char *name)
+Texture make_texture(char *image_path, char *name)
 {
-	Texture *texture = malloc(sizeof(Texture));
-	if (!(init_texture(texture, image_path))) {
+	Texture texture;
+	if (!(init_texture(&texture, image_path))) {
 		printf("Failed to initialize texture %s", image_path);
 		exit(1);
 	};
 
-	texture->name = name;
+	texture.name = name;
 
 	return texture;
 }
 
-void texture_cache_put(TextureCache *cache, Texture *texture)
+void texture_cache_put(TextureCache *cache, Texture texture)
 {
-	hashmap_set(cache, texture);
+	hashmap_set(cache, &texture);
 }
 
 // perhaps this one can recursively search the texture directory
