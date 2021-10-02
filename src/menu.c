@@ -14,86 +14,7 @@
 
 static void get_current_time(unsigned char *timestr);
 static int init_clock(Text **clock, ResourceCache *resource_cache);
-
-int load_expanded_menu_scene(Scene **scene, ResourceCache *resource_cache)
-{
-	SceneTextureSlot textures[] = {
-	    make_texture_slot(
-		0, texture_cache_get(resource_cache->textures, "lain")),
-
-	    make_texture_slot(1, texture_cache_get(resource_cache->textures,
-						   "main_ui_closed")),
-
-	    make_texture_slot(
-		2, texture_cache_get(resource_cache->textures, "main_ui_bar"))};
-	unsigned int texture_count = sizeof(textures) / sizeof(textures[0]);
-
-	Sprite sprites[] = {(Sprite){.pos = {-0.5f, -0.0f},
-				     .size = {0.6f, 1.2f},
-				     .texture_index = 0,
-				     .z_index = 1,
-				     .name = "lain"},
-			    (Sprite){.pos = {-0.3f, -0.0f},
-				     .size = {2.0f, 2.0f},
-				     .texture_index = 1,
-				     .z_index = 0,
-				     .name = "main_ui"},
-			    (Sprite){.pos = {0.5f, -0.3f},
-				     .size = {1.6f, 0.2f},
-				     .texture_index = 2,
-				     .z_index = 2,
-				     .on_click = shrink_main_window,
-				     .name = "main_ui_bar"}};
-	unsigned int sprite_count = sizeof(sprites) / sizeof(sprites[0]);
-
-	if (!(load_scene(scene, sprites, sprite_count, textures, texture_count,
-			 resource_cache))) {
-		printf("Failed to initialize menu scene.\n");
-		return 0;
-	};
-
-	return 1;
-}
-
-int load_shrinked_menu_scene(Scene **scene, ResourceCache *resource_cache)
-{
-	SceneTextureSlot textures[] = {
-	    make_texture_slot(
-		0, texture_cache_get(resource_cache->textures, "lain")),
-
-	    make_texture_slot(1, texture_cache_get(resource_cache->textures,
-						   "main_ui_closed")),
-
-	    make_texture_slot(
-		2, texture_cache_get(resource_cache->textures, "main_ui_bar"))};
-	unsigned int texture_count = sizeof(textures) / sizeof(textures[0]);
-
-	Sprite sprites[] = {(Sprite){.pos = {-0.5f, -0.0f},
-				     .size = {0.6f, 1.2f},
-				     .texture_index = 0,
-				     .z_index = 1,
-				     .name = "lain"},
-			    (Sprite){.pos = {-0.3f, -0.0f},
-				     .size = {2.0f, 2.8f},
-				     .texture_index = 1,
-				     .z_index = 0,
-				     .name = "main_ui"},
-			    (Sprite){.pos = {0.5f, -0.3f},
-				     .size = {1.6f, 0.2f},
-				     .texture_index = 2,
-				     .z_index = 2,
-				     .on_click = expand_main_window,
-				     .name = "main_ui_bar"}};
-	unsigned int sprite_count = sizeof(sprites) / sizeof(sprites[0]);
-
-	if (!(load_scene(scene, sprites, sprite_count, textures, texture_count,
-			 resource_cache))) {
-		printf("Failed to initialize menu scene.\n");
-		return 0;
-	};
-
-	return 1;
-}
+static int init_menu_scene(Menu *menu, ResourceCache *resource_cache);
 
 static int init_clock(Text **clock, ResourceCache *resource_cache)
 {
@@ -107,6 +28,7 @@ static int init_clock(Text **clock, ResourceCache *resource_cache)
 
 	(*clock)->pos = (Vector2D){-0.1f, 0.1f};
 	(*clock)->size = (Vector2D){0.4f, 0.4f};
+	(*clock)->glyph_count = 13.0f;
 
 	// allocate mem for time string
 	(*clock)->current_text = malloc(sizeof(char) * 8);
@@ -121,7 +43,61 @@ static int init_clock(Text **clock, ResourceCache *resource_cache)
 
 	// initialize current time and set vertices
 	get_current_time((*clock)->current_text);
-	update_text_vertices((*clock), (*clock)->current_text);
+	update_text_vertices((*clock), (*clock)->current_text, 6);
+
+	return 1;
+}
+
+static int init_menu_scene(Menu *menu, ResourceCache *resource_cache)
+{
+	menu->sprites = malloc(sizeof(MenuSprites));
+	if (menu->sprites == NULL) {
+		printf("Failed to allocate memory for menu sprites.\n");
+		return 0;
+	}
+
+	if (!make_sprite(&menu->sprites->lain,
+			 (Sprite){.pos = {-0.5f, 0.0f},
+				  .size = {0.6f, 1.2f},
+				  .texture_index = 0,
+				  .texture_size = {1.0f, 1.0f},
+				  .texture_offset = {0.0f, 0.0f},
+				  .z_index = 1})) {
+		return 0;
+	};
+
+	if (!make_sprite(&menu->sprites->main_ui,
+			 (Sprite){
+			     .pos = {-0.3f, 0.0f},
+			     .size = {2.0f, 2.0f},
+			     .texture_index = 1,
+			     .texture_size = {1.0f, 1.0f},
+			     .texture_offset = {0.0f, 0.0f},
+			     .z_index = 0,
+			 })) {
+		return 0;
+	};
+
+	Sprite *sprites[] = {menu->sprites->main_ui, menu->sprites->lain};
+	unsigned int sprite_count = sizeof(sprites) / sizeof(sprites[0]);
+
+	SceneTextureSlot textures[] = {
+	    make_texture_slot(
+		0, texture_cache_get(resource_cache->textures, "lain")),
+
+	    make_texture_slot(1, texture_cache_get(resource_cache->textures,
+						   "main_ui_closed")),
+
+	    make_texture_slot(
+		2, texture_cache_get(resource_cache->textures, "main_ui_bar"))};
+
+	unsigned int texture_count = sizeof(textures) / sizeof(textures[0]);
+
+	if (!(load_scene(&menu->scene, sprites, sprite_count, textures,
+			 texture_count, resource_cache))) {
+		printf("Failed to initialize menu scene.\n");
+		return 0;
+	};
 
 	return 1;
 }
@@ -136,8 +112,9 @@ int init_menu(ResourceCache *resource_cache, Menu **menu)
 		return 0;
 	}
 
-	/// load scene
-	if (!(load_shrinked_menu_scene(&(*menu)->scene, resource_cache))) {
+	// load scene
+	if (!(init_menu_scene(*menu, resource_cache))) {
+		printf("Failed to initialize menu scene.\n");
 		return 0;
 	}
 
@@ -158,7 +135,7 @@ static void get_current_time(unsigned char *timestr)
 
 	tmp = localtime(&t);
 
-	strftime(timestr, sizeof(char) * 8, "%p%I:%M", tmp);
+	strftime((char *)timestr, sizeof(char) * 8, "%p%I:%M", tmp);
 }
 
 void update_menu(Menu *menu)
@@ -166,12 +143,12 @@ void update_menu(Menu *menu)
 	unsigned char current_time[8];
 	get_current_time(current_time);
 
-	if (!text_obj_needs_update(menu->clock, current_time)) {
-		update_text_vertices(menu->clock, current_time);
+	if (text_obj_needs_update(menu->clock, current_time)) {
+		update_text_vertices(menu->clock, current_time, 6);
 	}
 }
 
-void draw_menu(ResourceCache *resource_cache, Menu *menu)
+void draw_menu(Menu *menu)
 {
 	draw_scene(menu->scene);
 	draw_text(menu->clock);

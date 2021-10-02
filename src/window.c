@@ -40,11 +40,6 @@ void expand_main_window(Engine *engine)
 			  EXPANDED_MENU_HEIGHT);
 	glViewport(0, 0, EXPANDED_MENU_WIDTH, EXPANDED_MENU_HEIGHT);
 
-	if (!(load_expanded_menu_scene(&engine->menu->scene,
-				       engine->resource_cache))) {
-		printf("Failed to load maximized menu.\n");
-		exit(1);
-	};
 }
 
 void shrink_main_window(Engine *engine)
@@ -53,11 +48,6 @@ void shrink_main_window(Engine *engine)
 			  SHRINKED_MENU_HEIGHT);
 	glViewport(0, 0, SHRINKED_MENU_WIDTH, SHRINKED_MENU_HEIGHT);
 
-	if (!(load_shrinked_menu_scene(&engine->menu->scene,
-				       engine->resource_cache))) {
-		printf("Failed to load minimized menu.\n");
-		exit(1);
-	};
 }
 
 int make_window(GLFWwindow **window, int width, int height, char *name)

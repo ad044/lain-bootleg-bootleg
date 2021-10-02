@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <time.h>
 
 #include "engine.h"
 #include "input.h"
@@ -42,15 +43,22 @@ int engine_init(Engine *engine)
 
 static void engine_renderloop(Engine *engine)
 {
+
 	while (!glfwWindowShouldClose(engine->main_window)) {
+		// temporary benchmark to see how changes affect things
+		float startTime = (float)clock() / CLOCKS_PER_SEC;
 		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		update_menu(engine->menu);
-		draw_menu(engine->resource_cache, engine->menu);
+		draw_menu(engine->menu);
 
 		glfwPollEvents();
 		glfwSwapBuffers(engine->main_window);
+
+		float endTime = (float)clock() / CLOCKS_PER_SEC;
+
+		/* printf("%f\n", endTime - startTime); */
 	}
 }
 
@@ -59,4 +67,3 @@ void engine_run(Engine *engine)
 	engine_renderloop(engine);
 	glfwTerminate();
 }
-

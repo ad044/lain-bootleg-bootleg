@@ -20,11 +20,11 @@ typedef struct {
 	SceneTextureSlot *textures;
 	unsigned int texture_count;
 	GLint *samplers;
-	Sprite *sprites;
+	Sprite **sprites;
 	unsigned int sprite_count;
 } Scene;
 
-int load_scene(Scene **scene, Sprite *sprites, unsigned int sprite_count,
+int load_scene(Scene **scene, Sprite **sprites, unsigned int sprite_count,
 	       SceneTextureSlot *textures, unsigned int texture_count,
 	       ResourceCache *resource_cache);
 SceneTextureSlot make_texture_slot(int slot_id, Texture *texture);

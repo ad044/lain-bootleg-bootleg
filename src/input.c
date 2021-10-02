@@ -32,7 +32,7 @@ void handle_menu_click(GLFWwindow *window, int button, int action, int mods)
 		get_normalized_mouse_pos(&mouse_pos, window);
 
 		for (int i = 0; i < scene->sprite_count; i++) {
-			Sprite curr_sprite = scene->sprites[i];
+			Sprite curr_sprite = *scene->sprites[i];
 			if (curr_sprite.on_click != NULL &&
 			    is_sprite_within_bounds(&curr_sprite, &mouse_pos)) {
 				curr_sprite.on_click(engine);

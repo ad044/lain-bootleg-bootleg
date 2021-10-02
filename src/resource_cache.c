@@ -1,8 +1,10 @@
 #include <GL/glew.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "resource_cache.h"
+#include "sprite.h"
 
 // i am not yet sure if &(*ptr) is too much voodoo, so i will stick with it
 int init_resource_cache(ResourceCache **resource_cache)
@@ -18,7 +20,6 @@ int init_resource_cache(ResourceCache **resource_cache)
 		printf("Failed to initialize shader cache.\n");
 		return 0;
 	}
-
 
 	// initialize texture cache and fill it
 	// (for now i will try to preload every texture, which is currently)

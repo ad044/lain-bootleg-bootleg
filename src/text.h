@@ -14,9 +14,11 @@ typedef struct {
 	Texture *texture;
 	unsigned char *current_text;
 	unsigned int sprite_count;
+	float glyph_count;
 } Text;
 int init_text_obj(Text **text_obj, Texture *texture,
 		  ResourceCache *resource_cache);
-void update_text_vertices(Text *text_obj, unsigned char *text);
+void update_text_vertices(Text *text_obj, unsigned char *text,
+			  unsigned int sprite_count);
 _Bool text_obj_needs_update(Text *text_obj, unsigned char *text);
 void draw_text(Text *text_obj);

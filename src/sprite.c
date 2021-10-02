@@ -10,7 +10,6 @@
 #define ROWS_PER_QUAD_VERTEX 5
 #define QUAD_INDEX_COUNT 6
 
-static GLfloat *get_sprite_vertices(GLfloat *buffer, Sprite *sprite);
 static int depth_sort_cmp(const void *a, const void *b);
 
 void generate_sprite_indices(GLuint *buffer, unsigned int index_count)
@@ -30,23 +29,20 @@ void generate_sprite_indices(GLuint *buffer, unsigned int index_count)
 	};
 }
 
-static GLfloat *get_sprite_vertices(GLfloat *buffer, Sprite *sprite)
+GLfloat *get_sprite_vertices(GLfloat *buffer, Sprite *sprite)
 {
 	GLfloat vertices[] = {
 	    // top right
 	    sprite->pos.x + (sprite->size.x / 2),
 	    sprite->pos.y + (sprite->size.y / 2),
-	    sprite->texture_offset.x +
-		(sprite->texture_size.x ? 1.0f / sprite->texture_size.x : 1.0f),
-	    sprite->texture_offset.y +
-		(sprite->texture_size.y ? 1.0f / sprite->texture_size.y : 1.0f),
+	    sprite->texture_offset.x + sprite->texture_size.x,
+	    sprite->texture_offset.y + sprite->texture_size.y,
 	    sprite->texture_index,
 
 	    // bottom right
 	    sprite->pos.x + (sprite->size.x / 2),
 	    sprite->pos.y - (sprite->size.y / 2),
-	    sprite->texture_offset.x +
-		(sprite->texture_size.x ? 1.0f / sprite->texture_size.x : 1.0f),
+	    sprite->texture_offset.x + sprite->texture_size.x,
 	    sprite->texture_offset.y,
 	    sprite->texture_index,
 
@@ -61,8 +57,7 @@ static GLfloat *get_sprite_vertices(GLfloat *buffer, Sprite *sprite)
 	    sprite->pos.x - (sprite->size.x / 2),
 	    sprite->pos.y + (sprite->size.y / 2),
 	    sprite->texture_offset.x,
-	    sprite->texture_offset.y +
-		(sprite->texture_size.y ? 1.0f / sprite->texture_size.y : 1.0f),
+	    sprite->texture_offset.y + sprite->texture_size.y,
 	    sprite->texture_index,
 	};
 
@@ -71,40 +66,57 @@ static GLfloat *get_sprite_vertices(GLfloat *buffer, Sprite *sprite)
 	return buffer;
 }
 
-// loads sprite data into vbo/ibo
-void update_sprite_vertices(Sprite *sprites, unsigned int sprite_count,
-			    unsigned int index_count)
+void update_sprite_buffers(GLuint VBO, GLuint IBO, GLfloat *vertices,
+			   GLfloat vertices_size, unsigned int sprite_count)
 {
-	unsigned int vertex_buffer_size =
-	    sprite_count * ROWS_PER_QUAD_VERTEX * QUAD_VERTEX_COUNT;
+	// fill vbo
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBufferData(GL_ARRAY_BUFFER, vertices_size, vertices, GL_DYNAMIC_DRAW);
 
-	GLfloat vertices[vertex_buffer_size];
-	GLfloat *buffer_p = vertices;
-	for (int i = 0; i < sprite_count; i++) {
-		buffer_p = get_sprite_vertices(buffer_p, &sprites[i]);
-	};
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices,
-		     GL_STATIC_DRAW);
+	// calculate indices, fill ibo
+	unsigned int index_count = get_sprite_index_count(sprite_count);
 
 	GLuint indices[index_count];
+
 	generate_sprite_indices(indices, index_count);
+
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices,
-		     GL_STATIC_DRAW);
+		     GL_DYNAMIC_DRAW);
 }
 
 static int depth_sort_cmp(const void *a, const void *b)
 {
-	return ((Sprite *)a)->z_index - ((Sprite *)b)->z_index;
+	const Sprite *sprite_a = *(Sprite **)a;
+	const Sprite *sprite_b = *(Sprite **)b;
+	return sprite_a->z_index - sprite_b->z_index;
 }
 
-void depth_sort(Sprite *sprites, unsigned int sprite_count)
+void depth_sort(Sprite **sprites, unsigned int sprite_count)
 {
-	qsort(sprites, sprite_count, sizeof(Sprite), depth_sort_cmp);
+	qsort(sprites, sprite_count, sizeof(Sprite *), depth_sort_cmp);
 }
 
 unsigned int get_sprite_index_count(unsigned int sprite_count)
 {
 	return sprite_count * QUAD_INDEX_COUNT;
+}
+
+unsigned int get_sprite_vertex_buffer_size(unsigned int sprite_count)
+
+{
+	return sprite_count * ROWS_PER_QUAD_VERTEX * QUAD_VERTEX_COUNT;
+}
+
+int make_sprite(Sprite **target, Sprite sprite)
+{
+	*target = malloc(sizeof(Sprite));
+	if (target == NULL) {
+		printf("Failed to allocate memory for sprite\n");
+		return 0;
+	}
+
+	memcpy(*target, &sprite, sizeof(Sprite));
+	return 1;
 }
 
 _Bool is_sprite_within_bounds(const Sprite *sprite, const Vector2D *point)
