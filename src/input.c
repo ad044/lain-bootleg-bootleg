@@ -5,8 +5,6 @@
 #include "engine.h"
 #include "input.h"
 
-static void get_normalized_mouse_pos(Vector2D *pos, GLFWwindow *window);
-
 // get current mouse coords and normalizes to range -1 to 1
 static void get_normalized_mouse_pos(Vector2D *pos, GLFWwindow *window)
 {
@@ -17,8 +15,8 @@ static void get_normalized_mouse_pos(Vector2D *pos, GLFWwindow *window)
 	double x_pos, y_pos;
 	glfwGetCursorPos(window, &x_pos, &y_pos);
 
-	pos->x = 2 * (x_pos / width) - 1;
-	pos->y = -(2 * (y_pos / height) - 1);
+	pos->x = (width / 2.0f * 2) * (x_pos / width) - width / 2.0f;
+	pos->y = -(-height / 2.0f * 2) * (y_pos / height) - height / 2.0f;
 }
 
 void handle_menu_click(GLFWwindow *window, int button, int action, int mods)
@@ -27,9 +25,9 @@ void handle_menu_click(GLFWwindow *window, int button, int action, int mods)
 
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
 		Vector2D mouse_pos;
-		Scene *scene = engine->menu->scene;
-
 		get_normalized_mouse_pos(&mouse_pos, window);
+
+		Scene *scene = engine->menu->scene;
 
 		for (int i = 0; i < scene->sprite_count; i++) {
 			Sprite curr_sprite = *scene->sprites[i];

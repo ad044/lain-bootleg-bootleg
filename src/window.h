@@ -3,6 +3,5 @@
 #include <GLFW/glfw3.h>
 
 int make_window(GLFWwindow **window, int width, int height, char *name);
-void expand_main_window(Engine *engine);
-void shrink_main_window(Engine *engine);
-int make_menu_window(GLFWwindow **window);
+void toggle_main_window_expanded(Engine *engine);
+int make_main_window(GLFWwindow **window);

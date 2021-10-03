@@ -16,7 +16,7 @@ static void engine_stop(Engine *engine);
 int engine_init(Engine *engine)
 {
 	// init main (menu) window
-	if (!(make_menu_window(&engine->main_window))) {
+	if (!(make_main_window(&engine->main_window))) {
 		printf("Failed to create menu window.\n");
 		return 0;
 	}
@@ -51,7 +51,7 @@ static void engine_renderloop(Engine *engine)
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		update_menu(engine->menu);
-		draw_menu(engine->menu);
+		draw_menu(engine->menu, engine->main_window);
 
 		glfwPollEvents();
 		glfwSwapBuffers(engine->main_window);

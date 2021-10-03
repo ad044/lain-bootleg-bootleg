@@ -23,31 +23,29 @@ static void GLAPIENTRY gl_debug_message_callback(GLenum source, GLenum type,
 		severity, message);
 }
 
-int make_menu_window(GLFWwindow **window)
+int make_main_window(GLFWwindow **window)
 {
 	if (!(make_window(window, SHRINKED_MENU_WIDTH, SHRINKED_MENU_HEIGHT,
 			  "lain"))) {
-		printf("Failed to start menu.\n");
+		printf("Failed to create main window.\n");
 		return 0;
 	}
 
 	return 1;
 }
 
-void expand_main_window(Engine *engine)
+void toggle_main_window_expanded(Engine *engine)
 {
-	glfwSetWindowSize(engine->main_window, EXPANDED_MENU_WIDTH,
-			  EXPANDED_MENU_HEIGHT);
-	glViewport(0, 0, EXPANDED_MENU_WIDTH, EXPANDED_MENU_HEIGHT);
+	if (engine->menu->expanded) {
+		glfwSetWindowSize(engine->main_window, SHRINKED_MENU_WIDTH,
+				  SHRINKED_MENU_HEIGHT);
+		engine->menu->expanded = false;
+	} else {
 
-}
-
-void shrink_main_window(Engine *engine)
-{
-	glfwSetWindowSize(engine->main_window, SHRINKED_MENU_WIDTH,
-			  SHRINKED_MENU_HEIGHT);
-	glViewport(0, 0, SHRINKED_MENU_WIDTH, SHRINKED_MENU_HEIGHT);
-
+		glfwSetWindowSize(engine->main_window, EXPANDED_MENU_WIDTH,
+				  EXPANDED_MENU_HEIGHT);
+		engine->menu->expanded = true;
+	}
 }
 
 int make_window(GLFWwindow **window, int width, int height, char *name)

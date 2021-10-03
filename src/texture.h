@@ -3,12 +3,12 @@
 #include <stdint.h>
 
 #include "hashmap.h"
+#include "sprite.h"
 
 typedef struct {
 	GLuint id;
 	int nr_channels;
-	GLfloat width;
-	GLfloat height;
+	Vector2D size;
 	char *name;
 } Texture;
 

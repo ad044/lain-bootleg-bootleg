@@ -106,6 +106,13 @@ void shader_program_set_texture_samplers(ShaderProgram program,
 		     samplers);
 }
 
+void shader_program_set_mat4(ShaderProgram program, const GLchar *name,
+			     const mat4 mat)
+{
+	glUniformMatrix4fv(glGetUniformLocation(program, name), 1, GL_FALSE,
+			   (const GLfloat *)mat);
+}
+
 void shader_program_set_texture(ShaderProgram program, const GLint texture)
 {
 	glActiveTexture(GL_TEXTURE0);

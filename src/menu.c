@@ -27,8 +27,9 @@ static int init_clock(Text **clock, ResourceCache *resource_cache)
 	}
 
 	(*clock)->pos = (Vector2D){-0.1f, 0.1f};
-	(*clock)->size = (Vector2D){0.4f, 0.4f};
-	(*clock)->glyph_count = 13.0f;
+	(*clock)->glyph_size = (Vector2D){clock_texture->size.x / 13.0f,
+					  clock_texture->size.y / 1.0f};
+	(*clock)->glyph_texture_size = (Vector2D){1.0f / 13.0f, 1.0f};
 
 	// allocate mem for time string
 	(*clock)->current_text = malloc(sizeof(char) * 8);
@@ -43,7 +44,7 @@ static int init_clock(Text **clock, ResourceCache *resource_cache)
 
 	// initialize current time and set vertices
 	get_current_time((*clock)->current_text);
-	update_text_vertices((*clock), (*clock)->current_text, 6);
+	update_text((*clock), (*clock)->current_text, 6);
 
 	return 1;
 }
@@ -56,30 +57,41 @@ static int init_menu_scene(Menu *menu, ResourceCache *resource_cache)
 		return 0;
 	}
 
-	if (!make_sprite(&menu->sprites->lain,
-			 (Sprite){.pos = {-0.5f, 0.0f},
-				  .size = {0.6f, 1.2f},
-				  .texture_index = 0,
+	SceneSprite sprites[] = {
+	    (SceneSprite){.sprite_loc = &menu->sprites->lain,
+			  .sprite = (Sprite){.pos = {-50.0f, 0.0f},
+					     .size = {50.0f, 50.0f},
+					     .texture_index = 0,
+					     .texture_size = {1.0f, 1.0f},
+					     .texture_offset = {0.0f, 0.0f},
+					     .z_index = 1}},
+	    (SceneSprite){.sprite_loc = &menu->sprites->main_ui,
+			  .sprite =
+			      (Sprite){
+				  .pos = {-20.0f, 0.0f},
+				  .size = {150.0f, 100.0f},
+				  .texture_index = 1,
 				  .texture_size = {1.0f, 1.0f},
 				  .texture_offset = {0.0f, 0.0f},
-				  .z_index = 1})) {
-		return 0;
-	};
+				  .z_index = 0,
+			      }},
+	    (SceneSprite){.sprite_loc = &menu->sprites->main_ui_bar,
+			  .sprite = (Sprite){
+			      .pos = {0.5f, -0.25f},
+			      .size = {100.0f, 10.0f},
+			      .texture_index = 2,
+			      .texture_size = {1.0f, 1.0f},
+			      .texture_offset = {0.0f, 0.0f},
+			      .on_click = toggle_main_window_expanded,
+			      .z_index = 1,
+			  }}};
 
-	if (!make_sprite(&menu->sprites->main_ui,
-			 (Sprite){
-			     .pos = {-0.3f, 0.0f},
-			     .size = {2.0f, 2.0f},
-			     .texture_index = 1,
-			     .texture_size = {1.0f, 1.0f},
-			     .texture_offset = {0.0f, 0.0f},
-			     .z_index = 0,
-			 })) {
-		return 0;
-	};
-
-	Sprite *sprites[] = {menu->sprites->main_ui, menu->sprites->lain};
 	unsigned int sprite_count = sizeof(sprites) / sizeof(sprites[0]);
+	for (int i = 0; i < sprite_count; i++) {
+		if (!make_sprite(sprites[i].sprite_loc, sprites[i].sprite)) {
+			return 0;
+		}
+	}
 
 	SceneTextureSlot textures[] = {
 	    make_texture_slot(
@@ -93,7 +105,7 @@ static int init_menu_scene(Menu *menu, ResourceCache *resource_cache)
 
 	unsigned int texture_count = sizeof(textures) / sizeof(textures[0]);
 
-	if (!(load_scene(&menu->scene, sprites, sprite_count, textures,
+	if (!(init_scene(&menu->scene, sprites, sprite_count, textures,
 			 texture_count, resource_cache))) {
 		printf("Failed to initialize menu scene.\n");
 		return 0;
@@ -123,6 +135,8 @@ int init_menu(ResourceCache *resource_cache, Menu **menu)
 		return 0;
 	}
 
+	(*menu)->expanded = false;
+
 	return 1;
 }
 
@@ -144,12 +158,12 @@ void update_menu(Menu *menu)
 	get_current_time(current_time);
 
 	if (text_obj_needs_update(menu->clock, current_time)) {
-		update_text_vertices(menu->clock, current_time, 6);
+		update_text(menu->clock, current_time, 6);
 	}
 }
 
-void draw_menu(Menu *menu)
+void draw_menu(Menu *menu, GLFWwindow *window)
 {
-	draw_scene(menu->scene);
-	draw_text(menu->clock);
+	draw_scene(menu->scene, window);
+	draw_text(menu->clock, window);
 }

@@ -5,6 +5,7 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "sprite.h"
 #include "stb_image.h"
 #include "texture.h"
 
@@ -28,14 +29,13 @@ int init_texture(Texture *texture, char *image_path)
 		return 0;
 	}
 
-	texture->width = (GLfloat) width;
-	texture->height = (GLfloat) height;
+	texture->size = (Vector2D){width, height};
 	texture->nr_channels = nr_channels;
 
 	glGenTextures(1, &texture->id);
 	glBindTexture(GL_TEXTURE_2D, texture->id);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture->width, texture->height,
-		     0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture->size.x,
+		     texture->size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 	glGenerateMipmap(GL_TEXTURE_2D);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -115,5 +115,4 @@ void preload_textures(TextureCache *cache)
 
 	texture_cache_put(
 	    cache, make_texture("assets/ui/main_ui_bar.png", "main_ui_bar"));
-
 }

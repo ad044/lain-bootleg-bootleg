@@ -1,3 +1,4 @@
+#include <cglm/cglm.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -7,8 +8,7 @@
 #include "shader.h"
 #include "sprite.h"
 
-static void init_scene_buffers(Scene *scene, Sprite **sprites,
-			       unsigned int sprite_count)
+static void init_scene_buffers(Scene *scene, unsigned int sprite_count)
 {
 
 	glGenVertexArrays(1, &scene->VAO);
@@ -40,7 +40,7 @@ SceneTextureSlot make_texture_slot(int slot_id, Texture *texture)
 	return (SceneTextureSlot){.slot_id = slot_id, .texture = texture};
 }
 
-int load_scene(Scene **scene, Sprite **sprites, unsigned int sprite_count,
+int init_scene(Scene **scene, SceneSprite *sprites, unsigned int sprite_count,
 	       SceneTextureSlot *textures, unsigned int texture_count,
 	       ResourceCache *resource_cache)
 {
@@ -50,21 +50,12 @@ int load_scene(Scene **scene, Sprite **sprites, unsigned int sprite_count,
 		return 0;
 	}
 
-	// initialize vao, vbo, ibo
-	init_scene_buffers(*scene, sprites, sprite_count);
-
-	(*scene)->sprites = malloc(sizeof(Sprite) * sprite_count);
+	(*scene)->sprites = malloc(sizeof(Sprite *) * sprite_count);
 	if ((*scene)->sprites == NULL) {
 		printf("Failed to allocate memory for scene sprites.\n");
 		return 0;
 	}
-	// copy sprites over to scene
-	memcpy((*scene)->sprites, sprites, sizeof(Sprite *) * sprite_count);
 
-	// sort sprites by z index
-	depth_sort((*scene)->sprites, sprite_count);
-
-	// texture stuff
 	(*scene)->textures = malloc(sizeof(Texture) * texture_count);
 	if ((*scene)->textures == NULL) {
 		printf("Failed to allocate memory for scene textures.\n");
@@ -76,6 +67,17 @@ int load_scene(Scene **scene, Sprite **sprites, unsigned int sprite_count,
 		printf("Failed to allocate memory for samplers.\n");
 		return 0;
 	}
+
+	// initialize vao, vbo, ibo
+	init_scene_buffers(*scene, sprite_count);
+
+	// copy sprite pointers over
+	for (int i = 0; i < sprite_count; i++) {
+		(*scene)->sprites[i] = *sprites[i].sprite_loc;
+	}
+
+	// sort sprites by z index
+	depth_sort((*scene)->sprites, sprite_count);
 
 	for (int i = 0; i < texture_count; i++) {
 		(*scene)->textures[i] = textures[i];
@@ -106,11 +108,15 @@ void update_scene(Scene *scene)
 
 	update_sprite_buffers(scene->VBO, scene->IBO, vertices,
 			      sizeof(vertices), scene->sprite_count);
-
 }
 
-void draw_scene(Scene *scene)
+void draw_scene(Scene *scene, GLFWwindow *window)
 {
+	// window data
+	int w, h;
+	glfwGetWindowSize(window, &w, &h);
+	glViewport(0, 0, w, h);
+
 	// bind appropriate textures
 	for (int i = 0; i < scene->texture_count; i++) {
 		glActiveTexture(GL_TEXTURE0 + scene->textures[i].slot_id);
@@ -121,6 +127,19 @@ void draw_scene(Scene *scene)
 	glUseProgram(scene->shader);
 	shader_program_set_texture_samplers(scene->shader, scene->samplers,
 					    scene->texture_count);
+
+	// set up matrices
+	mat4 proj, model, view;
+
+	double aspect = (double)w / (double)h;
+	glm_ortho(-w / 2.0f, w / 2.0f, -h / 2.0f, h / 2.0f, -1.0f, 1.0f, proj);
+
+	glm_mat4_identity(model);
+	glm_mat4_identity(view);
+
+	shader_program_set_mat4(scene->shader, "u_Projection", proj);
+	shader_program_set_mat4(scene->shader, "u_Model", model);
+	shader_program_set_mat4(scene->shader, "u_View", view);
 
 	// bind vao
 	glBindVertexArray(scene->VAO);

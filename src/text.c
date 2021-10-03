@@ -1,3 +1,4 @@
+#include <cglm/cglm.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -63,11 +64,8 @@ _Bool text_obj_needs_update(Text *text_obj, unsigned char *text)
 	return (strcmp((char *)text_obj->current_text, (char *)text) != 0);
 }
 
-void update_text_vertices(Text *text_obj, unsigned char *text,
-			  unsigned int sprite_count)
+void update_text(Text *text_obj, unsigned char *text, unsigned int sprite_count)
 {
-	const float glyph_size = 1.0f / text_obj->glyph_count;
-
 	GLfloat vertices[get_sprite_vertex_buffer_size(sprite_count)];
 	GLfloat *buffer_ptr = vertices;
 	unsigned char *p = text;
@@ -79,24 +77,25 @@ void update_text_vertices(Text *text_obj, unsigned char *text,
 		// todo
 		// padding here is hardcoded
 		const Vector2D pos = {text_obj->pos.x + x_offset +
-					  i * glyph_size * 2,
+					  i * text_obj->glyph_size.x / 3,
 				      text_obj->pos.y};
 
 		const Vector2D texture_offset = {
-		    white_glyph_offsets[*p] / text_obj->texture->width, 0.0f};
+		    white_glyph_offsets[*p] / text_obj->texture->size.x, 0.0f};
 
-		Sprite sprite = (Sprite){.pos = pos,
-					 .size = text_obj->size,
-					 .texture_size = {glyph_size, 1.0f},
-					 .texture_offset = texture_offset};
+		Sprite glyph =
+		    (Sprite){.pos = pos,
+			     .size = text_obj->glyph_size,
+			     .texture_size = text_obj->glyph_texture_size,
+			     .texture_offset = texture_offset};
 
-		buffer_ptr = get_sprite_vertices(buffer_ptr, &sprite);
+		buffer_ptr = get_sprite_vertices(buffer_ptr, &glyph);
 
 		// AM and PM count as a single character.
 		// todo here aswlel
 		if (*p == 'A' || *p == 'P') {
 			p++;
-			x_offset += glyph_size * 2.5;
+			x_offset += text_obj->glyph_size.x / 2;
 		}
 	}
 
@@ -108,11 +107,29 @@ void update_text_vertices(Text *text_obj, unsigned char *text,
 	text_obj->sprite_count = sprite_count;
 }
 
-void draw_text(Text *text_obj)
+void draw_text(Text *text_obj, GLFWwindow *window)
 {
+	// window data
+	int w, h;
+	glfwGetWindowSize(window, &w, &h);
+	glViewport(0, 0, w, h);
+
 	// bind shader and set texture
 	glUseProgram(text_obj->shader);
 	shader_program_set_texture(text_obj->shader, text_obj->texture->id);
+
+	// set up matrices
+	mat4 proj, model, view;
+
+	double aspect = (double)w / (double)h;
+	glm_ortho(-w / 2.0f, w / 2.0f, -h / 2.0f, h / 2.0f, -1.0f, 1.0f, proj);
+
+	glm_mat4_identity(model);
+	glm_mat4_identity(view);
+
+	shader_program_set_mat4(text_obj->shader, "u_Projection", proj);
+	shader_program_set_mat4(text_obj->shader, "u_Model", model);
+	shader_program_set_mat4(text_obj->shader, "u_View", view);
 
 	// bind vao
 	glBindVertexArray(text_obj->VAO);
