@@ -13,6 +13,8 @@ static void engine_renderloop(Engine *engine);
 // todo
 static void engine_stop(Engine *engine);
 
+#define FRAMERATE_CAP 0.033
+
 int engine_init(Engine *engine)
 {
 	// init main (menu) window
@@ -43,22 +45,28 @@ int engine_init(Engine *engine)
 
 static void engine_renderloop(Engine *engine)
 {
+	double last_frame_time = glfwGetTime();
 
 	while (!glfwWindowShouldClose(engine->main_window)) {
-		// temporary benchmark to see how changes affect things
-		float startTime = (float)clock() / CLOCKS_PER_SEC;
-		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
+		double curr_time = glfwGetTime();
+		double delta = curr_time - last_frame_time;
+		if (delta >= FRAMERATE_CAP) {
+			last_frame_time = curr_time;
+			// temporary benchmark to see how changes affect things
+			float startTime = (float)clock() / CLOCKS_PER_SEC;
 
-		update_menu(engine->menu);
-		draw_menu(engine->menu, engine->main_window);
+			glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+			glClear(GL_COLOR_BUFFER_BIT);
 
-		glfwPollEvents();
-		glfwSwapBuffers(engine->main_window);
+			update_menu(engine->menu);
+			draw_menu(engine->menu, engine->main_window);
 
-		float endTime = (float)clock() / CLOCKS_PER_SEC;
+			glfwPollEvents();
+			glfwSwapBuffers(engine->main_window);
 
-		/* printf("%f\n", endTime - startTime); */
+			float endTime = (float)clock() / CLOCKS_PER_SEC;
+			/* printf("%f\n", endTime - startTime); */
+		}
 	}
 }
 

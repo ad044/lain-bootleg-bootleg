@@ -1,9 +1,7 @@
-#include "sprite.h"
+#include "input.h"
+#include "engine.h"
 
 #include <stdio.h>
-
-#include "engine.h"
-#include "input.h"
 
 // get current mouse coords and normalizes to range -1 to 1
 static void get_normalized_mouse_pos(Vector2D *pos, GLFWwindow *window)
@@ -29,11 +27,14 @@ void handle_menu_click(GLFWwindow *window, int button, int action, int mods)
 
 		Scene *scene = engine->menu->scene;
 
-		for (int i = 0; i < scene->sprite_count; i++) {
-			Sprite curr_sprite = *scene->sprites[i];
-			if (curr_sprite.on_click != NULL &&
-			    is_sprite_within_bounds(&curr_sprite, &mouse_pos)) {
-				curr_sprite.on_click(engine);
+		for (int i = 0; i < cvector_size(scene->sprite_behaviors);
+		     i++) {
+			Sprite *sprite = *scene->sprite_behaviors[i].sprite;
+			OnClickFunc on_click =
+			    scene->sprite_behaviors[i].on_click;
+
+			if (is_sprite_within_bounds(sprite, mouse_pos)) {
+				on_click(engine, sprite, mouse_pos);
 			}
 		}
 	}

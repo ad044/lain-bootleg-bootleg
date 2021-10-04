@@ -121,7 +121,6 @@ void draw_text(Text *text_obj, GLFWwindow *window)
 	// set up matrices
 	mat4 proj, model, view;
 
-	double aspect = (double)w / (double)h;
 	glm_ortho(-w / 2.0f, w / 2.0f, -h / 2.0f, h / 2.0f, -1.0f, 1.0f, proj);
 
 	glm_mat4_identity(model);

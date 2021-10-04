@@ -3,10 +3,15 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define CVECTOR_LOGARITHMIC_GROWTH
+
 #include "resource_cache.h"
 #include "scene.h"
 #include "shader.h"
 #include "sprite.h"
+
+static void register_sprite_behavior(Scene *scene, SpriteBehavior behavior);
+static void register_sprite(Scene *scene, Sprite *sprite);
 
 static void init_scene_buffers(Scene *scene, unsigned int sprite_count)
 {
@@ -42,17 +47,12 @@ SceneTextureSlot make_texture_slot(int slot_id, Texture *texture)
 
 int init_scene(Scene **scene, SceneSprite *sprites, unsigned int sprite_count,
 	       SceneTextureSlot *textures, unsigned int texture_count,
+	       SpriteBehavior *behaviors, unsigned int behavior_count,
 	       ResourceCache *resource_cache)
 {
 	*scene = malloc(sizeof(Scene));
 	if (*scene == NULL) {
 		printf("Failed to allocate memory for scene.\n");
-		return 0;
-	}
-
-	(*scene)->sprites = malloc(sizeof(Sprite *) * sprite_count);
-	if ((*scene)->sprites == NULL) {
-		printf("Failed to allocate memory for scene sprites.\n");
 		return 0;
 	}
 
@@ -72,20 +72,27 @@ int init_scene(Scene **scene, SceneSprite *sprites, unsigned int sprite_count,
 	init_scene_buffers(*scene, sprite_count);
 
 	// copy sprite pointers over
+	(*scene)->sprites = NULL;
 	for (int i = 0; i < sprite_count; i++) {
-		(*scene)->sprites[i] = *sprites[i].sprite_loc;
+		register_sprite(*scene, *sprites[i].sprite_loc);
 	}
-
 	// sort sprites by z index
 	depth_sort((*scene)->sprites, sprite_count);
 
+	// register behaviors
+	(*scene)->sprite_behaviors = NULL;
+	for (int i = 0; i < behavior_count; i++) {
+		register_sprite_behavior(*scene, behaviors[i]);
+	}
+
+	// set up textures and samplers
 	for (int i = 0; i < texture_count; i++) {
 		(*scene)->textures[i] = textures[i];
 		(*scene)->samplers[i] = i;
 	}
 
+	// finalize
 	(*scene)->texture_count = texture_count;
-	(*scene)->sprite_count = sprite_count;
 	(*scene)->shader = resource_cache->shaders[SCENE_SHADER];
 
 	// update it once to fill vbo/ibo with initial sprite vertices
@@ -97,17 +104,17 @@ int init_scene(Scene **scene, SceneSprite *sprites, unsigned int sprite_count,
 void update_scene(Scene *scene)
 {
 	glBindVertexArray(scene->VAO);
+	unsigned int sprite_count = get_scene_sprite_count(scene);
 
-	GLfloat vertices[get_sprite_vertex_buffer_size(scene->sprite_count)];
-
+	GLfloat vertices[get_sprite_vertex_buffer_size(sprite_count)];
 	GLfloat *buffer_ptr = vertices;
 
-	for (int i = 0; i < scene->sprite_count; i++) {
+	for (int i = 0; i < sprite_count; i++) {
 		buffer_ptr = get_sprite_vertices(buffer_ptr, scene->sprites[i]);
 	};
 
 	update_sprite_buffers(scene->VBO, scene->IBO, vertices,
-			      sizeof(vertices), scene->sprite_count);
+			      sizeof(vertices), sprite_count);
 }
 
 void draw_scene(Scene *scene, GLFWwindow *window)
@@ -131,7 +138,6 @@ void draw_scene(Scene *scene, GLFWwindow *window)
 	// set up matrices
 	mat4 proj, model, view;
 
-	double aspect = (double)w / (double)h;
 	glm_ortho(-w / 2.0f, w / 2.0f, -h / 2.0f, h / 2.0f, -1.0f, 1.0f, proj);
 
 	glm_mat4_identity(model);
@@ -145,7 +151,22 @@ void draw_scene(Scene *scene, GLFWwindow *window)
 	glBindVertexArray(scene->VAO);
 
 	// draw
-	glDrawElements(GL_TRIANGLES,
-		       get_sprite_index_count(scene->sprite_count),
+	unsigned int sprite_count = get_scene_sprite_count(scene);
+	glDrawElements(GL_TRIANGLES, get_sprite_index_count(sprite_count),
 		       GL_UNSIGNED_INT, 0);
+}
+
+unsigned int get_scene_sprite_count(Scene *scene)
+{
+	return cvector_size(scene->sprites);
+}
+
+static void register_sprite_behavior(Scene *scene, SpriteBehavior behavior)
+{
+	cvector_push_back(scene->sprite_behaviors, behavior);
+}
+
+static void register_sprite(Scene *scene, Sprite *sprite)
+{
+	cvector_push_back(scene->sprites, sprite);
 }

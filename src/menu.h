@@ -16,6 +16,7 @@ typedef struct {
 
 typedef struct {
 	_Bool expanded;
+	_Bool animating;
 	MenuSprites *sprites;
 	Scene *scene;
 	Text *clock;

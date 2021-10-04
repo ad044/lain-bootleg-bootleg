@@ -3,6 +3,7 @@
 #include <string.h>
 #include <time.h>
 
+#include "input.h"
 #include "menu.h"
 #include "resource_cache.h"
 #include "scene.h"
@@ -69,9 +70,9 @@ static int init_menu_scene(Menu *menu, ResourceCache *resource_cache)
 			  .sprite =
 			      (Sprite){
 				  .pos = {-20.0f, 0.0f},
-				  .size = {150.0f, 100.0f},
+				  .size = {150.0f, 150.0f},
 				  .texture_index = 1,
-				  .texture_size = {1.0f, 1.0f},
+				  .texture_size = {1.0f / 6.0f, 1.0f},
 				  .texture_offset = {0.0f, 0.0f},
 				  .z_index = 0,
 			      }},
@@ -82,9 +83,15 @@ static int init_menu_scene(Menu *menu, ResourceCache *resource_cache)
 			      .texture_index = 2,
 			      .texture_size = {1.0f, 1.0f},
 			      .texture_offset = {0.0f, 0.0f},
-			      .on_click = toggle_main_window_expanded,
 			      .z_index = 1,
 			  }}};
+
+	SpriteBehavior behaviors[] = {
+	    (SpriteBehavior){.sprite = &menu->sprites->main_ui_bar,
+			     .on_click = &toggle_main_window_expanded}
+
+	};
+	unsigned int behavior_count = sizeof(behaviors) / sizeof(behaviors[0]);
 
 	unsigned int sprite_count = sizeof(sprites) / sizeof(sprites[0]);
 	for (int i = 0; i < sprite_count; i++) {
@@ -98,7 +105,7 @@ static int init_menu_scene(Menu *menu, ResourceCache *resource_cache)
 		0, texture_cache_get(resource_cache->textures, "lain")),
 
 	    make_texture_slot(1, texture_cache_get(resource_cache->textures,
-						   "main_ui_closed")),
+						   "main_ui")),
 
 	    make_texture_slot(
 		2, texture_cache_get(resource_cache->textures, "main_ui_bar"))};
@@ -106,7 +113,8 @@ static int init_menu_scene(Menu *menu, ResourceCache *resource_cache)
 	unsigned int texture_count = sizeof(textures) / sizeof(textures[0]);
 
 	if (!(init_scene(&menu->scene, sprites, sprite_count, textures,
-			 texture_count, resource_cache))) {
+			 texture_count, behaviors, behavior_count,
+			 resource_cache))) {
 		printf("Failed to initialize menu scene.\n");
 		return 0;
 	};
@@ -136,6 +144,7 @@ int init_menu(ResourceCache *resource_cache, Menu **menu)
 	}
 
 	(*menu)->expanded = false;
+	(*menu)->animating = false;
 
 	return 1;
 }
@@ -152,10 +161,27 @@ static void get_current_time(unsigned char *timestr)
 	strftime((char *)timestr, sizeof(char) * 8, "%p%I:%M", tmp);
 }
 
+void animate_menu_expand(Menu *menu) { update_scene(menu->scene); }
+
 void update_menu(Menu *menu)
 {
 	unsigned char current_time[8];
 	get_current_time(current_time);
+	if (menu->animating) {
+		MenuSprites *sprites = menu->sprites;
+		if (menu->expanded) {
+			if (!spritesheet_is_last_frame(sprites->main_ui)) {
+				sprites->main_ui->texture_offset.x +=
+				    sprites->main_ui->texture_size.x;
+			}
+		} else {
+			if (!spritesheet_is_first_frame(sprites->main_ui)) {
+				sprites->main_ui->texture_offset.x -=
+				    sprites->main_ui->texture_size.x;
+			}
+		}
+	}
+	animate_menu_expand(menu);
 
 	if (text_obj_needs_update(menu->clock, current_time)) {
 		update_text(menu->clock, current_time, 6);

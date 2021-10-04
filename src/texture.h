@@ -2,8 +2,8 @@
 #include <GL/glew.h>
 #include <stdint.h>
 
+#include "vector2d.h"
 #include "hashmap.h"
-#include "sprite.h"
 
 typedef struct {
 	GLuint id;

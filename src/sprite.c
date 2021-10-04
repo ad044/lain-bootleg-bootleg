@@ -1,6 +1,7 @@
 #include "sprite.h"
 #include "engine.h"
 #include "hashmap.h"
+#include "input.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -119,7 +120,17 @@ int make_sprite(Sprite **target, Sprite sprite)
 	return 1;
 }
 
-_Bool is_sprite_within_bounds(const Sprite *sprite, const Vector2D *point)
+_Bool spritesheet_is_last_frame(const Sprite *sprite)
+{
+	return sprite->texture_offset.x > 1.0f - sprite->texture_size.x;
+}
+
+_Bool spritesheet_is_first_frame(const Sprite *sprite)
+{
+	return sprite->texture_offset.x < 0.0f;
+}
+
+_Bool is_sprite_within_bounds(const Sprite *sprite, const Vector2D point)
 {
 	float left_x = sprite->pos.x - sprite->size.x / 2;
 	float right_x = sprite->pos.x + sprite->size.x / 2;
@@ -127,6 +138,6 @@ _Bool is_sprite_within_bounds(const Sprite *sprite, const Vector2D *point)
 	float left_y = sprite->pos.y - sprite->size.y / 2;
 	float right_y = sprite->pos.y + sprite->size.y / 2;
 
-	return (left_x <= point->x && point->x <= right_x) &&
-	       (left_y <= point->y && point->y <= right_y);
+	return (left_x <= point.x && point.x <= right_x) &&
+	       (left_y <= point.y && point.y <= right_y);
 }

@@ -105,8 +105,8 @@ void texture_cache_put(TextureCache *cache, Texture texture)
 // and load the textures into cache with the keys being filename - extension
 void preload_textures(TextureCache *cache)
 {
-	texture_cache_put(cache, make_texture("assets/ui/main_ui_closed.png",
-					      "main_ui_closed"));
+	texture_cache_put(cache,
+			  make_texture("assets/ui/main_ui.png", "main_ui"));
 
 	texture_cache_put(cache, make_texture("assets/579", "lain"));
 
