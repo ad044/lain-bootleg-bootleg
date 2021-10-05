@@ -23,7 +23,6 @@ typedef struct {
 } Menu;
 
 int init_menu(ResourceCache *resource_cache, Menu **menu);
-void update_menu(Menu *menu);
-int load_shrinked_menu_scene(Scene **scene, ResourceCache *resource_cache);
-int load_expanded_menu_scene(Scene **scene, ResourceCache *resource_cache);
+void update_menu(Menu *menu, GLFWwindow *window);
+void toggle_menu_expand(void *ctx, Sprite *clicked_sprite, Vector2D click_pos);
 void draw_menu(Menu *menu, GLFWwindow *window);

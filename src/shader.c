@@ -107,7 +107,7 @@ void shader_program_set_texture_samplers(ShaderProgram program,
 }
 
 void shader_program_set_mat4(ShaderProgram program, const GLchar *name,
-			     const mat4 mat)
+			     mat4 mat)
 {
 	glUniformMatrix4fv(glGetUniformLocation(program, name), 1, GL_FALSE,
 			   (const GLfloat *)mat);

@@ -15,6 +15,9 @@ typedef struct {
 	Texture *texture;
 	Vector2D glyph_size;
 	Vector2D glyph_texture_size;
+	// h_padding (horizontal padding) will be multiplied by the current
+	// iterator value (i =1,2,3..)
+	float h_padding;
 	unsigned char *current_text;
 	unsigned int sprite_count;
 } Text;

@@ -9,10 +9,10 @@
 #include "sprite.h"
 #include "text.h"
 
-const static uint16_t white_glyph_offsets[256] = {
-    ['A'] = 0,	 ['P'] = 32,  ['0'] = 64,  ['1'] = 96,	['2'] = 128,
-    ['3'] = 160, ['4'] = 192, ['5'] = 224, ['6'] = 256, ['7'] = 288,
-    ['8'] = 320, ['9'] = 352, [':'] = 384};
+const static uint16_t white_glyphs_order[256] = {
+    ['A'] = 0,	['P'] = 1,  ['0'] = 2, ['1'] = 3, ['2'] = 4,
+    ['3'] = 5,	['4'] = 6,  ['5'] = 7, ['6'] = 8, ['7'] = 9,
+    ['8'] = 10, ['9'] = 11, [':'] = 12};
 
 static void init_text_obj_buffers(Text *text_obj)
 {
@@ -68,34 +68,24 @@ void update_text(Text *text_obj, unsigned char *text, unsigned int sprite_count)
 {
 	GLfloat vertices[get_sprite_vertex_buffer_size(sprite_count)];
 	GLfloat *buffer_ptr = vertices;
-	unsigned char *p = text;
-	float x_offset = 0;
 
-	for (int i = 0; *p != '\0'; p++, i++) {
+	for (int i = 0; i < strlen((char *)text); i++) {
 		sprite_count++;
 
-		// todo
-		// padding here is hardcoded
-		const Vector2D pos = {text_obj->pos.x + x_offset +
-					  i * text_obj->glyph_size.x / 3,
+		const Vector2D pos = {text_obj->pos.x + i * text_obj->h_padding,
 				      text_obj->pos.y};
-
-		const Vector2D texture_offset = {
-		    white_glyph_offsets[*p] / text_obj->texture->size.x, 0.0f};
 
 		Sprite glyph =
 		    (Sprite){.pos = pos,
 			     .size = text_obj->glyph_size,
 			     .texture_size = text_obj->glyph_texture_size,
-			     .texture_offset = texture_offset};
+			     .current_frame = white_glyphs_order[text[i]]};
 
 		buffer_ptr = get_sprite_vertices(buffer_ptr, &glyph);
 
 		// AM and PM count as a single character.
-		// todo here aswlel
-		if (*p == 'A' || *p == 'P') {
-			p++;
-			x_offset += text_obj->glyph_size.x / 2;
+		if (text[i] == 'A' || text[i] == 'P') {
+			i++;
 		}
 	}
 

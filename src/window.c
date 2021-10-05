@@ -34,23 +34,16 @@ int make_main_window(GLFWwindow **window)
 	return 1;
 }
 
-void toggle_main_window_expanded(void *ctx, Sprite *clicked_sprite,
-				 Vector2D click_pos)
+void shrink_main_window(GLFWwindow *window)
 {
-	Engine *engine = (Engine *)ctx;
-
-	if (engine->menu->expanded) {
-		glfwSetWindowSize(engine->main_window, SHRINKED_MENU_WIDTH,
-				  SHRINKED_MENU_HEIGHT);
-		engine->menu->expanded = false;
-	} else {
-
-		glfwSetWindowSize(engine->main_window, EXPANDED_MENU_WIDTH,
-				  EXPANDED_MENU_HEIGHT);
-		engine->menu->expanded = true;
-	}
-	engine->menu->animating = true;
+	glfwSetWindowSize(window, SHRINKED_MENU_WIDTH, SHRINKED_MENU_HEIGHT);
 }
+
+void expand_main_window(GLFWwindow *window)
+{
+	glfwSetWindowSize(window, EXPANDED_MENU_WIDTH, EXPANDED_MENU_HEIGHT);
+}
+
 
 int make_window(GLFWwindow **window, int width, int height, char *name)
 {

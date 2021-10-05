@@ -36,29 +36,31 @@ GLfloat *get_sprite_vertices(GLfloat *buffer, Sprite *sprite)
 	    // top right
 	    sprite->pos.x + (sprite->size.x / 2),
 	    sprite->pos.y + (sprite->size.y / 2),
-	    sprite->texture_offset.x + sprite->texture_size.x,
-	    sprite->texture_offset.y + sprite->texture_size.y,
+	    sprite->current_frame * sprite->texture_size.x +
+		sprite->texture_size.x,
+	    sprite->texture_size.y,
 	    sprite->texture_index,
 
 	    // bottom right
 	    sprite->pos.x + (sprite->size.x / 2),
 	    sprite->pos.y - (sprite->size.y / 2),
-	    sprite->texture_offset.x + sprite->texture_size.x,
-	    sprite->texture_offset.y,
+	    sprite->current_frame * sprite->texture_size.x +
+		sprite->texture_size.x,
+	    0.0f,
 	    sprite->texture_index,
 
 	    // bottom left
 	    sprite->pos.x - (sprite->size.x / 2),
 	    sprite->pos.y - (sprite->size.y / 2),
-	    sprite->texture_offset.x,
-	    sprite->texture_offset.y,
+	    sprite->current_frame * sprite->texture_size.x,
+	    0.0f,
 	    sprite->texture_index,
 
 	    // top left
 	    sprite->pos.x - (sprite->size.x / 2),
 	    sprite->pos.y + (sprite->size.y / 2),
-	    sprite->texture_offset.x,
-	    sprite->texture_offset.y + sprite->texture_size.y,
+	    sprite->current_frame * sprite->texture_size.x,
+	    sprite->texture_size.y,
 	    sprite->texture_index,
 	};
 
@@ -118,16 +120,6 @@ int make_sprite(Sprite **target, Sprite sprite)
 
 	memcpy(*target, &sprite, sizeof(Sprite));
 	return 1;
-}
-
-_Bool spritesheet_is_last_frame(const Sprite *sprite)
-{
-	return sprite->texture_offset.x > 1.0f - sprite->texture_size.x;
-}
-
-_Bool spritesheet_is_first_frame(const Sprite *sprite)
-{
-	return sprite->texture_offset.x < 0.0f;
 }
 
 _Bool is_sprite_within_bounds(const Sprite *sprite, const Vector2D point)

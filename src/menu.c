@@ -16,6 +16,7 @@
 static void get_current_time(unsigned char *timestr);
 static int init_clock(Text **clock, ResourceCache *resource_cache);
 static int init_menu_scene(Menu *menu, ResourceCache *resource_cache);
+static void animate_menu(Menu *menu, GLFWwindow *window);
 
 static int init_clock(Text **clock, ResourceCache *resource_cache)
 {
@@ -31,6 +32,7 @@ static int init_clock(Text **clock, ResourceCache *resource_cache)
 	(*clock)->glyph_size = (Vector2D){clock_texture->size.x / 13.0f,
 					  clock_texture->size.y / 1.0f};
 	(*clock)->glyph_texture_size = (Vector2D){1.0f / 13.0f, 1.0f};
+	(*clock)->h_padding = (*clock)->glyph_size.x / 3;
 
 	// allocate mem for time string
 	(*clock)->current_text = malloc(sizeof(char) * 8);
@@ -64,7 +66,6 @@ static int init_menu_scene(Menu *menu, ResourceCache *resource_cache)
 					     .size = {50.0f, 50.0f},
 					     .texture_index = 0,
 					     .texture_size = {1.0f, 1.0f},
-					     .texture_offset = {0.0f, 0.0f},
 					     .z_index = 1}},
 	    (SceneSprite){.sprite_loc = &menu->sprites->main_ui,
 			  .sprite =
@@ -73,7 +74,8 @@ static int init_menu_scene(Menu *menu, ResourceCache *resource_cache)
 				  .size = {150.0f, 150.0f},
 				  .texture_index = 1,
 				  .texture_size = {1.0f / 6.0f, 1.0f},
-				  .texture_offset = {0.0f, 0.0f},
+				  .current_frame = 0,
+				  .max_frame = 5,
 				  .z_index = 0,
 			      }},
 	    (SceneSprite){.sprite_loc = &menu->sprites->main_ui_bar,
@@ -82,13 +84,12 @@ static int init_menu_scene(Menu *menu, ResourceCache *resource_cache)
 			      .size = {100.0f, 10.0f},
 			      .texture_index = 2,
 			      .texture_size = {1.0f, 1.0f},
-			      .texture_offset = {0.0f, 0.0f},
 			      .z_index = 1,
 			  }}};
 
 	SpriteBehavior behaviors[] = {
 	    (SpriteBehavior){.sprite = &menu->sprites->main_ui_bar,
-			     .on_click = &toggle_main_window_expanded}
+			     .on_click = &toggle_menu_expand}
 
 	};
 	unsigned int behavior_count = sizeof(behaviors) / sizeof(behaviors[0]);
@@ -104,8 +105,8 @@ static int init_menu_scene(Menu *menu, ResourceCache *resource_cache)
 	    make_texture_slot(
 		0, texture_cache_get(resource_cache->textures, "lain")),
 
-	    make_texture_slot(1, texture_cache_get(resource_cache->textures,
-						   "main_ui")),
+	    make_texture_slot(
+		1, texture_cache_get(resource_cache->textures, "main_ui")),
 
 	    make_texture_slot(
 		2, texture_cache_get(resource_cache->textures, "main_ui_bar"))};
@@ -161,27 +162,55 @@ static void get_current_time(unsigned char *timestr)
 	strftime((char *)timestr, sizeof(char) * 8, "%p%I:%M", tmp);
 }
 
-void animate_menu_expand(Menu *menu) { update_scene(menu->scene); }
+void toggle_menu_expand(void *ctx, Sprite *clicked_sprite, Vector2D click_pos)
+{
+	Engine *engine = (Engine *)ctx;
 
-void update_menu(Menu *menu)
+	if (engine->menu->expanded) {
+		engine->menu->expanded = false;
+	} else {
+		engine->menu->expanded = true;
+	}
+
+	engine->menu->animating = true;
+}
+
+static void animate_menu(Menu *menu, GLFWwindow *window)
+{
+	MenuSprites *sprites = menu->sprites;
+	Sprite *main_ui = sprites->main_ui;
+	if (menu->expanded) {
+		if (main_ui->current_frame < main_ui->max_frame) {
+			main_ui->current_frame++;
+			if (main_ui->current_frame == 1) {
+				expand_main_window(window);
+			}
+		} else {
+			menu->animating = false;
+			menu->expanded = true;
+		}
+	} else {
+		if (main_ui->current_frame > 0) {
+			main_ui->current_frame--;
+			if (main_ui->current_frame == 1) {
+				shrink_main_window(window);
+			}
+		} else {
+			menu->animating = false;
+			menu->expanded = false;
+		}
+	}
+
+	update_scene(menu->scene);
+}
+
+void update_menu(Menu *menu, GLFWwindow *window)
 {
 	unsigned char current_time[8];
 	get_current_time(current_time);
 	if (menu->animating) {
-		MenuSprites *sprites = menu->sprites;
-		if (menu->expanded) {
-			if (!spritesheet_is_last_frame(sprites->main_ui)) {
-				sprites->main_ui->texture_offset.x +=
-				    sprites->main_ui->texture_size.x;
-			}
-		} else {
-			if (!spritesheet_is_first_frame(sprites->main_ui)) {
-				sprites->main_ui->texture_offset.x -=
-				    sprites->main_ui->texture_size.x;
-			}
-		}
+		animate_menu(menu, window);
 	}
-	animate_menu_expand(menu);
 
 	if (text_obj_needs_update(menu->clock, current_time)) {
 		update_text(menu->clock, current_time, 6);
