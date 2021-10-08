@@ -1,3 +1,9 @@
 [submodule "external/cglm"]
 	path = external/cglm
-	url = git@github.com:recp/cglm.git
+	url = https://github.com/recp/cglm.git
+[submodule "external/glfw"]
+	path = external/glfw
+	url = https://github.com/glfw/glfw.git
+[submodule "external/glew-cmake"]
+	path = external/glew-cmake
+	url = https://github.com/Perlmint/glew-cmake.git

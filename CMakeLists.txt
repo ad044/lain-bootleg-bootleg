@@ -2,16 +2,16 @@ cmake_minimum_required(VERSION 3.2)
 
 project(lain-bootleg-bootleg)
 
-set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/CMakeModules)
-
 set(CMAKE_CXX_STANDARD 18)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(LIBRARY_NAME ${PROJECT_NAME})
+set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 
-find_package(OpenGL REQUIRED)
-find_package(GLFW REQUIRED)
-find_package(GLEW REQUIRED)
+if (MINGW)
+   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-Bstatic,--whole-archive -lwinpthread -Wl,--no-whole-archive")
+endif (MINGW)
 
 set(SOURCES
    src/main.c
@@ -49,14 +49,14 @@ add_executable(${PROJECT_NAME} ${SOURCES})
 
 target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic)
 
-target_include_directories(${PROJECT_NAME}
-    PRIVATE 
-        ${PROJECT_SOURCE_DIR}/src
-)
+target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_SOURCE_DIR}/src)
 
-target_link_libraries(${LIBRARY_NAME} ${OPENGL_gl_LIBRARY} ${GLFW_glfw_LIBRARY} ${GLEW_LIBRARIES} cglm m)
+add_subdirectory(${CMAKE_SOURCE_DIR}/external/cglm/ EXCLUDE_FROM_ALL)
+target_link_libraries(${PROJECT_NAME} PRIVATE cglm)
 
-add_subdirectory(${CMAKE_SOURCE_DIR}/external/cglm/)
+add_definitions(-DGLEW_STATIC)
+add_subdirectory(${CMAKE_SOURCE_DIR}/external/glew-cmake EXCLUDE_FROM_ALL)
+target_link_libraries(${PROJECT_NAME} PRIVATE libglew_static)
 
-
-
+add_subdirectory(${CMAKE_SOURCE_DIR}/external/glfw EXCLUDE_FROM_ALL)
+target_link_libraries(${PROJECT_NAME} PRIVATE glfw)
