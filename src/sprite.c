@@ -110,18 +110,6 @@ unsigned int get_sprite_vertex_buffer_size(unsigned int sprite_count)
 	return sprite_count * ROWS_PER_QUAD_VERTEX * QUAD_VERTEX_COUNT;
 }
 
-int make_sprite(Sprite **target, Sprite sprite)
-{
-	*target = malloc(sizeof(Sprite));
-	if (target == NULL) {
-		printf("Failed to allocate memory for sprite\n");
-		return 0;
-	}
-
-	memcpy(*target, &sprite, sizeof(Sprite));
-	return 1;
-}
-
 _Bool is_sprite_within_bounds(const Sprite *sprite, const Vector2D point)
 {
 	float left_x = sprite->pos.x - sprite->size.x / 2;

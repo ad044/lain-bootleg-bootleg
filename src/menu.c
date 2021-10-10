@@ -60,14 +60,22 @@ static int init_menu_scene(Menu *menu, ResourceCache *resource_cache)
 		return 0;
 	}
 
+	menu->scene = malloc(sizeof(Scene));
+	if (!menu->scene) {
+		printf("Failed to allocate memory for menu scene.\n");
+		return 0;
+	}
+
+	// sprites
 	SceneSprite sprites[] = {
-	    (SceneSprite){.sprite_loc = &menu->sprites->lain,
+	    (SceneSprite){.loc = &menu->sprites->lain,
 			  .sprite = (Sprite){.pos = {-50.0f, 0.0f},
 					     .size = {50.0f, 50.0f},
 					     .texture_index = 0,
 					     .texture_size = {1.0f, 1.0f},
+					     .visible = true,
 					     .z_index = 1}},
-	    (SceneSprite){.sprite_loc = &menu->sprites->main_ui,
+	    (SceneSprite){.loc = &menu->sprites->main_ui,
 			  .sprite =
 			      (Sprite){
 				  .pos = {-20.0f, 0.0f},
@@ -76,17 +84,31 @@ static int init_menu_scene(Menu *menu, ResourceCache *resource_cache)
 				  .texture_size = {1.0f / 6.0f, 1.0f},
 				  .current_frame = 0,
 				  .max_frame = 5,
+				  .visible = true,
 				  .z_index = 0,
 			      }},
-	    (SceneSprite){.sprite_loc = &menu->sprites->main_ui_bar,
+	    (SceneSprite){.loc = &menu->sprites->main_ui_bar,
+			  .sprite =
+			      (Sprite){
+				  .pos = {0.5f, -0.25f},
+				  .size = {100.0f, 10.0f},
+				  .texture_index = 2,
+				  .texture_size = {1.0f, 1.0f},
+				  .visible = true,
+				  .z_index = 1,
+			      }},
+	    (SceneSprite){.loc = &menu->sprites->dressup_button,
 			  .sprite = (Sprite){
 			      .pos = {0.5f, -0.25f},
-			      .size = {100.0f, 10.0f},
-			      .texture_index = 2,
+			      .size = {50.0f, 50.0f},
+			      .texture_index = 3,
 			      .texture_size = {1.0f, 1.0f},
+			      .visible = false,
 			      .z_index = 1,
 			  }}};
+	unsigned int sprite_count = sizeof(sprites) / sizeof(sprites[0]);
 
+	// behavior definitions for sprites
 	SpriteBehavior behaviors[] = {
 	    (SpriteBehavior){.sprite = &menu->sprites->main_ui_bar,
 			     .on_click = &toggle_menu_expand}
@@ -94,28 +116,30 @@ static int init_menu_scene(Menu *menu, ResourceCache *resource_cache)
 	};
 	unsigned int behavior_count = sizeof(behaviors) / sizeof(behaviors[0]);
 
-	unsigned int sprite_count = sizeof(sprites) / sizeof(sprites[0]);
-	for (int i = 0; i < sprite_count; i++) {
-		if (!make_sprite(sprites[i].sprite_loc, sprites[i].sprite)) {
-			return 0;
-		}
-	}
-
-	SceneTextureSlot textures[] = {
+	// texture slots
+	SceneTextureSlot texture_slots[] = {
 	    make_texture_slot(
 		0, texture_cache_get(resource_cache->textures, "lain")),
-
 	    make_texture_slot(
 		1, texture_cache_get(resource_cache->textures, "main_ui")),
-
 	    make_texture_slot(
-		2, texture_cache_get(resource_cache->textures, "main_ui_bar"))};
+		2, texture_cache_get(resource_cache->textures, "main_ui_bar")),
+	    make_texture_slot(3, texture_cache_get(resource_cache->textures,
+						   "dressup_button_inactive"))};
 
-	unsigned int texture_count = sizeof(textures) / sizeof(textures[0]);
+	unsigned int texture_slot_count =
+	    sizeof(texture_slots) / sizeof(texture_slots[0]);
 
-	if (!(init_scene(&menu->scene, sprites, sprite_count, textures,
-			 texture_count, behaviors, behavior_count,
-			 resource_cache))) {
+	// final struct
+	SceneDefinition menu_scene_def = {.sprites = sprites,
+					  .sprite_count = sprite_count,
+					  .behaviors = behaviors,
+					  .behavior_count = behavior_count,
+					  .texture_slots = texture_slots,
+					  .texture_slot_count =
+					      texture_slot_count};
+
+	if (!(init_scene(menu->scene, &menu_scene_def, resource_cache))) {
 		printf("Failed to initialize menu scene.\n");
 		return 0;
 	};
@@ -188,6 +212,7 @@ static void animate_menu(Menu *menu, GLFWwindow *window)
 		} else {
 			menu->animating = false;
 			menu->expanded = true;
+			menu->sprites->dressup_button->visible = true;
 		}
 	} else {
 		if (main_ui->current_frame > 0) {
@@ -198,6 +223,7 @@ static void animate_menu(Menu *menu, GLFWwindow *window)
 		} else {
 			menu->animating = false;
 			menu->expanded = false;
+			menu->sprites->dressup_button->visible = false;
 		}
 	}
 

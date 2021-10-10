@@ -115,4 +115,12 @@ void preload_textures(TextureCache *cache)
 
 	texture_cache_put(
 	    cache, make_texture("assets/ui/main_ui_bar.png", "main_ui_bar"));
+
+	texture_cache_put(cache,
+			  make_texture("assets/ui/dressup_button_active.png",
+				       "dressup_button_active"));
+
+	texture_cache_put(cache,
+			  make_texture("assets/ui/dressup_button_inactive.png",
+				       "dressup_button_inactive"));
 }
