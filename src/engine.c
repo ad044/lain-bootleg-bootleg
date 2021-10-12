@@ -58,7 +58,8 @@ static void engine_renderloop(Engine *engine)
 			glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 			glClear(GL_COLOR_BUFFER_BIT);
 
-			update_menu(engine->menu, engine->main_window);
+			update_menu(engine->menu, engine->main_window,
+				    engine->resource_cache);
 			draw_menu(engine->menu, engine->main_window);
 
 			glfwPollEvents();

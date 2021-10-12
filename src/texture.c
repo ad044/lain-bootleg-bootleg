@@ -113,8 +113,13 @@ void preload_textures(TextureCache *cache)
 	texture_cache_put(
 	    cache, make_texture("assets/ui/white_font.png", "white_font"));
 
-	texture_cache_put(
-	    cache, make_texture("assets/ui/main_ui_bar.png", "main_ui_bar"));
+	texture_cache_put(cache,
+			  make_texture("assets/ui/main_ui_bar_active.png",
+				       "main_ui_bar_active"));
+
+	texture_cache_put(cache,
+			  make_texture("assets/ui/main_ui_bar_inactive.png",
+				       "main_ui_bar_inactive"));
 
 	texture_cache_put(cache,
 			  make_texture("assets/ui/dressup_button_active.png",
@@ -123,4 +128,12 @@ void preload_textures(TextureCache *cache)
 	texture_cache_put(cache,
 			  make_texture("assets/ui/dressup_button_inactive.png",
 				       "dressup_button_inactive"));
+
+	texture_cache_put(cache,
+			  make_texture("assets/ui/bear_icon_inactive.png",
+				       "bear_icon_inactive"));
+
+	texture_cache_put(
+	    cache, make_texture("assets/ui/screwdriver_icon_inactive.png",
+				"screwdriver_icon_inactive"));
 }

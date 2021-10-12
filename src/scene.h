@@ -24,10 +24,11 @@ typedef struct {
 
 typedef struct {
 	SceneSprite *sprites;
+	unsigned int visible_sprite_count;
 	unsigned int sprite_count;
 	SpriteBehavior *behaviors;
 	unsigned int behavior_count;
-	SceneTextureSlot *texture_slots;
+	SceneTextureSlot **texture_slots;
 	unsigned int texture_slot_count;
 } SceneDefinition;
 
@@ -36,9 +37,7 @@ typedef struct {
 	GLuint VBO;
 	GLuint IBO;
 	ShaderProgram shader;
-	SceneTextureSlot *texture_slots;
-	unsigned int texture_count;
-	GLint *samplers;
+	cvector_vector_type(SceneTextureSlot *) texture_slots;
 	cvector_vector_type(Sprite *) sprites;
 	cvector_vector_type(SpriteBehavior) sprite_behaviors;
 } Scene;
@@ -47,5 +46,8 @@ int init_scene(Scene *scene, SceneDefinition *scene_definition,
 	       ResourceCache *resource_cache);
 void update_scene(Scene *scene);
 void draw_scene(Scene *scene, GLFWwindow *window);
-SceneTextureSlot make_texture_slot(unsigned int index, Texture *texture);
-unsigned int get_scene_sprite_count(Scene *scene);
+SceneTextureSlot *make_texture_slot(unsigned int index, Texture *texture);
+unsigned int get_scene_visible_sprite_count(Scene *scene);
+unsigned int get_scene_texture_count(Scene *scene);
+SceneTextureSlot *get_texture_slot(Scene *scene, Sprite *sprite);
+void update_texture_slot(Scene *scene, Sprite *sprite, Texture *texture);

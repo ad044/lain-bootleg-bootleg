@@ -25,3 +25,5 @@ unsigned int get_sprite_vertex_buffer_size(unsigned int sprite_count);
 _Bool is_sprite_within_bounds(const Sprite *sprite, const Vector2D point);
 void update_sprite_buffers(GLuint VBO, GLuint IBO, GLfloat *vertices,
 			   GLfloat vertices_size, unsigned int sprite_count);
+void sprite_hide(Sprite *sprite);
+void sprite_show(Sprite *sprite);

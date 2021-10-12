@@ -121,3 +121,6 @@ _Bool is_sprite_within_bounds(const Sprite *sprite, const Vector2D point)
 	return (left_x <= point.x && point.x <= right_x) &&
 	       (left_y <= point.y && point.y <= right_y);
 }
+
+void sprite_hide(Sprite *sprite) { sprite->visible = false; }
+void sprite_show(Sprite *sprite) { sprite->visible = true; }

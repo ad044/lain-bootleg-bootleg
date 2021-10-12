@@ -12,6 +12,7 @@
 
 static void register_sprite_behavior(Scene *scene, SpriteBehavior behavior);
 static int register_sprite(Scene *scene, SceneSprite *scene_sprite);
+static void register_texture_slot(Scene *scene, SceneTextureSlot *texture_slot);
 static int texture_slot_cmp(const void *a, const void *b);
 static void sort_texture_slots(Scene *scene);
 
@@ -48,27 +49,17 @@ int init_scene(Scene *scene, SceneDefinition *scene_definition,
 
 	SceneSprite *sprites = scene_definition->sprites;
 	unsigned int sprite_count = scene_definition->sprite_count;
+	unsigned int visible_sprite_count =
+	    scene_definition->visible_sprite_count;
 
 	SpriteBehavior *behaviors = scene_definition->behaviors;
 	unsigned int behavior_count = scene_definition->behavior_count;
 
-	SceneTextureSlot *texture_slots = scene_definition->texture_slots;
+	SceneTextureSlot **texture_slots = scene_definition->texture_slots;
 	unsigned int texture_slot_count = scene_definition->texture_slot_count;
 
-	scene->texture_slots = malloc(sizeof(Texture) * sprite_count);
-	if (scene->texture_slots == NULL) {
-		printf("Failed to allocate memory for scene textures.\n");
-		return 0;
-	}
-
-	scene->samplers = malloc(sizeof(GLint) * texture_slot_count);
-	if (scene->samplers == NULL) {
-		printf("Failed to allocate memory for samplers.\n");
-		return 0;
-	}
-
 	// initialize vao, vbo, ibo
-	init_scene_buffers(scene, sprite_count);
+	init_scene_buffers(scene, visible_sprite_count);
 
 	// load sprites
 	scene->sprites = NULL;
@@ -78,7 +69,7 @@ int init_scene(Scene *scene, SceneDefinition *scene_definition,
 		}
 	}
 	// sort sprites by z index
-	depth_sort(scene->sprites, sprite_count);
+	depth_sort(scene->sprites, visible_sprite_count);
 
 	// register behaviors
 	scene->sprite_behaviors = NULL;
@@ -87,11 +78,10 @@ int init_scene(Scene *scene, SceneDefinition *scene_definition,
 	}
 
 	// set up textures and samplers
+	scene->texture_slots = NULL;
 	for (int i = 0; i < texture_slot_count; i++) {
-		scene->texture_slots[i] = texture_slots[i];
-		scene->samplers[i] = i;
+		register_texture_slot(scene, texture_slots[i]);
 	}
-	scene->texture_count = texture_slot_count;
 	sort_texture_slots(scene);
 
 	scene->shader = resource_cache->shaders[SCENE_SHADER];
@@ -105,16 +95,16 @@ int init_scene(Scene *scene, SceneDefinition *scene_definition,
 void update_scene(Scene *scene)
 {
 	glBindVertexArray(scene->VAO);
-	unsigned int sprite_count = get_scene_sprite_count(scene);
+	unsigned int sprite_count = get_scene_visible_sprite_count(scene);
 
 	GLfloat vertices[get_sprite_vertex_buffer_size(sprite_count)];
 	GLfloat *buffer_ptr = vertices;
 
 	for (int i = 0; i < sprite_count; i++) {
-		if (scene->sprites[i]->visible) {
-			buffer_ptr =
-			    get_sprite_vertices(buffer_ptr, scene->sprites[i]);
+		if (!scene->sprites[i]->visible) {
+			continue;
 		}
+		buffer_ptr = get_sprite_vertices(buffer_ptr, scene->sprites[i]);
 	};
 
 	update_sprite_buffers(scene->VBO, scene->IBO, vertices,
@@ -128,18 +118,24 @@ void draw_scene(Scene *scene, GLFWwindow *window)
 	glfwGetWindowSize(window, &w, &h);
 	glViewport(0, 0, w, h);
 
+	unsigned int texture_count = get_scene_texture_count(scene);
+
 	// bind appropriate textures
-	for (int i = 0; i < scene->texture_count; i++) {
+	for (int i = 0; i < texture_count; i++) {
 		glActiveTexture(GL_TEXTURE0 +
-				scene->texture_slots[i].texture_index);
+				scene->texture_slots[i]->texture_index);
 		glBindTexture(GL_TEXTURE_2D,
-			      scene->texture_slots[i].texture->id);
+			      scene->texture_slots[i]->texture->id);
 	}
 
 	// bind shader and set texture samplers
 	glUseProgram(scene->shader);
-	shader_program_set_texture_samplers(scene->shader, scene->samplers,
-					    scene->texture_count);
+	GLint samplers[texture_count];
+	for (int i = 0; i < texture_count; i++) {
+		samplers[i] = scene->texture_slots[i]->texture_index;
+	}
+	shader_program_set_texture_samplers(scene->shader, samplers,
+					    texture_count);
 
 	// set up matrices
 	mat4 proj, model, view;
@@ -157,28 +153,45 @@ void draw_scene(Scene *scene, GLFWwindow *window)
 	glBindVertexArray(scene->VAO);
 
 	// draw
-	unsigned int sprite_count = get_scene_sprite_count(scene);
+	unsigned int sprite_count = get_scene_visible_sprite_count(scene);
 	glDrawElements(GL_TRIANGLES, get_sprite_index_count(sprite_count),
 		       GL_UNSIGNED_INT, 0);
 }
 
-unsigned int get_scene_sprite_count(Scene *scene)
+unsigned int get_scene_visible_sprite_count(Scene *scene)
 {
-	return cvector_size(scene->sprites);
+	unsigned int count = 0;
+	for (int i = 0; i < cvector_size(scene->sprites); ++i) {
+		if (scene->sprites[i]->visible) {
+			count++;
+		}
+	}
+	return count;
 }
 
 static int texture_slot_cmp(const void *a, const void *b)
 {
 
-	const SceneTextureSlot *slot_a = (SceneTextureSlot *)a;
-	const SceneTextureSlot *slot_b = (SceneTextureSlot *)b;
+	const SceneTextureSlot *slot_a = *(SceneTextureSlot **)a;
+	const SceneTextureSlot *slot_b = *(SceneTextureSlot **)b;
 	return slot_a->texture_index - slot_b->texture_index;
+}
+
+unsigned int get_scene_texture_count(Scene *scene)
+{
+	return cvector_size(scene->texture_slots);
+}
+
+SceneTextureSlot *get_texture_slot(Scene *scene, Sprite *sprite)
+{
+
+	return scene->texture_slots[sprite->texture_index];
 }
 
 static void sort_texture_slots(Scene *scene)
 {
-	qsort(scene->texture_slots, scene->texture_count,
-	      sizeof(SceneTextureSlot), texture_slot_cmp);
+	qsort(scene->texture_slots, get_scene_texture_count(scene),
+	      sizeof(SceneTextureSlot *), texture_slot_cmp);
 }
 
 static int register_sprite(Scene *scene, SceneSprite *scene_sprite)
@@ -201,7 +214,26 @@ static void register_sprite_behavior(Scene *scene, SpriteBehavior behavior)
 	cvector_push_back(scene->sprite_behaviors, behavior);
 }
 
-SceneTextureSlot make_texture_slot(unsigned int index, Texture *texture)
+static void register_texture_slot(Scene *scene, SceneTextureSlot *texture_slot)
 {
-	return (SceneTextureSlot){.texture_index = index, .texture = texture};
+	cvector_push_back(scene->texture_slots, texture_slot);
+}
+
+SceneTextureSlot *make_texture_slot(unsigned int index, Texture *texture)
+{
+
+	SceneTextureSlot *texture_slot;
+	texture_slot = (SceneTextureSlot *)malloc(sizeof(SceneTextureSlot));
+
+	texture_slot->texture_index = index;
+	texture_slot->texture = texture;
+
+	return texture_slot;
+}
+
+void update_texture_slot(Scene *scene, Sprite *sprite, Texture *texture)
+{
+	SceneTextureSlot *slot = get_texture_slot(scene, sprite);
+
+	slot->texture = texture;
 }

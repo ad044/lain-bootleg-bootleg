@@ -16,7 +16,12 @@
 static void get_current_time(unsigned char *timestr);
 static int init_clock(Text **clock, ResourceCache *resource_cache);
 static int init_menu_scene(Menu *menu, ResourceCache *resource_cache);
-static void animate_menu(Menu *menu, GLFWwindow *window);
+static void animate_menu(Menu *menu, GLFWwindow *window,
+			 ResourceCache *resource_cache);
+static void animate_menu_expand(Menu *menu, GLFWwindow *window,
+				ResourceCache *resource_cache);
+static void animate_menu(Menu *menu, GLFWwindow *window,
+			 ResourceCache *resource_cache);
 
 static int init_clock(Text **clock, ResourceCache *resource_cache)
 {
@@ -98,46 +103,65 @@ static int init_menu_scene(Menu *menu, ResourceCache *resource_cache)
 				  .z_index = 1,
 			      }},
 	    (SceneSprite){.loc = &menu->sprites->dressup_button,
+			  .sprite =
+			      (Sprite){
+				  .pos = {0.5f, -0.25f},
+				  .size = {50.0f, 50.0f},
+				  .texture_index = 3,
+				  .texture_size = {1.0f, 1.0f},
+				  .visible = false,
+				  .z_index = 1,
+			      }},
+	    (SceneSprite){.loc = &menu->sprites->bear_icon,
 			  .sprite = (Sprite){
 			      .pos = {0.5f, -0.25f},
 			      .size = {50.0f, 50.0f},
-			      .texture_index = 3,
+			      .texture_index = 4,
 			      .texture_size = {1.0f, 1.0f},
 			      .visible = false,
 			      .z_index = 1,
 			  }}};
 	unsigned int sprite_count = sizeof(sprites) / sizeof(sprites[0]);
+	unsigned int visible_sprite_count = 0;
+	for (int i = 0; i < sprite_count; i++) {
+		if (sprites[i].sprite.visible) {
+			visible_sprite_count++;
+		}
+	}
 
 	// behavior definitions for sprites
 	SpriteBehavior behaviors[] = {
 	    (SpriteBehavior){.sprite = &menu->sprites->main_ui_bar,
-			     .on_click = &toggle_menu_expand}
+			     .on_click = &toggle_menu_animating}
 
 	};
 	unsigned int behavior_count = sizeof(behaviors) / sizeof(behaviors[0]);
 
 	// texture slots
-	SceneTextureSlot texture_slots[] = {
+	SceneTextureSlot *texture_slots[] = {
 	    make_texture_slot(
 		0, texture_cache_get(resource_cache->textures, "lain")),
 	    make_texture_slot(
 		1, texture_cache_get(resource_cache->textures, "main_ui")),
-	    make_texture_slot(
-		2, texture_cache_get(resource_cache->textures, "main_ui_bar")),
+	    make_texture_slot(2, texture_cache_get(resource_cache->textures,
+						   "main_ui_bar_inactive")),
 	    make_texture_slot(3, texture_cache_get(resource_cache->textures,
-						   "dressup_button_inactive"))};
+						   "dressup_button_inactive")),
+	    make_texture_slot(4, texture_cache_get(resource_cache->textures,
+						   "bear_icon_inactive"))};
 
 	unsigned int texture_slot_count =
 	    sizeof(texture_slots) / sizeof(texture_slots[0]);
 
 	// final struct
-	SceneDefinition menu_scene_def = {.sprites = sprites,
-					  .sprite_count = sprite_count,
-					  .behaviors = behaviors,
-					  .behavior_count = behavior_count,
-					  .texture_slots = texture_slots,
-					  .texture_slot_count =
-					      texture_slot_count};
+	SceneDefinition menu_scene_def = {
+	    .sprites = sprites,
+	    .visible_sprite_count = visible_sprite_count,
+	    .sprite_count = sprite_count,
+	    .behaviors = behaviors,
+	    .behavior_count = behavior_count,
+	    .texture_slots = texture_slots,
+	    .texture_slot_count = texture_slot_count};
 
 	if (!(init_scene(menu->scene, &menu_scene_def, resource_cache))) {
 		printf("Failed to initialize menu scene.\n");
@@ -186,56 +210,83 @@ static void get_current_time(unsigned char *timestr)
 	strftime((char *)timestr, sizeof(char) * 8, "%p%I:%M", tmp);
 }
 
-void toggle_menu_expand(void *ctx, Sprite *clicked_sprite, Vector2D click_pos)
+void toggle_menu_animating(void *ctx, Sprite *clicked_sprite,
+			   Vector2D click_pos)
 {
 	Engine *engine = (Engine *)ctx;
-
-	if (engine->menu->expanded) {
-		engine->menu->expanded = false;
-	} else {
-		engine->menu->expanded = true;
-	}
 
 	engine->menu->animating = true;
 }
 
-static void animate_menu(Menu *menu, GLFWwindow *window)
+static void animate_menu_expand(Menu *menu, GLFWwindow *window,
+				ResourceCache *resource_cache)
 {
 	MenuSprites *sprites = menu->sprites;
 	Sprite *main_ui = sprites->main_ui;
-	if (menu->expanded) {
-		if (main_ui->current_frame < main_ui->max_frame) {
-			main_ui->current_frame++;
-			if (main_ui->current_frame == 1) {
-				expand_main_window(window);
-			}
-		} else {
-			menu->animating = false;
-			menu->expanded = true;
-			menu->sprites->dressup_button->visible = true;
+	Sprite *main_ui_bar = sprites->main_ui_bar;
+	Sprite *bear_icon = sprites->bear_icon;
+
+	if (main_ui->current_frame < main_ui->max_frame) {
+		main_ui->current_frame++;
+		if (main_ui->current_frame == 1) {
+			expand_main_window(window);
+			sprite_show(bear_icon);
 		}
 	} else {
-		if (main_ui->current_frame > 0) {
-			main_ui->current_frame--;
-			if (main_ui->current_frame == 1) {
-				shrink_main_window(window);
-			}
-		} else {
-			menu->animating = false;
-			menu->expanded = false;
-			menu->sprites->dressup_button->visible = false;
+		// completed expanding
+		menu->animating = false;
+		menu->expanded = true;
+		sprite_show(sprites->dressup_button);
+		update_texture_slot(menu->scene, main_ui_bar,
+				    texture_cache_get(resource_cache->textures,
+						      "main_ui_bar_active"));
+	}
+}
+
+static void animate_menu_shrink(Menu *menu, GLFWwindow *window,
+				ResourceCache *resource_cache)
+{
+	MenuSprites *sprites = menu->sprites;
+	Sprite *main_ui = sprites->main_ui;
+	Sprite *main_ui_bar = sprites->main_ui_bar;
+	Sprite *bear_icon = sprites->bear_icon;
+
+	if (main_ui->current_frame > 0) {
+		main_ui->current_frame--;
+		if (main_ui->current_frame == 1) {
+			shrink_main_window(window);
+			sprite_hide(bear_icon);
+			update_texture_slot(
+			    menu->scene, main_ui_bar,
+			    texture_cache_get(resource_cache->textures,
+					      "main_ui_bar_inactive"));
 		}
+	} else {
+		// completed shrinking
+		menu->animating = false;
+		menu->expanded = false;
+		sprite_hide(sprites->dressup_button);
+	}
+}
+
+static void animate_menu(Menu *menu, GLFWwindow *window,
+			 ResourceCache *resource_cache)
+{
+	if (menu->expanded) {
+		animate_menu_shrink(menu, window, resource_cache);
+	} else {
+		animate_menu_expand(menu, window, resource_cache);
 	}
 
 	update_scene(menu->scene);
 }
 
-void update_menu(Menu *menu, GLFWwindow *window)
+void update_menu(Menu *menu, GLFWwindow *window, ResourceCache *resource_cache)
 {
 	unsigned char current_time[8];
 	get_current_time(current_time);
 	if (menu->animating) {
-		animate_menu(menu, window);
+		animate_menu(menu, window, resource_cache);
 	}
 
 	if (text_obj_needs_update(menu->clock, current_time)) {

@@ -12,6 +12,8 @@ typedef struct {
 	Sprite *main_ui_bar;
 	Sprite *lain;
 	Sprite *dressup_button;
+	Sprite *bear_icon;
+	Sprite *screwdriver_icon;
 } MenuSprites;
 
 typedef struct {
@@ -23,6 +25,7 @@ typedef struct {
 } Menu;
 
 int init_menu(ResourceCache *resource_cache, Menu **menu);
-void update_menu(Menu *menu, GLFWwindow *window);
-void toggle_menu_expand(void *ctx, Sprite *clicked_sprite, Vector2D click_pos);
+void update_menu(Menu *menu, GLFWwindow *window, ResourceCache *resource_cache);
+void toggle_menu_animating(void *ctx, Sprite *clicked_sprite,
+			   Vector2D click_pos);
 void draw_menu(Menu *menu, GLFWwindow *window);
