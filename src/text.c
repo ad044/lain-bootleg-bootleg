@@ -9,6 +9,9 @@
 #include "sprite.h"
 #include "text.h"
 
+#define MAX_GLYPHS 6
+#define MAX_VERTEX_BUFFER_SIZE MAX_GLYPHS * 4 * 5
+
 const static uint16_t white_glyphs_order[256] = {
     ['A'] = 0,	['P'] = 1,  ['0'] = 2, ['1'] = 3, ['2'] = 4,
     ['3'] = 5,	['4'] = 6,  ['5'] = 7, ['6'] = 8, ['7'] = 9,
@@ -64,13 +67,17 @@ _Bool text_obj_needs_update(Text *text_obj, unsigned char *text)
 	return (strcmp((char *)text_obj->current_text, (char *)text) != 0);
 }
 
-void update_text(Text *text_obj, unsigned char *text, unsigned int sprite_count)
+void update_text(Text *text_obj, unsigned char *text)
 {
-	GLfloat vertices[get_sprite_vertex_buffer_size(sprite_count)];
+	GLfloat vertices[MAX_VERTEX_BUFFER_SIZE];
 	GLfloat *buffer_ptr = vertices;
 
+	unsigned int glyph_count = 0;
+
 	for (int i = 0; i < strlen((char *)text); i++) {
-		sprite_count++;
+		if (glyph_count >= MAX_GLYPHS) {
+			break;
+		}
 
 		const Vector2D pos = {text_obj->pos.x + i * text_obj->h_padding,
 				      text_obj->pos.y};
@@ -87,14 +94,16 @@ void update_text(Text *text_obj, unsigned char *text, unsigned int sprite_count)
 		if (text[i] == 'A' || text[i] == 'P') {
 			i++;
 		}
+
+		glyph_count++;
 	}
 
 	glBindVertexArray(text_obj->VAO);
 
 	update_sprite_buffers(text_obj->VBO, text_obj->IBO, vertices,
-			      sizeof(vertices), sprite_count);
+			      sizeof(vertices), glyph_count);
 
-	text_obj->sprite_count = sprite_count;
+	text_obj->glyph_count = glyph_count;
 }
 
 void draw_text(Text *text_obj, GLFWwindow *window)
@@ -125,6 +134,6 @@ void draw_text(Text *text_obj, GLFWwindow *window)
 
 	// draw
 	glDrawElements(GL_TRIANGLES,
-		       get_sprite_index_count(text_obj->sprite_count),
+		       get_sprite_index_count(text_obj->glyph_count),
 		       GL_UNSIGNED_INT, 0);
 }

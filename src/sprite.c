@@ -123,4 +123,5 @@ _Bool is_sprite_within_bounds(const Sprite *sprite, const Vector2D point)
 }
 
 void sprite_hide(Sprite *sprite) { sprite->visible = false; }
+
 void sprite_show(Sprite *sprite) { sprite->visible = true; }

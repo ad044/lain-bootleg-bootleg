@@ -1,3 +1,4 @@
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -48,11 +49,11 @@ static int init_clock(Text **clock, ResourceCache *resource_cache)
 	}
 
 	// the clock always consists of 6 sprites
-	(*clock)->sprite_count = 6;
+	(*clock)->glyph_count = 6;
 
 	// initialize current time and set vertices
 	get_current_time((*clock)->current_text);
-	update_text((*clock), (*clock)->current_text, 6);
+	update_text((*clock), (*clock)->current_text);
 
 	return 1;
 }
@@ -115,7 +116,7 @@ static int init_menu_scene(Menu *menu, ResourceCache *resource_cache)
 	    (SceneSprite){.loc = &menu->sprites->bear_icon,
 			  .sprite = (Sprite){
 			      .pos = {0.5f, -0.25f},
-			      .size = {50.0f, 50.0f},
+			      .size = {25.0f, 25.0f},
 			      .texture_index = 4,
 			      .texture_size = {1.0f, 1.0f},
 			      .visible = false,
@@ -207,7 +208,7 @@ static void get_current_time(unsigned char *timestr)
 
 	tmp = localtime(&t);
 
-	strftime((char *)timestr, sizeof(char) * 8, "%p%I:%M", tmp);
+	strftime((char *)timestr, sizeof(char) * 11, "%p%I:%M:%S", tmp);
 }
 
 void toggle_menu_animating(void *ctx, Sprite *clicked_sprite,
@@ -281,16 +282,42 @@ static void animate_menu(Menu *menu, GLFWwindow *window,
 	update_scene(menu->scene);
 }
 
+void slice_str(const char *str, char *result, size_t start, size_t end)
+{
+	strncpy(result, str + start, end - start);
+}
+
+static void update_menu_icons(Menu *menu)
+{
+	char secs[3], mins[3], hrs[3];
+
+	// AM12:34:56
+	slice_str(menu->current_time, hrs, 2, 4);
+	slice_str(menu->current_time, mins, 5, 7);
+	slice_str(menu->current_time, secs, 8, 10);
+
+	Sprite *bear_icon = menu->sprites->bear_icon;
+
+	bear_icon->pos = (Vector2D){
+	    sin(atof(secs) / 60) * 50,
+	    cos(atof(secs) / 60) * 50,
+	};
+}
+
 void update_menu(Menu *menu, GLFWwindow *window, ResourceCache *resource_cache)
 {
-	unsigned char current_time[8];
-	get_current_time(current_time);
+	get_current_time(menu->current_time);
+
 	if (menu->animating) {
 		animate_menu(menu, window, resource_cache);
 	}
 
-	if (text_obj_needs_update(menu->clock, current_time)) {
-		update_text(menu->clock, current_time, 6);
+	update_menu_icons(menu);
+
+	update_scene(menu->scene);
+
+	if (text_obj_needs_update(menu->clock, menu->current_time)) {
+		update_text(menu->clock, menu->current_time);
 	}
 }
 

@@ -21,6 +21,7 @@ typedef struct {
 	_Bool animating;
 	MenuSprites *sprites;
 	Scene *scene;
+	unsigned char current_time[11];
 	Text *clock;
 } Menu;
 

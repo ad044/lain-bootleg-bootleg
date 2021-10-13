@@ -66,7 +66,7 @@ static void engine_renderloop(Engine *engine)
 			glfwSwapBuffers(engine->main_window);
 
 			float endTime = (float)clock() / CLOCKS_PER_SEC;
-			/* printf("%f\n", endTime - startTime); */
+			// printf("%f\n", endTime - startTime);
 		}
 	}
 }
