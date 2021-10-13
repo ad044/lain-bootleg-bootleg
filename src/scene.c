@@ -225,6 +225,11 @@ SceneTextureSlot *make_texture_slot(unsigned int index, Texture *texture)
 	SceneTextureSlot *texture_slot;
 	texture_slot = (SceneTextureSlot *)malloc(sizeof(SceneTextureSlot));
 
+	if (texture_slot == NULL) {
+		printf("Failed to allocate memory for texture slot.\n");
+		exit(1);
+	}
+
 	texture_slot->texture_index = index;
 	texture_slot->texture = texture;
 
