@@ -123,12 +123,6 @@ static int init_menu_scene(Menu *menu, ResourceCache *resource_cache)
 			      .z_index = 1,
 			  }}};
 	unsigned int sprite_count = sizeof(sprites) / sizeof(sprites[0]);
-	unsigned int visible_sprite_count = 0;
-	for (int i = 0; i < sprite_count; i++) {
-		if (sprites[i].sprite.visible) {
-			visible_sprite_count++;
-		}
-	}
 
 	// behavior definitions for sprites
 	SpriteBehavior behaviors[] = {
@@ -155,14 +149,13 @@ static int init_menu_scene(Menu *menu, ResourceCache *resource_cache)
 	    sizeof(texture_slots) / sizeof(texture_slots[0]);
 
 	// final struct
-	SceneDefinition menu_scene_def = {
-	    .sprites = sprites,
-	    .visible_sprite_count = visible_sprite_count,
-	    .sprite_count = sprite_count,
-	    .behaviors = behaviors,
-	    .behavior_count = behavior_count,
-	    .texture_slots = texture_slots,
-	    .texture_slot_count = texture_slot_count};
+	SceneDefinition menu_scene_def = {.sprites = sprites,
+					  .sprite_count = sprite_count,
+					  .behaviors = behaviors,
+					  .behavior_count = behavior_count,
+					  .texture_slots = texture_slots,
+					  .texture_slot_count =
+					      texture_slot_count};
 
 	if (!(init_scene(menu->scene, &menu_scene_def, resource_cache))) {
 		printf("Failed to initialize menu scene.\n");
@@ -256,6 +249,7 @@ static void animate_menu_shrink(Menu *menu, GLFWwindow *window,
 		main_ui->current_frame--;
 		if (main_ui->current_frame == 1) {
 			shrink_main_window(window);
+			sprite_hide(sprites->dressup_button);
 			sprite_hide(bear_icon);
 			update_texture_slot(
 			    menu->scene, main_ui_bar,
@@ -266,7 +260,6 @@ static void animate_menu_shrink(Menu *menu, GLFWwindow *window,
 		// completed shrinking
 		menu->animating = false;
 		menu->expanded = false;
-		sprite_hide(sprites->dressup_button);
 	}
 }
 

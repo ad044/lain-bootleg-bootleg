@@ -16,7 +16,7 @@ static void register_texture_slot(Scene *scene, SceneTextureSlot *texture_slot);
 static int texture_slot_cmp(const void *a, const void *b);
 static void sort_texture_slots(Scene *scene);
 
-static void init_scene_buffers(Scene *scene, unsigned int sprite_count)
+static void init_scene_buffers(Scene *scene)
 {
 
 	glGenVertexArrays(1, &scene->VAO);
@@ -49,8 +49,6 @@ int init_scene(Scene *scene, SceneDefinition *scene_definition,
 
 	SceneSprite *sprites = scene_definition->sprites;
 	unsigned int sprite_count = scene_definition->sprite_count;
-	unsigned int visible_sprite_count =
-	    scene_definition->visible_sprite_count;
 
 	SpriteBehavior *behaviors = scene_definition->behaviors;
 	unsigned int behavior_count = scene_definition->behavior_count;
@@ -59,7 +57,7 @@ int init_scene(Scene *scene, SceneDefinition *scene_definition,
 	unsigned int texture_slot_count = scene_definition->texture_slot_count;
 
 	// initialize vao, vbo, ibo
-	init_scene_buffers(scene, visible_sprite_count);
+	init_scene_buffers(scene);
 
 	// load sprites
 	scene->sprites = NULL;
@@ -69,7 +67,7 @@ int init_scene(Scene *scene, SceneDefinition *scene_definition,
 		}
 	}
 	// sort sprites by z index
-	depth_sort(scene->sprites, visible_sprite_count);
+	depth_sort(scene->sprites, sprite_count);
 
 	// register behaviors
 	scene->sprite_behaviors = NULL;
@@ -95,20 +93,22 @@ int init_scene(Scene *scene, SceneDefinition *scene_definition,
 void update_scene(Scene *scene)
 {
 	glBindVertexArray(scene->VAO);
-	unsigned int sprite_count = get_scene_visible_sprite_count(scene);
 
-	GLfloat vertices[get_sprite_vertex_buffer_size(sprite_count)];
+	GLfloat vertices[10 * 4 * 5];
 	GLfloat *buffer_ptr = vertices;
 
-	for (int i = 0; i < sprite_count; i++) {
+	unsigned int visible_sprite_count = 0;
+	for (int i = 0; i < cvector_size(scene->sprites); i++) {
 		if (!scene->sprites[i]->visible) {
 			continue;
 		}
+		visible_sprite_count++;
 		buffer_ptr = get_sprite_vertices(buffer_ptr, scene->sprites[i]);
 	};
 
+	scene->visible_sprite_count = visible_sprite_count;
 	update_sprite_buffers(scene->VBO, scene->IBO, vertices,
-			      sizeof(vertices), sprite_count);
+			      sizeof(vertices), visible_sprite_count);
 }
 
 void draw_scene(Scene *scene, GLFWwindow *window)
@@ -153,20 +153,14 @@ void draw_scene(Scene *scene, GLFWwindow *window)
 	glBindVertexArray(scene->VAO);
 
 	// draw
-	unsigned int sprite_count = get_scene_visible_sprite_count(scene);
-	glDrawElements(GL_TRIANGLES, get_sprite_index_count(sprite_count),
+	glDrawElements(GL_TRIANGLES,
+		       get_sprite_index_count(scene->visible_sprite_count),
 		       GL_UNSIGNED_INT, 0);
 }
 
-unsigned int get_scene_visible_sprite_count(Scene *scene)
+unsigned int get_scene_sprite_count(Scene *scene)
 {
-	unsigned int count = 0;
-	for (int i = 0; i < cvector_size(scene->sprites); ++i) {
-		if (scene->sprites[i]->visible) {
-			count++;
-		}
-	}
-	return count;
+	return cvector_size(scene->sprites);
 }
 
 static int texture_slot_cmp(const void *a, const void *b)
