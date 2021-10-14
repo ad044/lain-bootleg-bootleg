@@ -27,6 +27,8 @@ set(SOURCES
    src/text.c
    src/texture.c
    src/window.c
+   src/quad.c
+   src/vector2d.c
 )
 
 set(HEADERS
@@ -43,6 +45,7 @@ set(HEADERS
    src/texture.h
    src/vector2d.h
    src/window.h
+   src/quad.h
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})

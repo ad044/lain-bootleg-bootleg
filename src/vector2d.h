@@ -7,3 +7,4 @@ typedef struct {
 	GLfloat y;
 } Vector2D;
 
+Vector2D make_vec2d(GLfloat x, GLfloat y);

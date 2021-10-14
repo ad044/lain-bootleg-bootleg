@@ -17,12 +17,16 @@ typedef struct {
 } MenuSprites;
 
 typedef struct {
+	Text *clock;
+} MenuTextObjects;
+
+typedef struct {
 	_Bool expanded;
 	_Bool animating;
 	MenuSprites *sprites;
 	Scene *scene;
 	unsigned char current_time[11];
-	Text *clock;
+	MenuTextObjects *text_objs;
 } Menu;
 
 int init_menu(ResourceCache *resource_cache, Menu **menu);

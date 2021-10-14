@@ -7,22 +7,25 @@
 #include <GLFW/glfw3.h>
 
 typedef struct {
-	GLuint VAO;
-	GLuint VBO;
-	GLuint IBO;
+	Vector2D pos;
+	unsigned int texture_index;
+	unsigned int texture_glyph_count;
+} TextDefinition;
+
+typedef struct {
 	Vector2D pos;
 	ShaderProgram shader;
-	Texture *texture;
+	unsigned int texture_index;
 	Vector2D glyph_size;
 	Vector2D glyph_texture_size;
 	// h_padding (horizontal padding) will be multiplied by the current
 	// iterator value (i =1,2,3..)
 	float h_padding;
-	unsigned char *current_text;
 	unsigned int glyph_count;
+	char *current_text;
 } Text;
-int init_text_obj(Text **text_obj, Texture *texture,
-		  ResourceCache *resource_cache);
-void update_text(Text *text_obj, unsigned char *text);
-_Bool text_obj_needs_update(Text *text_obj, unsigned char *text);
-void draw_text(Text *text_obj, GLFWwindow *window);
+
+int init_text_obj(Text *text_obj, TextDefinition text_obj_def,
+		  Texture *texture);
+void set_text(Text *text_obj, char *text);
+Sprite get_glyph(Text *text_obj, char letter, unsigned int nth);

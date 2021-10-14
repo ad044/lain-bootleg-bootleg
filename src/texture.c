@@ -29,7 +29,7 @@ int init_texture(Texture *texture, char *image_path)
 		return 0;
 	}
 
-	texture->size = (Vector2D){width, height};
+	texture->size = make_vec2d(width, height);
 	texture->nr_channels = nr_channels;
 
 	glGenTextures(1, &texture->id);

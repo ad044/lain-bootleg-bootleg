@@ -15,7 +15,6 @@
 #include "window.h"
 
 static void get_current_time(unsigned char *timestr);
-static int init_clock(Text **clock, ResourceCache *resource_cache);
 static int init_menu_scene(Menu *menu, ResourceCache *resource_cache);
 static void animate_menu(Menu *menu, GLFWwindow *window,
 			 ResourceCache *resource_cache);
@@ -24,54 +23,8 @@ static void animate_menu_expand(Menu *menu, GLFWwindow *window,
 static void animate_menu(Menu *menu, GLFWwindow *window,
 			 ResourceCache *resource_cache);
 
-static int init_clock(Text **clock, ResourceCache *resource_cache)
-{
-	Texture *clock_texture =
-	    texture_cache_get(resource_cache->textures, "white_font");
-
-	if (!(init_text_obj(clock, clock_texture, resource_cache))) {
-		printf("Failed to initialize clock.\n");
-		return 0;
-	}
-
-	(*clock)->pos = (Vector2D){-0.1f, 0.1f};
-	(*clock)->glyph_size = (Vector2D){clock_texture->size.x / 13.0f,
-					  clock_texture->size.y / 1.0f};
-	(*clock)->glyph_texture_size = (Vector2D){1.0f / 13.0f, 1.0f};
-	(*clock)->h_padding = (*clock)->glyph_size.x / 3;
-
-	// allocate mem for time string
-	(*clock)->current_text = malloc(sizeof(char) * 8);
-	if ((*clock)->current_text == NULL) {
-		printf(
-		    "Failed to allocate memory for the menu clock string.\n");
-		return 0;
-	}
-
-	// the clock always consists of 6 sprites
-	(*clock)->glyph_count = 6;
-
-	// initialize current time and set vertices
-	get_current_time((*clock)->current_text);
-	update_text((*clock), (*clock)->current_text);
-
-	return 1;
-}
-
 static int init_menu_scene(Menu *menu, ResourceCache *resource_cache)
 {
-	menu->sprites = malloc(sizeof(MenuSprites));
-	if (menu->sprites == NULL) {
-		printf("Failed to allocate memory for menu sprites.\n");
-		return 0;
-	}
-
-	menu->scene = malloc(sizeof(Scene));
-	if (!menu->scene) {
-		printf("Failed to allocate memory for menu scene.\n");
-		return 0;
-	}
-
 	// sprites
 	SceneSprite sprites[] = {
 	    (SceneSprite){.loc = &menu->sprites->lain,
@@ -124,6 +77,17 @@ static int init_menu_scene(Menu *menu, ResourceCache *resource_cache)
 			  }}};
 	unsigned int sprite_count = sizeof(sprites) / sizeof(sprites[0]);
 
+	SceneText text_objects[] = {
+	    (SceneText){.loc = &menu->text_objs->clock,
+			.text_def = (TextDefinition){
+			    .pos = {-0.1f, 0.1f},
+			    .texture_index = 5,
+			    .texture_glyph_count = 13.0f,
+			}}};
+
+	unsigned int text_obj_count =
+	    sizeof(text_objects) / sizeof(text_objects[0]);
+
 	// behavior definitions for sprites
 	SpriteBehavior behaviors[] = {
 	    (SpriteBehavior){.sprite = &menu->sprites->main_ui_bar,
@@ -143,19 +107,23 @@ static int init_menu_scene(Menu *menu, ResourceCache *resource_cache)
 	    make_texture_slot(3, texture_cache_get(resource_cache->textures,
 						   "dressup_button_inactive")),
 	    make_texture_slot(4, texture_cache_get(resource_cache->textures,
-						   "bear_icon_inactive"))};
+						   "bear_icon_inactive")),
+	    make_texture_slot(
+		5, texture_cache_get(resource_cache->textures, "white_font"))};
 
 	unsigned int texture_slot_count =
 	    sizeof(texture_slots) / sizeof(texture_slots[0]);
 
-	// final struct
-	SceneDefinition menu_scene_def = {.sprites = sprites,
-					  .sprite_count = sprite_count,
-					  .behaviors = behaviors,
-					  .behavior_count = behavior_count,
-					  .texture_slots = texture_slots,
-					  .texture_slot_count =
-					      texture_slot_count};
+	SceneDefinition menu_scene_def = {
+	    .sprites = sprites,
+	    .sprite_count = sprite_count,
+	    .behaviors = behaviors,
+	    .behavior_count = behavior_count,
+	    .texture_slots = texture_slots,
+	    .texture_slot_count = texture_slot_count,
+	    .text_objects = text_objects,
+	    .text_obj_count = text_obj_count,
+	};
 
 	if (!(init_scene(menu->scene, &menu_scene_def, resource_cache))) {
 		printf("Failed to initialize menu scene.\n");
@@ -169,20 +137,32 @@ int init_menu(ResourceCache *resource_cache, Menu **menu)
 {
 	// allocate mem for the menu struct
 	*menu = malloc(sizeof(Menu));
-
-	if (*menu == NULL) {
+	if (menu == NULL) {
 		printf("Failed to allocate memory for the menu.\n");
+		return 0;
+	}
+
+	(*menu)->sprites = malloc(sizeof(MenuSprites));
+	if ((*menu)->sprites == NULL) {
+		printf("Failed to allocate memory for menu sprites.\n");
+		return 0;
+	}
+
+	(*menu)->text_objs = malloc(sizeof(MenuTextObjects));
+	if ((*menu)->text_objs == NULL) {
+		printf("Failed to allocate memory for menu text objects.\n");
+		return 0;
+	}
+
+	(*menu)->scene = malloc(sizeof(Scene));
+	if ((*menu)->scene == NULL) {
+		printf("Failed to allocate memory for menu scene.\n");
 		return 0;
 	}
 
 	// load scene
 	if (!(init_menu_scene(*menu, resource_cache))) {
 		printf("Failed to initialize menu scene.\n");
-		return 0;
-	}
-
-	// clock
-	if (!(init_clock(&(*menu)->clock, resource_cache))) {
 		return 0;
 	}
 
@@ -284,22 +264,21 @@ static void update_menu_icons(Menu *menu)
 {
 	char secs[3], mins[3], hrs[3];
 
-	// AM12:34:56
 	slice_str(menu->current_time, hrs, 2, 4);
 	slice_str(menu->current_time, mins, 5, 7);
 	slice_str(menu->current_time, secs, 8, 10);
 
 	Sprite *bear_icon = menu->sprites->bear_icon;
 
-	bear_icon->pos = (Vector2D){
-	    sin(atof(secs) / 60) * 50,
-	    cos(atof(secs) / 60) * 50,
-	};
+	bear_icon->pos =
+	    make_vec2d(sin(atof(secs) / 60) * 50, cos(atof(secs) / 60) * 50);
 }
 
 void update_menu(Menu *menu, GLFWwindow *window, ResourceCache *resource_cache)
 {
 	get_current_time(menu->current_time);
+
+	set_text(menu->text_objs->clock, menu->current_time);
 
 	if (menu->animating) {
 		animate_menu(menu, window, resource_cache);
@@ -308,14 +287,9 @@ void update_menu(Menu *menu, GLFWwindow *window, ResourceCache *resource_cache)
 	update_menu_icons(menu);
 
 	update_scene(menu->scene);
-
-	if (text_obj_needs_update(menu->clock, menu->current_time)) {
-		update_text(menu->clock, menu->current_time);
-	}
 }
 
 void draw_menu(Menu *menu, GLFWwindow *window)
 {
 	draw_scene(menu->scene, window);
-	draw_text(menu->clock, window);
 }

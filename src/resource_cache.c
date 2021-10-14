@@ -1,4 +1,3 @@
-#include <GL/glew.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -6,7 +5,6 @@
 #include "resource_cache.h"
 #include "sprite.h"
 
-// i am not yet sure if &(*ptr) is too much voodoo, so i will stick with it
 int init_resource_cache(ResourceCache **resource_cache)
 {
 	*resource_cache = malloc(sizeof(ResourceCache));
