@@ -20,28 +20,27 @@ int init_text_obj(Text *text_obj, TextDefinition text_obj_def, Texture *texture)
 {
 	text_obj->glyph_size =
 	    make_vec2d(texture->size.x / text_obj_def.texture_glyph_count,
-		      texture->size.y / 1.0f);
+		       texture->size.y / 1.0f);
 
 	text_obj->glyph_texture_size =
 	    make_vec2d(1.0f / text_obj_def.texture_glyph_count, 1.0f);
 
 	text_obj->h_padding = text_obj->glyph_size.x / 3.0f;
 
-	text_obj->current_text = malloc(sizeof(char) * MAX_TEXT_LEN);
-	if (text_obj->current_text == NULL) {
-		printf("Failed to allocate memory for text object string.\n");
-		return 0;
-	}
+	text_obj->current_text = text_obj_def.initial_text;
+
+	text_obj->texture_index = text_obj_def.texture_index;
+
+	text_obj->pos = text_obj_def.pos;
 
 	return 1;
 }
 
 Sprite get_glyph(Text *text_obj, char letter, unsigned int nth)
 {
-	const Vector2D pos = make_vec2d(
-	    text_obj->pos.x + nth * text_obj->h_padding, text_obj->pos.y);
-
 	return (Sprite){.size = text_obj->glyph_size,
+			.pos = {text_obj->pos.x + nth * text_obj->h_padding,
+				text_obj->pos.y},
 			.texture_size = text_obj->glyph_texture_size,
 			.current_frame = white_glyphs_order[letter],
 			.texture_index = text_obj->texture_index};

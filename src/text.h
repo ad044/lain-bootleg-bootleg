@@ -10,6 +10,7 @@ typedef struct {
 	Vector2D pos;
 	unsigned int texture_index;
 	unsigned int texture_glyph_count;
+	char *initial_text;
 } TextDefinition;
 
 typedef struct {

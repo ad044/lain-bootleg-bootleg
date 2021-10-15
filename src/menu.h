@@ -23,9 +23,9 @@ typedef struct {
 typedef struct {
 	_Bool expanded;
 	_Bool animating;
-	MenuSprites *sprites;
 	Scene *scene;
-	unsigned char current_time[11];
+	struct tm *current_time;
+	MenuSprites *sprites;
 	MenuTextObjects *text_objs;
 } Menu;
 

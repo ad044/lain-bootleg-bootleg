@@ -14,7 +14,8 @@
 #include "texture.h"
 #include "window.h"
 
-static void get_current_time(unsigned char *timestr);
+static void update_menu_time(Menu *menu);
+static void get_menu_timestring(char *target, Menu *menu);
 static int init_menu_scene(Menu *menu, ResourceCache *resource_cache);
 static void animate_menu(Menu *menu, GLFWwindow *window,
 			 ResourceCache *resource_cache);
@@ -77,13 +78,14 @@ static int init_menu_scene(Menu *menu, ResourceCache *resource_cache)
 			  }}};
 	unsigned int sprite_count = sizeof(sprites) / sizeof(sprites[0]);
 
-	SceneText text_objects[] = {
-	    (SceneText){.loc = &menu->text_objs->clock,
-			.text_def = (TextDefinition){
-			    .pos = {-0.1f, 0.1f},
-			    .texture_index = 5,
-			    .texture_glyph_count = 13.0f,
-			}}};
+	char timestring[11];
+	get_menu_timestring(timestring, menu);
+	SceneText text_objects[] = {(SceneText){
+	    .loc = &menu->text_objs->clock,
+	    .text_def = (TextDefinition){.pos = {10.0f, 0.0f},
+					 .texture_index = 5,
+					 .texture_glyph_count = 13.0f,
+					 .initial_text = timestring}}};
 
 	unsigned int text_obj_count =
 	    sizeof(text_objects) / sizeof(text_objects[0]);
@@ -142,6 +144,8 @@ int init_menu(ResourceCache *resource_cache, Menu **menu)
 		return 0;
 	}
 
+	update_menu_time((*menu));
+
 	(*menu)->sprites = malloc(sizeof(MenuSprites));
 	if ((*menu)->sprites == NULL) {
 		printf("Failed to allocate memory for menu sprites.\n");
@@ -172,16 +176,18 @@ int init_menu(ResourceCache *resource_cache, Menu **menu)
 	return 1;
 }
 
-static void get_current_time(unsigned char *timestr)
+static void update_menu_time(Menu *menu)
 {
 	time_t t;
-	struct tm *tmp;
 
 	time(&t);
 
-	tmp = localtime(&t);
+	menu->current_time = localtime(&t);
+}
 
-	strftime((char *)timestr, sizeof(char) * 11, "%p%I:%M:%S", tmp);
+static void get_menu_timestring(char *target, Menu *menu)
+{
+	strftime(target, sizeof(char) * 11, "%p%I:%M:%S", menu->current_time);
 }
 
 void toggle_menu_animating(void *ctx, Sprite *clicked_sprite,
@@ -262,23 +268,21 @@ void slice_str(const char *str, char *result, size_t start, size_t end)
 
 static void update_menu_icons(Menu *menu)
 {
-	char secs[3], mins[3], hrs[3];
-
-	slice_str(menu->current_time, hrs, 2, 4);
-	slice_str(menu->current_time, mins, 5, 7);
-	slice_str(menu->current_time, secs, 8, 10);
-
 	Sprite *bear_icon = menu->sprites->bear_icon;
 
-	bear_icon->pos =
-	    make_vec2d(sin(atof(secs) / 60) * 50, cos(atof(secs) / 60) * 50);
+	float secs = (float)menu->current_time->tm_sec;
+
+	bear_icon->pos = make_vec2d(sin(secs) * 50.0, cos(secs) * 50.0);
 }
 
 void update_menu(Menu *menu, GLFWwindow *window, ResourceCache *resource_cache)
 {
-	get_current_time(menu->current_time);
+	update_menu_time(menu);
 
-	set_text(menu->text_objs->clock, menu->current_time);
+	char timestring[11];
+	get_menu_timestring(timestring, menu);
+
+	set_text(menu->text_objs->clock, timestring);
 
 	if (menu->animating) {
 		animate_menu(menu, window, resource_cache);

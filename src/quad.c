@@ -1,5 +1,7 @@
 #include "quad.h"
 
+#include <string.h>
+
 void generate_quad_indices(GLuint *buffer, unsigned int index_count)
 {
 	unsigned int offset = 0;

@@ -100,6 +100,7 @@ int init_scene(Scene *scene, SceneDefinition *scene_definition,
 	}
 
 	// register text objects
+	scene->text_objects = NULL;
 	for (int i = 0; i < text_obj_count; i++) {
 		if (!register_text_object(scene, text_objects[i])) {
 			return 0;
@@ -135,9 +136,13 @@ void update_scene(Scene *scene)
 		char *text = text_obj->current_text;
 
 		for (int j = 0; j < strlen(text); j++) {
-			Sprite glyph = get_glyph(text_obj, text[i], j);
+			Sprite glyph = get_glyph(text_obj, text[j], j);
 			buffer_ptr = get_quad_vertices(buffer_ptr, &glyph);
 			quad_count++;
+
+			if (text[j] == 'A' || text[j] == 'P') {
+				j++;
+			}
 		}
 	}
 
