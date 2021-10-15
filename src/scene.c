@@ -107,7 +107,7 @@ int init_scene(Scene *scene, SceneDefinition *scene_definition,
 		};
 	}
 
-	scene->shader = resource_cache->shaders[SCENE_SHADER];
+	scene->shader = resource_cache->shaders[QUAD_SHADER];
 
 	// update it once to fill vbo/ibo with initial vertices
 	update_scene(scene);

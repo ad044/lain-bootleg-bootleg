@@ -129,10 +129,8 @@ int shader_cache_init(ShaderProgram **shaders)
 		return 0;
 	}
 
-	(*shaders)[SCENE_SHADER] =
-	    create_shader("src/shaders/scene.vs", "src/shaders/scene.fs");
-	(*shaders)[TEXT_SHADER] =
-	    create_shader("src/shaders/text.vs", "src/shaders/text.fs");
+	(*shaders)[QUAD_SHADER] =
+	    create_shader("shaders/quad.vs", "shaders/quad.fs");
 
 	return 1;
 }

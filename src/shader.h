@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-enum { SCENE_SHADER, TEXT_SHADER };
+enum { QUAD_SHADER };
 
 typedef GLuint ShaderProgram;
 
