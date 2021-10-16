@@ -5,6 +5,8 @@
 
 typedef struct {
 	Vector2D pos;
+	// keeps track of initially passed position.
+	Vector2D origin_pos;
 	Vector2D size;
 	unsigned int z_index;
 	unsigned int texture_index;
@@ -12,7 +14,7 @@ typedef struct {
 	// in case of a spritesheet, texture_size denotes size of a single
 	// sprite from the atlas.
 	Vector2D texture_size;
-	// always 0 If non-spritesheet texture
+	// undefined if non-spritesheet texture
 	unsigned int current_frame;
 	unsigned int max_frame;
 } Sprite;

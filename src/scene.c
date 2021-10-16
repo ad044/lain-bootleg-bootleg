@@ -231,6 +231,7 @@ static int register_sprite(Scene *scene, SceneSprite *scene_sprite)
 		return 0;
 	}
 
+	scene_sprite->sprite.origin_pos = scene_sprite->sprite.pos;
 	memcpy(*scene_sprite->loc, &scene_sprite->sprite, sizeof(Sprite));
 
 	cvector_push_back(scene->sprites, *scene_sprite->loc);

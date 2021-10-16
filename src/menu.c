@@ -17,8 +17,6 @@
 static void update_menu_time(Menu *menu);
 static void get_menu_timestring(char *target, Menu *menu);
 static int init_menu_scene(Menu *menu, ResourceCache *resource_cache);
-static void animate_menu(Menu *menu, GLFWwindow *window,
-			 ResourceCache *resource_cache);
 static void animate_menu_expand(Menu *menu, GLFWwindow *window,
 				ResourceCache *resource_cache);
 static void animate_menu(Menu *menu, GLFWwindow *window,
@@ -69,7 +67,7 @@ static int init_menu_scene(Menu *menu, ResourceCache *resource_cache)
 			      }},
 	    (SceneSprite){.loc = &menu->sprites->bear_icon,
 			  .sprite = (Sprite){
-			      .pos = {0.5f, -0.25f},
+			      .pos = {-50.0f, -0.25f},
 			      .size = {25.0f, 25.0f},
 			      .texture_index = 4,
 			      .texture_size = {1.0f, 1.0f},
@@ -261,18 +259,14 @@ static void animate_menu(Menu *menu, GLFWwindow *window,
 	update_scene(menu->scene);
 }
 
-void slice_str(const char *str, char *result, size_t start, size_t end)
-{
-	strncpy(result, str + start, end - start);
-}
-
 static void update_menu_icons(Menu *menu)
 {
 	Sprite *bear_icon = menu->sprites->bear_icon;
 
 	float secs = (float)menu->current_time->tm_sec;
 
-	bear_icon->pos = make_vec2d(sin(secs) * 50.0, cos(secs) * 50.0);
+	bear_icon->pos = make_vec2d(bear_icon->origin_pos.x + sin(secs) * 50.0,
+				    bear_icon->origin_pos.y + cos(secs) * 50.0);
 }
 
 void update_menu(Menu *menu, GLFWwindow *window, ResourceCache *resource_cache)
