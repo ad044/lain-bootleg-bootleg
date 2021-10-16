@@ -28,7 +28,7 @@ static int init_menu_scene(Menu *menu, ResourceCache *resource_cache)
 	SceneSprite sprites[] = {
 	    (SceneSprite){.loc = &menu->sprites->lain,
 			  .sprite = (Sprite){.pos = {-50.0f, 0.0f},
-					     .size = {50.0f, 50.0f},
+					     .size = {64.0f, 64.0f},
 					     .texture_index = 0,
 					     .texture_size = {1.0f, 1.0f},
 					     .visible = true,
@@ -37,11 +37,11 @@ static int init_menu_scene(Menu *menu, ResourceCache *resource_cache)
 			  .sprite =
 			      (Sprite){
 				  .pos = {-20.0f, 0.0f},
-				  .size = {150.0f, 150.0f},
+				  .size = {200.0f, 200.0f},
 				  .texture_index = 1,
-				  .texture_size = {1.0f / 6.0f, 1.0f},
+				  .texture_size = {1.0f / 7.0f, 1.0f},
 				  .current_frame = 0,
-				  .max_frame = 5,
+				  .max_frame = 6,
 				  .visible = true,
 				  .z_index = 0,
 			      }},
@@ -49,7 +49,7 @@ static int init_menu_scene(Menu *menu, ResourceCache *resource_cache)
 			  .sprite =
 			      (Sprite){
 				  .pos = {0.5f, -0.25f},
-				  .size = {100.0f, 10.0f},
+				  .size = {64.0f, 8.0f},
 				  .texture_index = 2,
 				  .texture_size = {1.0f, 1.0f},
 				  .visible = true,
@@ -59,7 +59,7 @@ static int init_menu_scene(Menu *menu, ResourceCache *resource_cache)
 			  .sprite =
 			      (Sprite){
 				  .pos = {0.5f, -0.25f},
-				  .size = {50.0f, 50.0f},
+				  .size = {72.0f, 72.0f},
 				  .texture_index = 3,
 				  .texture_size = {1.0f, 1.0f},
 				  .visible = false,
@@ -68,7 +68,7 @@ static int init_menu_scene(Menu *menu, ResourceCache *resource_cache)
 	    (SceneSprite){.loc = &menu->sprites->bear_icon,
 			  .sprite = (Sprite){
 			      .pos = {-50.0f, -0.25f},
-			      .size = {25.0f, 25.0f},
+			      .size = {32.0f, 32.0f},
 			      .texture_index = 4,
 			      .texture_size = {1.0f, 1.0f},
 			      .visible = false,
