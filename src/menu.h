@@ -7,10 +7,22 @@
 #include <GLFW/glfw3.h>
 #include <stdbool.h>
 
+typedef enum {
+	NOT_BLINKING,
+	HAS_BLINKED,
+	BLINK_OPENING,
+	BLINK_CLOSING
+} BlinkState;
+
 typedef struct {
+	BlinkState blink_state;
+	Sprite *sprite;
+} MenuLain;
+
+typedef struct {
+	MenuLain *lain;
 	Sprite *main_ui;
 	Sprite *main_ui_bar;
-	Sprite *lain;
 	Sprite *dressup_button;
 	Sprite *bear_icon;
 	Sprite *screwdriver_icon;

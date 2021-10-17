@@ -16,6 +16,7 @@
 
 static void update_menu_time(Menu *menu);
 static void get_menu_timestring(char *target, Menu *menu);
+static int get_menu_time_seconds(Menu *menu);
 static int init_menu_scene(Menu *menu, ResourceCache *resource_cache);
 static void animate_menu_expand(Menu *menu, GLFWwindow *window,
 				ResourceCache *resource_cache);
@@ -26,13 +27,16 @@ static int init_menu_scene(Menu *menu, ResourceCache *resource_cache)
 {
 	// sprites
 	SceneSprite sprites[] = {
-	    (SceneSprite){.loc = &menu->sprites->lain,
-			  .sprite = (Sprite){.pos = {-50.0f, 0.0f},
-					     .size = {64.0f, 64.0f},
-					     .texture_index = 0,
-					     .texture_size = {1.0f, 1.0f},
-					     .visible = true,
-					     .z_index = 1}},
+	    (SceneSprite){.loc = &menu->sprites->lain->sprite,
+			  .sprite =
+			      (Sprite){.pos = {-50.0f, 0.0f},
+				       .size = {64.0f, 64.0f},
+				       .texture_index = 0,
+				       .texture_size = {1.0f / 9.0f, 1.0f},
+				       .current_frame = 0,
+				       .max_frame = 8,
+				       .visible = true,
+				       .z_index = 1}},
 	    (SceneSprite){.loc = &menu->sprites->main_ui,
 			  .sprite =
 			      (Sprite){
@@ -99,7 +103,7 @@ static int init_menu_scene(Menu *menu, ResourceCache *resource_cache)
 	// texture slots
 	SceneTextureSlot *texture_slots[] = {
 	    make_texture_slot(
-		0, texture_cache_get(resource_cache->textures, "lain")),
+		0, texture_cache_get(resource_cache->textures, "ui_lain")),
 	    make_texture_slot(
 		1, texture_cache_get(resource_cache->textures, "main_ui")),
 	    make_texture_slot(2, texture_cache_get(resource_cache->textures,
@@ -150,6 +154,14 @@ int init_menu(ResourceCache *resource_cache, Menu **menu)
 		return 0;
 	}
 
+	(*menu)->sprites->lain = malloc(sizeof(MenuLain));
+	if ((*menu)->sprites->lain == NULL) {
+		printf("Failed to allocate memory for menu Lain.\n");
+		return 0;
+	}
+
+	(*menu)->sprites->lain->blink_state = NOT_BLINKING;
+
 	(*menu)->text_objs = malloc(sizeof(MenuTextObjects));
 	if ((*menu)->text_objs == NULL) {
 		printf("Failed to allocate memory for menu text objects.\n");
@@ -186,6 +198,11 @@ static void update_menu_time(Menu *menu)
 static void get_menu_timestring(char *target, Menu *menu)
 {
 	strftime(target, sizeof(char) * 11, "%p%I:%M:%S", menu->current_time);
+}
+
+static int get_menu_time_seconds(Menu *menu)
+{
+	return menu->current_time->tm_sec;
 }
 
 void toggle_menu_animating(void *ctx, Sprite *clicked_sprite,
@@ -255,8 +272,6 @@ static void animate_menu(Menu *menu, GLFWwindow *window,
 	} else {
 		animate_menu_expand(menu, window, resource_cache);
 	}
-
-	update_scene(menu->scene);
 }
 
 static void update_menu_icons(Menu *menu)
@@ -269,6 +284,39 @@ static void update_menu_icons(Menu *menu)
 				    bear_icon->origin_pos.y + cos(secs) * 50.0);
 }
 
+static void animate_lain_blink(MenuLain *lain)
+{
+	Sprite *sprite = lain->sprite;
+
+	if (lain->blink_state == BLINK_CLOSING) {
+		switch (sprite->current_frame) {
+		case 0:
+		case 1:
+		case 4:
+		case 5:
+			sprite->current_frame++;
+			break;
+		case 2:
+		case 6:
+			lain->blink_state = BLINK_OPENING;
+			break;
+		}
+	} else if (lain->blink_state == BLINK_OPENING) {
+		switch (sprite->current_frame) {
+		case 0:
+		case 4:
+			lain->blink_state = HAS_BLINKED;
+			break;
+		case 1:
+		case 5:
+		case 2:
+		case 6:
+			sprite->current_frame--;
+			break;
+		}
+	}
+}
+
 void update_menu(Menu *menu, GLFWwindow *window, ResourceCache *resource_cache)
 {
 	update_menu_time(menu);
@@ -277,6 +325,18 @@ void update_menu(Menu *menu, GLFWwindow *window, ResourceCache *resource_cache)
 	get_menu_timestring(timestring, menu);
 
 	set_text(menu->text_objs->clock, timestring);
+
+	if (get_menu_time_seconds(menu) % 15 == 0) {
+		MenuLain *lain = menu->sprites->lain;
+		if (lain->blink_state != HAS_BLINKED) {
+			if (lain->blink_state == NOT_BLINKING) {
+				lain->blink_state = BLINK_CLOSING;
+			}
+			animate_lain_blink(lain);
+		}
+	} else {
+		menu->sprites->lain->blink_state = NOT_BLINKING;
+	}
 
 	if (menu->animating) {
 		animate_menu(menu, window, resource_cache);
