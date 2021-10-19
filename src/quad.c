@@ -28,31 +28,31 @@ GLfloat *get_quad_vertices(GLfloat *buffer, Sprite *sprite)
 {
 	GLfloat vertices[] = {
 	    // top right
-	    sprite->pos.x + (sprite->size.x / 2),
-	    sprite->pos.y + (sprite->size.y / 2),
+	    sprite->pos.x + sprite->size.x,
+	    sprite->pos.y,
 	    sprite->current_frame * sprite->texture_size.x +
 		sprite->texture_size.x,
 	    sprite->texture_size.y,
 	    sprite->texture_index,
 
 	    // bottom right
-	    sprite->pos.x + (sprite->size.x / 2),
-	    sprite->pos.y - (sprite->size.y / 2),
+	    sprite->pos.x + sprite->size.x,
+	    sprite->pos.y + sprite->size.y,
 	    sprite->current_frame * sprite->texture_size.x +
 		sprite->texture_size.x,
 	    0.0f,
 	    sprite->texture_index,
 
 	    // bottom left
-	    sprite->pos.x - (sprite->size.x / 2),
-	    sprite->pos.y - (sprite->size.y / 2),
+	    sprite->pos.x,
+	    sprite->pos.y + sprite->size.y,
 	    sprite->current_frame * sprite->texture_size.x,
 	    0.0f,
 	    sprite->texture_index,
 
 	    // top left
-	    sprite->pos.x - (sprite->size.x / 2),
-	    sprite->pos.y + (sprite->size.y / 2),
+	    sprite->pos.x,
+	    sprite->pos.y,
 	    sprite->current_frame * sprite->texture_size.x,
 	    sprite->texture_size.y,
 	    sprite->texture_index,

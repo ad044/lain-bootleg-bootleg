@@ -25,7 +25,7 @@ int init_text_obj(Text *text_obj, TextDefinition text_obj_def, Texture *texture)
 	text_obj->glyph_texture_size =
 	    make_vec2d(1.0f / text_obj_def.texture_glyph_count, 1.0f);
 
-	text_obj->h_padding = text_obj->glyph_size.x / 3.0f;
+	text_obj->h_padding = text_obj->glyph_size.x / 2.8f;
 
 	text_obj->current_text = text_obj_def.initial_text;
 
@@ -47,3 +47,5 @@ Sprite get_glyph(Text *text_obj, char letter, unsigned int nth)
 }
 
 void set_text(Text *text_obj, char *text) { text_obj->current_text = text; }
+
+void text_set_pos(Text *text_obj, Vector2D pos) { text_obj->pos = pos; }

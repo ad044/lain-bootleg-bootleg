@@ -28,5 +28,6 @@ typedef struct {
 
 int init_text_obj(Text *text_obj, TextDefinition text_obj_def,
 		  Texture *texture);
-void set_text(Text *text_obj, char *text);
 Sprite get_glyph(Text *text_obj, char letter, unsigned int nth);
+void set_text(Text *text_obj, char *text);
+void text_set_pos(Text *text_obj, Vector2D pos);

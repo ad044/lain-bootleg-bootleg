@@ -182,7 +182,7 @@ void draw_scene(Scene *scene, GLFWwindow *window)
 	// set up matrices
 	mat4 proj, model, view;
 
-	glm_ortho(-w / 2.0f, w / 2.0f, -h / 2.0f, h / 2.0f, -1.0f, 1.0f, proj);
+	glm_ortho(0, w, h, 0, -1.0f, 1.0f, proj);
 
 	glm_mat4_identity(model);
 	glm_mat4_identity(view);

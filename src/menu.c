@@ -29,7 +29,7 @@ static int init_menu_scene(Menu *menu, ResourceCache *resource_cache)
 	SceneSprite sprites[] = {
 	    (SceneSprite){.loc = &menu->sprites->lain->sprite,
 			  .sprite =
-			      (Sprite){.pos = {-50.0f, 0.0f},
+			      (Sprite){.pos = {6.0f, 6.0f},
 				       .size = {64.0f, 64.0f},
 				       .texture_index = 0,
 				       .texture_size = {1.0f / 9.0f, 1.0f},
@@ -40,7 +40,7 @@ static int init_menu_scene(Menu *menu, ResourceCache *resource_cache)
 	    (SceneSprite){.loc = &menu->sprites->main_ui,
 			  .sprite =
 			      (Sprite){
-				  .pos = {-20.0f, 0.0f},
+				  .pos = {-34.0f, -70.0f},
 				  .size = {200.0f, 200.0f},
 				  .texture_index = 1,
 				  .texture_size = {1.0f / 7.0f, 1.0f},
@@ -52,7 +52,7 @@ static int init_menu_scene(Menu *menu, ResourceCache *resource_cache)
 	    (SceneSprite){.loc = &menu->sprites->main_ui_bar,
 			  .sprite =
 			      (Sprite){
-				  .pos = {0.5f, -0.25f},
+				  .pos = {102.0f, 38.0f},
 				  .size = {64.0f, 8.0f},
 				  .texture_index = 2,
 				  .texture_size = {1.0f, 1.0f},
@@ -62,7 +62,7 @@ static int init_menu_scene(Menu *menu, ResourceCache *resource_cache)
 	    (SceneSprite){.loc = &menu->sprites->dressup_button,
 			  .sprite =
 			      (Sprite){
-				  .pos = {0.5f, -0.25f},
+				  .pos = {112.0f, 96.0f},
 				  .size = {72.0f, 72.0f},
 				  .texture_index = 3,
 				  .texture_size = {1.0f, 1.0f},
@@ -71,7 +71,7 @@ static int init_menu_scene(Menu *menu, ResourceCache *resource_cache)
 			      }},
 	    (SceneSprite){.loc = &menu->sprites->bear_icon,
 			  .sprite = (Sprite){
-			      .pos = {-50.0f, -0.25f},
+			      .pos = {56.0f, 56.0f},
 			      .size = {32.0f, 32.0f},
 			      .texture_index = 4,
 			      .texture_size = {1.0f, 1.0f},
@@ -84,7 +84,7 @@ static int init_menu_scene(Menu *menu, ResourceCache *resource_cache)
 	get_menu_timestring(timestring, menu);
 	SceneText text_objects[] = {(SceneText){
 	    .loc = &menu->text_objs->clock,
-	    .text_def = (TextDefinition){.pos = {10.0f, 0.0f},
+	    .text_def = (TextDefinition){.pos = {70.0f, 22.0f},
 					 .texture_index = 5,
 					 .texture_glyph_count = 13.0f,
 					 .initial_text = timestring}}};
@@ -103,7 +103,7 @@ static int init_menu_scene(Menu *menu, ResourceCache *resource_cache)
 	// texture slots
 	SceneTextureSlot *texture_slots[] = {
 	    make_texture_slot(
-		0, texture_cache_get(resource_cache->textures, "ui_lain")),
+		0, texture_cache_get(resource_cache->textures, "ui_lain_bear")),
 	    make_texture_slot(
 		1, texture_cache_get(resource_cache->textures, "main_ui")),
 	    make_texture_slot(2, texture_cache_get(resource_cache->textures,
@@ -225,6 +225,14 @@ static void animate_menu_expand(Menu *menu, GLFWwindow *window,
 		main_ui->current_frame++;
 		if (main_ui->current_frame == 1) {
 			expand_main_window(window);
+			sprite_set_pos(menu->sprites->main_ui,
+				       make_vec2d(0.0f, 0.0f));
+			sprite_set_pos(menu->sprites->lain->sprite,
+				       make_vec2d(40.0f, 40.0f));
+			sprite_set_pos(menu->sprites->main_ui_bar,
+				       make_vec2d(136.0f, 72.0f));
+			text_set_pos(menu->text_objs->clock,
+				     make_vec2d(104.0f, 56.0f));
 			sprite_show(bear_icon);
 		}
 	} else {
@@ -248,9 +256,16 @@ static void animate_menu_shrink(Menu *menu, GLFWwindow *window,
 
 	if (main_ui->current_frame > 0) {
 		main_ui->current_frame--;
+		if (main_ui->current_frame == main_ui->max_frame - 1) {
+			sprite_hide(sprites->dressup_button);
+		}
 		if (main_ui->current_frame == 1) {
 			shrink_main_window(window);
-			sprite_hide(sprites->dressup_button);
+			sprite_set_to_origin_pos(menu->sprites->main_ui);
+			sprite_set_to_origin_pos(menu->sprites->lain->sprite);
+			sprite_set_to_origin_pos(menu->sprites->main_ui_bar);
+			text_set_pos(menu->text_objs->clock,
+				     make_vec2d(70.0f, 22.0f));
 			sprite_hide(bear_icon);
 			update_texture_slot(
 			    menu->scene, main_ui_bar,
@@ -278,10 +293,12 @@ static void update_menu_icons(Menu *menu)
 {
 	Sprite *bear_icon = menu->sprites->bear_icon;
 
-	float secs = (float)menu->current_time->tm_sec;
+	float secs = get_menu_time_seconds(menu);
 
-	bear_icon->pos = make_vec2d(bear_icon->origin_pos.x + sin(secs) * 50.0,
-				    bear_icon->origin_pos.y + cos(secs) * 50.0);
+	// todo
+	bear_icon->pos =
+	    make_vec2d(bear_icon->origin_pos.x + cos(secs) * 60.0f,
+		       bear_icon->origin_pos.y + sin(secs) * 60.0f);
 }
 
 static void animate_lain_blink(MenuLain *lain)

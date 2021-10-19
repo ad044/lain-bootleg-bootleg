@@ -23,3 +23,5 @@ void depth_sort(Sprite **sprites, unsigned int sprite_count);
 _Bool is_sprite_within_bounds(const Sprite *sprite, const Vector2D point);
 void sprite_hide(Sprite *sprite);
 void sprite_show(Sprite *sprite);
+void sprite_set_pos(Sprite *sprite, Vector2D pos);
+void sprite_set_to_origin_pos(Sprite *sprite);
