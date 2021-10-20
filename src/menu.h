@@ -26,6 +26,7 @@ typedef struct {
 	Sprite *dressup_button;
 	Sprite *bear_icon;
 	Sprite *screwdriver_icon;
+	Sprite *paw_icon;
 } MenuSprites;
 
 typedef struct {

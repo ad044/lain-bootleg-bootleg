@@ -140,4 +140,13 @@ void preload_textures(TextureCache *cache)
 	texture_cache_put(
 	    cache, make_texture("assets/ui/screwdriver_icon_inactive.png",
 				"screwdriver_icon_inactive"));
+
+	texture_cache_put(
+	    cache, make_texture("assets/ui/screwdriver_icon_active.png",
+				"screwdriver_icon_active"));
+
+
+	texture_cache_put(
+	    cache, make_texture("assets/ui/paw_icon.png",
+				"paw_icon"));
 }
