@@ -56,6 +56,4 @@ int init_scene(Scene *scene, SceneDefinition *scene_definition,
 void update_scene(Scene *scene);
 void draw_scene(Scene *scene, GLFWwindow *window);
 SceneTextureSlot *make_texture_slot(unsigned int index, Texture *texture);
-unsigned int get_scene_texture_count(Scene *scene);
-SceneTextureSlot *get_texture_slot(Scene *scene, unsigned int index);
 void update_texture_slot(Scene *scene, Sprite *sprite, Texture *texture);

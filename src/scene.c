@@ -160,7 +160,7 @@ void draw_scene(Scene *scene, GLFWwindow *window)
 	glfwGetWindowSize(window, &w, &h);
 	glViewport(0, 0, w, h);
 
-	unsigned int texture_count = get_scene_texture_count(scene);
+	unsigned int texture_count = cvector_size(scene->texture_slots);
 
 	// bind appropriate textures
 	for (int i = 0; i < texture_count; i++) {
@@ -207,19 +207,9 @@ static int texture_slot_cmp(const void *a, const void *b)
 	return slot_a->texture_index - slot_b->texture_index;
 }
 
-unsigned int get_scene_texture_count(Scene *scene)
-{
-	return cvector_size(scene->texture_slots);
-}
-
-SceneTextureSlot *get_texture_slot(Scene *scene, unsigned int index)
-{
-	return scene->texture_slots[index];
-}
-
 static void sort_texture_slots(Scene *scene)
 {
-	qsort(scene->texture_slots, get_scene_texture_count(scene),
+	qsort(scene->texture_slots, cvector_size(scene->texture_slots),
 	      sizeof(SceneTextureSlot *), texture_slot_cmp);
 }
 
@@ -248,7 +238,7 @@ static int register_text_object(Scene *scene, SceneText scene_text)
 	}
 
 	SceneTextureSlot *slot =
-	    get_texture_slot(scene, scene_text.text_def.texture_index);
+	    scene->texture_slots[scene_text.text_def.texture_index];
 
 	if (!init_text_obj(*scene_text.loc, scene_text.text_def,
 			   slot->texture)) {
@@ -289,7 +279,7 @@ SceneTextureSlot *make_texture_slot(unsigned int index, Texture *texture)
 
 void update_texture_slot(Scene *scene, Sprite *sprite, Texture *texture)
 {
-	SceneTextureSlot *slot = get_texture_slot(scene, sprite->texture_index);
+	SceneTextureSlot *slot = scene->texture_slots[sprite->texture_index];
 
 	slot->texture = texture;
 }

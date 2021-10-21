@@ -14,8 +14,6 @@ static const uint16_t white_glyphs_order[256] = {
     ['3'] = 5,	['4'] = 6,  ['5'] = 7, ['6'] = 8, ['7'] = 9,
     ['8'] = 10, ['9'] = 11, [':'] = 12};
 
-#define MAX_TEXT_LEN 15
-
 int init_text_obj(Text *text_obj, TextDefinition text_obj_def, Texture *texture)
 {
 	text_obj->glyph_size =
@@ -45,7 +43,3 @@ Sprite get_glyph(Text *text_obj, char letter, unsigned int nth)
 			.current_frame = white_glyphs_order[letter],
 			.texture_index = text_obj->texture_index};
 }
-
-void set_text(Text *text_obj, char *text) { text_obj->current_text = text; }
-
-void text_set_pos(Text *text_obj, Vector2D pos) { text_obj->pos = pos; }

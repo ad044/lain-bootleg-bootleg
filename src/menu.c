@@ -68,6 +68,26 @@ static int init_menu_scene(Menu *menu, ResourceCache *resource_cache)
 				  .visible = false,
 				  .z_index = 4,
 			      }},
+	    (SceneSprite){.loc = &menu->sprites->theater_preview,
+			  .sprite =
+			      (Sprite){
+				  .pos = {104.0f, 80.0f},
+				  .size = {72.0f, 72.0f},
+				  .texture_index = 3,
+				  .texture_size = {1.0f, 1.0f},
+				  .visible = false,
+				  .z_index = 4,
+			      }},
+	    (SceneSprite){.loc = &menu->sprites->theater_button,
+			  .sprite =
+			      (Sprite){
+				  .pos = {0.0f, 128.0f},
+				  .size = {128.0f, 64.0f},
+				  .texture_index = 8,
+				  .texture_size = {1.0f, 1.0f},
+				  .visible = false,
+				  .z_index = 4,
+			      }},
 	    (SceneSprite){.loc = &menu->sprites->bear_icon,
 			  .sprite =
 			      (Sprite){
@@ -137,9 +157,13 @@ static int init_menu_scene(Menu *menu, ResourceCache *resource_cache)
 			      texture_cache_get(resource_cache->textures,
 						"screwdriver_icon_inactive")),
 	    make_texture_slot(
-		7, texture_cache_get(resource_cache->textures, "paw_icon"))
-
+		7, texture_cache_get(resource_cache->textures, "paw_icon")),
+	    make_texture_slot(8, texture_cache_get(resource_cache->textures,
+						   "theater_button_inactive")),
+	    make_texture_slot(9, texture_cache_get(resource_cache->textures,
+						   "theater_previews")),
 	};
+
 	unsigned int texture_slot_count =
 	    sizeof(texture_slots) / sizeof(texture_slots[0]);
 
@@ -246,27 +270,30 @@ static void animate_menu_expand(Menu *menu, GLFWwindow *window,
 	Sprite *screwdriver_icon = sprites->screwdriver_icon;
 	Sprite *ui_lain = sprites->lain->sprite;
 	Sprite *paw_icon = sprites->paw_icon;
+	Sprite *dressup_button = sprites->dressup_button;
+	Sprite *theater_button = sprites->theater_button;
 
 	if (main_ui->current_frame < main_ui->max_frame) {
 		main_ui->current_frame++;
 		if (main_ui->current_frame == 1) {
 			expand_main_window(window);
 
-			sprite_set_pos(main_ui, make_vec2d(0.0f, 0.0f));
-			sprite_set_pos(ui_lain, make_vec2d(40.0f, 40.0f));
-			sprite_set_pos(main_ui_bar, make_vec2d(136.0f, 72.0f));
+			main_ui->pos = make_vec2d(0.0f, 0.0f);
+			ui_lain->pos = make_vec2d(40.0f, 40.0f);
+			main_ui_bar->pos = make_vec2d(136.0f, 72.0f);
 
-			text_set_pos(clock, make_vec2d(104.0f, 56.0f));
+			clock->pos = make_vec2d(104.0f, 56.0f);
 
-			sprite_show(bear_icon);
-			sprite_show(screwdriver_icon);
-			sprite_show(paw_icon);
+			bear_icon->visible = true;
+			screwdriver_icon->visible = true;
+			paw_icon->visible = true;
 		}
 	} else {
 		// completed expanding
 		menu->animating = false;
 		menu->expanded = true;
-		sprite_show(sprites->dressup_button);
+		dressup_button->visible = true;
+		theater_button->visible = true;
 		update_texture_slot(menu->scene, main_ui_bar,
 				    texture_cache_get(resource_cache->textures,
 						      "main_ui_bar_active"));
@@ -286,24 +313,27 @@ static void animate_menu_shrink(Menu *menu, GLFWwindow *window,
 	Sprite *bear_icon = sprites->bear_icon;
 	Sprite *screwdriver_icon = sprites->screwdriver_icon;
 	Sprite *paw_icon = sprites->paw_icon;
+	Sprite *dressup_button = sprites->dressup_button;
+	Sprite *theater_button = sprites->theater_button;
 
 	if (main_ui->current_frame > 0) {
 		main_ui->current_frame--;
 		if (main_ui->current_frame == main_ui->max_frame - 1) {
-			sprite_hide(sprites->dressup_button);
+			dressup_button->visible = false;
+			theater_button->visible = false;
 		}
 		if (main_ui->current_frame == 1) {
 			shrink_main_window(window);
 
-			sprite_set_to_origin_pos(main_ui);
-			sprite_set_to_origin_pos(ui_lain);
-			sprite_set_to_origin_pos(main_ui_bar);
+			main_ui->pos = main_ui->origin_pos;
+			ui_lain->pos = ui_lain->origin_pos;
+			main_ui_bar->pos = main_ui_bar->origin_pos;
 
-			text_set_pos(clock, make_vec2d(70.0f, 22.0f));
+			clock->pos = make_vec2d(70.0f, 22.0f);
 
-			sprite_hide(bear_icon);
-			sprite_hide(screwdriver_icon);
-			sprite_hide(paw_icon);
+			bear_icon->visible = false;
+			screwdriver_icon->visible = false;
+			paw_icon->visible = false;
 
 			update_texture_slot(
 			    menu->scene, main_ui_bar,
@@ -343,22 +373,17 @@ static void update_menu_icons(Menu *menu)
 	float v2 = 3.14 / 6.0f;
 
 	// todo the -15 and -3 are hacky
-	sprite_set_pos(screwdriver_icon,
-		       make_vec2d(screwdriver_icon->origin_pos.x +
-				      cos((secs - 15) * v1) * 44.0f,
-				  screwdriver_icon->origin_pos.y +
-				      sin((secs - 15) * v1) * 44.0f));
+	screwdriver_icon->pos = make_vec2d(
+	    screwdriver_icon->origin_pos.x + cos((secs - 15) * v1) * 44.0f,
+	    screwdriver_icon->origin_pos.y + sin((secs - 15) * v1) * 44.0f);
 
-	sprite_set_pos(
-	    bear_icon,
+	bear_icon->pos =
 	    make_vec2d(bear_icon->origin_pos.x + cos((mins - 15) * v1) * 44.0f,
-		       bear_icon->origin_pos.y +
-			   sin((mins - 15) * v1) * 44.0f));
+		       bear_icon->origin_pos.y + sin((mins - 15) * v1) * 44.0f);
 
-	sprite_set_pos(
-	    paw_icon,
+	paw_icon->pos =
 	    make_vec2d(paw_icon->origin_pos.x + cos((hrs - 3) * v2) * 44.0f,
-		       paw_icon->origin_pos.y + sin((hrs - 3) * v2) * 44.0f));
+		       paw_icon->origin_pos.y + sin((hrs - 3) * v2) * 44.0f);
 }
 
 static void animate_lain_blink(MenuLain *lain)
@@ -401,7 +426,7 @@ void update_menu(Menu *menu, GLFWwindow *window, ResourceCache *resource_cache)
 	char timestring[11];
 	get_menu_timestring(timestring, menu);
 
-	set_text(menu->text_objs->clock, timestring);
+	menu->text_objs->clock->current_text = timestring;
 
 	if (menu->current_time->tm_sec % 15 == 0) {
 		MenuLain *lain = menu->sprites->lain;

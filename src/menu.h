@@ -8,6 +8,16 @@
 #include <stdbool.h>
 
 typedef enum {
+	SCHOOL,
+	SCHOOL_ENTRANCE,
+	LAIN_ROOM_NIGHT,
+	HALLWAY,
+	CYBERIA,
+	STREET,
+	BRIDGE
+} TheaterScenes;
+
+typedef enum {
 	NOT_BLINKING,
 	HAS_BLINKED,
 	BLINK_OPENING,
@@ -24,9 +34,11 @@ typedef struct {
 	Sprite *main_ui;
 	Sprite *main_ui_bar;
 	Sprite *dressup_button;
+	Sprite *theater_button;
 	Sprite *bear_icon;
 	Sprite *screwdriver_icon;
 	Sprite *paw_icon;
+	Sprite *theater_preview;
 } MenuSprites;
 
 typedef struct {
