@@ -11,10 +11,11 @@ typedef struct {
 	unsigned int z_index;
 	unsigned int texture_index;
 	_Bool visible;
+        _Bool is_spritesheet;
 	// in case of a spritesheet, texture_size denotes size of a single
 	// sprite from the atlas.
 	Vector2D texture_size;
-	// undefined if non-spritesheet texture
+	// 0 if non-spritesheet texture
 	unsigned int current_frame;
 	unsigned int max_frame;
 } Sprite;

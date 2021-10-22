@@ -8,10 +8,10 @@
 #include <stdbool.h>
 
 typedef enum {
+	CLASSROOM,
 	SCHOOL,
-	SCHOOL_ENTRANCE,
 	LAIN_ROOM_NIGHT,
-	HALLWAY,
+	ALICE_ROOM,
 	CYBERIA,
 	STREET,
 	BRIDGE
@@ -56,6 +56,4 @@ typedef struct {
 
 int init_menu(ResourceCache *resource_cache, Menu **menu);
 void update_menu(Menu *menu, GLFWwindow *window, ResourceCache *resource_cache);
-void toggle_menu_animating(void *ctx, Sprite *clicked_sprite,
-			   Vector2D click_pos);
 void draw_menu(Menu *menu, GLFWwindow *window);

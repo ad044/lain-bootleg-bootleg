@@ -221,8 +221,22 @@ static int register_sprite(Scene *scene, SceneSprite *scene_sprite)
 		return 0;
 	}
 
-	scene_sprite->sprite.origin_pos = scene_sprite->sprite.pos;
-	memcpy(*scene_sprite->loc, &scene_sprite->sprite, sizeof(Sprite));
+	Sprite sprite_obj = scene_sprite->sprite;
+
+	// initialize origin position
+	sprite_obj.origin_pos = sprite_obj.pos;
+
+	// if spritesheet, set size for single sprite (of what will be
+	// displayed), and initialize current frame to 0
+	if (sprite_obj.is_spritesheet) {
+		float size_x = 1.0f / ((float)sprite_obj.max_frame + 1.0f);
+		sprite_obj.texture_size = make_vec2d(size_x, 1.0f);
+		sprite_obj.current_frame = 0;
+	} else {
+		sprite_obj.texture_size = make_vec2d(1.0f, 1.0f);
+	}
+
+	memcpy(*scene_sprite->loc, &sprite_obj, sizeof(Sprite));
 
 	cvector_push_back(scene->sprites, *scene_sprite->loc);
 

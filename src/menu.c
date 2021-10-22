@@ -21,29 +21,30 @@ static void animate_menu_expand(Menu *menu, GLFWwindow *window,
 				ResourceCache *resource_cache);
 static void animate_menu(Menu *menu, GLFWwindow *window,
 			 ResourceCache *resource_cache);
+static void main_ui_bar_click(void *ctx, Sprite *clicked_sprite,
+			      Vector2D click_pos);
+static void toggle_theater_preview(void *ctx, Sprite *clicked_sprite,
+				   Vector2D click_pos);
 
 static int init_menu_scene(Menu *menu, ResourceCache *resource_cache)
 {
 	// sprites
 	SceneSprite sprites[] = {
 	    (SceneSprite){.loc = &menu->sprites->lain->sprite,
-			  .sprite =
-			      (Sprite){.pos = {6.0f, 6.0f},
-				       .size = {64.0f, 64.0f},
-				       .texture_index = 0,
-				       .texture_size = {1.0f / 9.0f, 1.0f},
-				       .current_frame = 0,
-				       .max_frame = 8,
-				       .visible = true,
-				       .z_index = 4}},
+			  .sprite = (Sprite){.pos = {6.0f, 6.0f},
+					     .size = {64.0f, 64.0f},
+					     .texture_index = 0,
+					     .is_spritesheet = true,
+					     .max_frame = 8,
+					     .visible = true,
+					     .z_index = 4}},
 	    (SceneSprite){.loc = &menu->sprites->main_ui,
 			  .sprite =
 			      (Sprite){
 				  .pos = {-34.0f, -70.0f},
 				  .size = {200.0f, 200.0f},
 				  .texture_index = 1,
-				  .texture_size = {1.0f / 7.0f, 1.0f},
-				  .current_frame = 0,
+				  .is_spritesheet = true,
 				  .max_frame = 6,
 				  .visible = true,
 				  .z_index = 3,
@@ -54,7 +55,6 @@ static int init_menu_scene(Menu *menu, ResourceCache *resource_cache)
 				  .pos = {102.0f, 38.0f},
 				  .size = {64.0f, 8.0f},
 				  .texture_index = 2,
-				  .texture_size = {1.0f, 1.0f},
 				  .visible = true,
 				  .z_index = 4,
 			      }},
@@ -64,7 +64,6 @@ static int init_menu_scene(Menu *menu, ResourceCache *resource_cache)
 				  .pos = {112.0f, 96.0f},
 				  .size = {72.0f, 72.0f},
 				  .texture_index = 3,
-				  .texture_size = {1.0f, 1.0f},
 				  .visible = false,
 				  .z_index = 4,
 			      }},
@@ -72,11 +71,12 @@ static int init_menu_scene(Menu *menu, ResourceCache *resource_cache)
 			  .sprite =
 			      (Sprite){
 				  .pos = {104.0f, 80.0f},
-				  .size = {72.0f, 72.0f},
-				  .texture_index = 3,
-				  .texture_size = {1.0f, 1.0f},
+				  .size = {96.0f, 64.0f},
+				  .texture_index = 9,
 				  .visible = false,
-				  .z_index = 4,
+				  .z_index = 7,
+				  .is_spritesheet = true,
+				  .max_frame = 6,
 			      }},
 	    (SceneSprite){.loc = &menu->sprites->theater_button,
 			  .sprite =
@@ -84,7 +84,6 @@ static int init_menu_scene(Menu *menu, ResourceCache *resource_cache)
 				  .pos = {0.0f, 128.0f},
 				  .size = {128.0f, 64.0f},
 				  .texture_index = 8,
-				  .texture_size = {1.0f, 1.0f},
 				  .visible = false,
 				  .z_index = 4,
 			      }},
@@ -94,7 +93,6 @@ static int init_menu_scene(Menu *menu, ResourceCache *resource_cache)
 				  .pos = {56.0f, 56.0f},
 				  .size = {32.0f, 32.0f},
 				  .texture_index = 4,
-				  .texture_size = {1.0f, 1.0f},
 				  .visible = false,
 				  .z_index = 1,
 			      }},
@@ -104,7 +102,6 @@ static int init_menu_scene(Menu *menu, ResourceCache *resource_cache)
 				  .pos = {56.0f, 56.0f},
 				  .size = {32.0f, 32.0f},
 				  .texture_index = 6,
-				  .texture_size = {1.0f, 1.0f},
 				  .visible = false,
 				  .z_index = 2,
 			      }},
@@ -113,7 +110,6 @@ static int init_menu_scene(Menu *menu, ResourceCache *resource_cache)
 			      .pos = {56.0f, 56.0f},
 			      .size = {32.0f, 32.0f},
 			      .texture_index = 7,
-			      .texture_size = {1.0f, 1.0f},
 			      .visible = false,
 			      .z_index = 1,
 			  }}};
@@ -134,7 +130,9 @@ static int init_menu_scene(Menu *menu, ResourceCache *resource_cache)
 	// behavior definitions for sprites
 	SpriteBehavior behaviors[] = {
 	    (SpriteBehavior){.sprite = &menu->sprites->main_ui_bar,
-			     .on_click = &toggle_menu_animating}
+			     .on_click = &main_ui_bar_click},
+	    (SpriteBehavior){.sprite = &menu->sprites->theater_button,
+			     .on_click = &toggle_theater_preview}
 
 	};
 	unsigned int behavior_count = sizeof(behaviors) / sizeof(behaviors[0]);
@@ -249,12 +247,43 @@ static void get_menu_timestring(char *target, Menu *menu)
 	strftime(target, sizeof(char) * 11, "%p%I:%M:%S", menu->current_time);
 }
 
-void toggle_menu_animating(void *ctx, Sprite *clicked_sprite,
-			   Vector2D click_pos)
+static void toggle_theater_preview(void *ctx, Sprite *clicked_sprite,
+				   Vector2D click_pos)
 {
 	Engine *engine = (Engine *)ctx;
 
-	engine->menu->animating = true;
+	Sprite *theater_preview = engine->menu->sprites->theater_preview;
+	Sprite *theater_button = engine->menu->sprites->theater_button;
+
+	theater_preview->visible = !theater_preview->visible;
+	char *new_texture_name = theater_preview->visible
+				     ? "theater_button_active"
+				     : "theater_button_inactive";
+
+	Texture *new_theater_button_texture = texture_cache_get(
+	    engine->resource_cache->textures, new_texture_name);
+
+	update_texture_slot(engine->menu->scene, theater_button,
+			    new_theater_button_texture);
+}
+
+static void main_ui_bar_click(void *ctx, Sprite *clicked_sprite,
+			      Vector2D click_pos)
+{
+	Engine *engine = (Engine *)ctx;
+
+	Sprite *theater_preview = engine->menu->sprites->theater_preview;
+
+	if (theater_preview->visible) {
+		if (theater_preview->current_frame <
+		    theater_preview->max_frame) {
+			theater_preview->current_frame++;
+		} else {
+			theater_preview->current_frame = 0;
+		}
+	} else {
+		engine->menu->animating = true;
+	}
 }
 
 static void animate_menu_expand(Menu *menu, GLFWwindow *window,

@@ -146,6 +146,9 @@ void preload_textures(TextureCache *cache)
 				"screwdriver_icon_active"));
 
 	texture_cache_put(
+	    cache, make_texture("assets/ui/theater_button_active.png",
+				"theater_button_active"));
+	texture_cache_put(
 	    cache, make_texture("assets/ui/theater_button_inactive.png",
 				"theater_button_inactive"));
 
