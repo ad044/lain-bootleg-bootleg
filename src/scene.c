@@ -11,18 +11,76 @@
 #include "shader.h"
 #include "sprite.h"
 
-static void register_sprite_behavior(Scene *scene, SpriteBehavior behavior);
-static int register_sprite(Scene *scene, SceneSprite *scene_sprite);
-static void register_texture_slot(Scene *scene, SceneTextureSlot *texture_slot);
-static int register_text_object(Scene *scene, SceneText scene_text);
-static int texture_slot_cmp(const void *a, const void *b);
-static void sort_texture_slots(Scene *scene);
-
 #define MAX_SCENE_QUADS 30
 #define MAX_SCENE_TEXTURES 20
 
 #define MAX_SCENE_VBO_SIZE MAX_SCENE_QUADS *QUAD_VBO_SIZE
 #define MAX_SCENE_IBO_SIZE MAX_SCENE_QUADS *QUAD_INDEX_COUNT
+
+static SceneTextureSlot *register_texture_slot(Scene *scene, Texture *texture)
+{
+	SceneTextureSlot *slot =
+	    make_texture_slot(cvector_size(scene->texture_slots), texture);
+
+	cvector_push_back(scene->texture_slots, slot);
+
+	return slot;
+}
+
+static int register_sprite(Scene *scene, SceneSprite scene_sprite)
+{
+	*scene_sprite.loc = malloc(sizeof(Sprite));
+	if (scene_sprite.loc == NULL) {
+		printf("Failed to allocate memory for sprite\n");
+		return 0;
+	}
+
+	Sprite sprite_obj = scene_sprite.sprite;
+
+	SceneTextureSlot *slot =
+	    register_texture_slot(scene, sprite_obj.texture);
+
+	sprite_obj.texture_index = slot->texture_index;
+
+	// initialize origin position
+	sprite_obj.origin_pos = sprite_obj.pos;
+
+	// if spritesheet, set size for single sprite (of what will be
+	// displayed), and initialize current frame to 0
+	if (sprite_obj.is_spritesheet) {
+		float size_x = 1.0f / ((float)sprite_obj.max_frame + 1.0f);
+		sprite_obj.texture_size = (Vector2D){size_x, 1.0f};
+		sprite_obj.current_frame = 0;
+	} else {
+		sprite_obj.texture_size = (Vector2D){1.0f, 1.0f};
+	}
+
+	memcpy(*scene_sprite.loc, &sprite_obj, sizeof(Sprite));
+
+	cvector_push_back(scene->sprites, *scene_sprite.loc);
+
+	return 1;
+}
+
+static int register_text_object(Scene *scene, SceneText scene_text)
+{
+	*scene_text.loc = malloc(sizeof(Text));
+	if (scene_text.loc == NULL) {
+		printf("Failed to allocate memory for sprite\n");
+		return 0;
+	}
+
+	SceneTextureSlot *slot =
+	    register_texture_slot(scene, scene_text.text.font->texture);
+
+	scene_text.text.texture_index = slot->texture_index;
+
+	memcpy(*scene_text.loc, &scene_text.text, sizeof(Text));
+
+	cvector_push_back(scene->text_objects, *scene_text.loc);
+
+	return 1;
+}
 
 static void init_scene_buffers(Scene *scene)
 {
@@ -66,37 +124,30 @@ int init_scene(Scene *scene, SceneDefinition *scene_definition,
 	SpriteBehavior *behaviors = scene_definition->behaviors;
 	unsigned int behavior_count = scene_definition->behavior_count;
 
-	SceneTextureSlot **texture_slots = scene_definition->texture_slots;
-	unsigned int texture_slot_count = scene_definition->texture_slot_count;
-
 	SceneText *text_objects = scene_definition->text_objects;
-	unsigned int text_obj_count = scene_definition->text_obj_count;
+	unsigned int text_obj_count = scene_definition->text_object_count;
 
 	// initialize vao, vbo, ibo
 	init_scene_buffers(scene);
 
-	// set up textures
+	// initialize texture slots
 	scene->texture_slots = NULL;
-	for (int i = 0; i < texture_slot_count; i++) {
-		register_texture_slot(scene, texture_slots[i]);
-	}
 
-	sort_texture_slots(scene);
-
-	// load sprites
+	// set up sprites
 	scene->sprites = NULL;
 	for (int i = 0; i < sprite_count; i++) {
-		if (!register_sprite(scene, &sprites[i])) {
+		if (!register_sprite(scene, sprites[i])) {
 			return 0;
 		}
 	}
+
 	// sort sprites by z index
 	depth_sort(scene->sprites, sprite_count);
 
 	// register behaviors
 	scene->sprite_behaviors = NULL;
 	for (int i = 0; i < behavior_count; i++) {
-		register_sprite_behavior(scene, behaviors[i]);
+		cvector_push_back(scene->sprite_behaviors, behaviors[i]);
 	}
 
 	// register text objects
@@ -109,7 +160,6 @@ int init_scene(Scene *scene, SceneDefinition *scene_definition,
 
 	scene->shader = resource_cache->shaders[QUAD_SHADER];
 
-	// update it once to fill vbo/ibo with initial vertices
 	update_scene(scene);
 
 	return 1;
@@ -197,81 +247,6 @@ void draw_scene(Scene *scene, GLFWwindow *window)
 	// draw
 	glDrawElements(GL_TRIANGLES, get_quad_index_count(scene->quad_count),
 		       GL_UNSIGNED_INT, 0);
-}
-
-static int texture_slot_cmp(const void *a, const void *b)
-{
-
-	const SceneTextureSlot *slot_a = *(SceneTextureSlot **)a;
-	const SceneTextureSlot *slot_b = *(SceneTextureSlot **)b;
-	return slot_a->texture_index - slot_b->texture_index;
-}
-
-static void sort_texture_slots(Scene *scene)
-{
-	qsort(scene->texture_slots, cvector_size(scene->texture_slots),
-	      sizeof(SceneTextureSlot *), texture_slot_cmp);
-}
-
-static int register_sprite(Scene *scene, SceneSprite *scene_sprite)
-{
-	*scene_sprite->loc = malloc(sizeof(Sprite));
-	if (scene_sprite->loc == NULL) {
-		printf("Failed to allocate memory for sprite\n");
-		return 0;
-	}
-
-	Sprite sprite_obj = scene_sprite->sprite;
-
-	// initialize origin position
-	sprite_obj.origin_pos = sprite_obj.pos;
-
-	// if spritesheet, set size for single sprite (of what will be
-	// displayed), and initialize current frame to 0
-	if (sprite_obj.is_spritesheet) {
-		float size_x = 1.0f / ((float)sprite_obj.max_frame + 1.0f);
-		sprite_obj.texture_size = make_vec2d(size_x, 1.0f);
-		sprite_obj.current_frame = 0;
-	} else {
-		sprite_obj.texture_size = make_vec2d(1.0f, 1.0f);
-	}
-
-	memcpy(*scene_sprite->loc, &sprite_obj, sizeof(Sprite));
-
-	cvector_push_back(scene->sprites, *scene_sprite->loc);
-
-	return 1;
-}
-
-static int register_text_object(Scene *scene, SceneText scene_text)
-{
-	*scene_text.loc = malloc(sizeof(Text));
-	if (scene_text.loc == NULL) {
-		printf("Failed to allocate memory for sprite\n");
-		return 0;
-	}
-
-	SceneTextureSlot *slot =
-	    scene->texture_slots[scene_text.text_def.texture_index];
-
-	if (!init_text_obj(*scene_text.loc, scene_text.text_def,
-			   slot->texture)) {
-		return 0;
-	};
-
-	cvector_push_back(scene->text_objects, *scene_text.loc);
-
-	return 1;
-}
-
-static void register_sprite_behavior(Scene *scene, SpriteBehavior behavior)
-{
-	cvector_push_back(scene->sprite_behaviors, behavior);
-}
-
-static void register_texture_slot(Scene *scene, SceneTextureSlot *texture_slot)
-{
-	cvector_push_back(scene->texture_slots, texture_slot);
 }
 
 SceneTextureSlot *make_texture_slot(unsigned int index, Texture *texture)

@@ -1,31 +1,28 @@
 #pragma once
 
-#include "resource_cache.h"
+#include "texture.h"
 #include "sprite.h"
 #include "texture.h"
 
-#include <GLFW/glfw3.h>
+#define FONT_COUNT 2
+
+enum { RED_FONT, WHITE_FONT };
 
 typedef struct {
-	Vector2D pos;
-	unsigned int texture_index;
-	unsigned int texture_glyph_count;
-	char *initial_text;
-} TextDefinition;
-
-typedef struct {
-	Vector2D pos;
-	ShaderProgram shader;
-	unsigned int texture_index;
-	Vector2D glyph_size;
-	Vector2D glyph_texture_size;
-	// h_padding (horizontal padding) will be multiplied by the current
-	// iterator value (i =1,2,3..)
-	float h_padding;
+	float letter_spacing;
 	unsigned int glyph_count;
+	Vector2D glyph_texture_size;
+	uint16_t *glyph_order;
+	Texture *texture;
+} Font;
+
+typedef struct {
+	Vector2D pos;
+	Vector2D glyph_size;
+	unsigned int texture_index;
+	Font *font;
 	char *current_text;
 } Text;
 
-int init_text_obj(Text *text_obj, TextDefinition text_obj_def,
-		  Texture *texture);
+void fonts_init(Font **fonts, TextureCache *textures);
 Sprite get_glyph(Text *text_obj, char letter, unsigned int nth);

@@ -1,22 +1,23 @@
 #pragma once
 
-#include "vector2d.h"
+#include "texture.h"
+#include "util.h"
+
 #include <stdbool.h>
 
 typedef struct {
 	Vector2D pos;
-	// keeps track of initially passed position.
-	Vector2D origin_pos;
+	Vector2D origin_pos; // keeps track of initially passed position.
 	Vector2D size;
 	unsigned int z_index;
-	unsigned int texture_index;
+	Texture *texture; // TODO this is only used during definition, hacky
+	unsigned int texture_index; // 0 until fed into a scene initializer
 	_Bool visible;
-        _Bool is_spritesheet;
+	_Bool is_spritesheet;
 	// in case of a spritesheet, texture_size denotes size of a single
 	// sprite from the atlas.
 	Vector2D texture_size;
-	// 0 if non-spritesheet texture
-	unsigned int current_frame;
+	unsigned int current_frame; // 0 if non-spritesheet texture
 	unsigned int max_frame;
 } Sprite;
 

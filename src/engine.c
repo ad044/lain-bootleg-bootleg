@@ -29,8 +29,20 @@ int engine_init(Engine *engine)
 		return 0;
 	}
 
+	// init game state
+	engine->game_state = malloc(sizeof(GameState));
+	if (engine->game_state == NULL) {
+		printf("Failed to allocate memory for game state.\n");
+		return 0;
+	}
+	if (!init_game_state(engine->game_state)) {
+		printf("Failed to initialize game state.\n");
+		return 0;
+	}
+
 	// init menu
-	if (!(init_menu(engine->resource_cache, &engine->menu))) {
+	if (!(init_menu(engine->resource_cache, engine->game_state,
+			&engine->menu))) {
 		printf("Failed to initialize menu.\n");
 		return 0;
 	}
@@ -58,7 +70,8 @@ static void engine_renderloop(Engine *engine)
 			glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 			glClear(GL_COLOR_BUFFER_BIT);
 
-			update_menu(engine->menu, engine->main_window,
+			update_menu(engine->menu, engine->game_state,
+				    engine->main_window,
 				    engine->resource_cache);
 			draw_menu(engine->menu, engine->main_window);
 

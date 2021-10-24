@@ -4,6 +4,7 @@
 
 #include "resource_cache.h"
 #include "sprite.h"
+#include "text.h"
 
 int init_resource_cache(ResourceCache **resource_cache)
 {
@@ -27,6 +28,14 @@ int init_resource_cache(ResourceCache **resource_cache)
 		printf("Failed to initialize texture cache.\n");
 		return 0;
 	}
+
+	(*resource_cache)->fonts = malloc(sizeof(Font*) * FONT_COUNT);
+	if ((*resource_cache)->fonts == NULL) {
+		printf("Failed to allocate memory for font cache.\n");
+		return 0;
+	}
+
+	fonts_init((*resource_cache)->fonts, (*resource_cache)->textures);
 
 	return 1;
 }

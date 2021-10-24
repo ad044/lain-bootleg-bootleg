@@ -1,7 +1,7 @@
 #pragma once
 
 #include "sprite.h"
-#include "vector2d.h"
+#include "util.h"
 
 #include <GLFW/glfw3.h>
 

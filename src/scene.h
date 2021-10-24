@@ -5,8 +5,8 @@
 #include "resource_cache.h"
 #include "shader.h"
 #include "sprite.h"
-#include "texture.h"
 #include "text.h"
+#include "texture.h"
 
 typedef struct {
 	GLint texture_index;
@@ -15,7 +15,7 @@ typedef struct {
 
 typedef struct {
 	Text **loc;
-	TextDefinition text_def;
+	Text text;
 } SceneText;
 
 typedef struct {
@@ -33,10 +33,8 @@ typedef struct {
 	unsigned int sprite_count;
 	SpriteBehavior *behaviors;
 	unsigned int behavior_count;
-	SceneTextureSlot **texture_slots;
-	unsigned int texture_slot_count;
 	SceneText *text_objects;
-	unsigned int text_obj_count;
+	unsigned int text_object_count;
 } SceneDefinition;
 
 typedef struct {

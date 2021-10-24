@@ -5,6 +5,7 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "util.h"
 #include "sprite.h"
 #include "stb_image.h"
 #include "texture.h"
@@ -29,7 +30,7 @@ int init_texture(Texture *texture, char *image_path)
 		return 0;
 	}
 
-	texture->size = make_vec2d(width, height);
+	texture->size = (Vector2D){width, height};
 	texture->nr_channels = nr_channels;
 
 	glGenTextures(1, &texture->id);
@@ -141,22 +142,26 @@ void preload_textures(TextureCache *cache)
 	    cache, make_texture("assets/ui/screwdriver_icon_inactive.png",
 				"screwdriver_icon_inactive"));
 
-	texture_cache_put(
-	    cache, make_texture("assets/ui/screwdriver_icon_active.png",
-				"screwdriver_icon_active"));
+	texture_cache_put(cache,
+			  make_texture("assets/ui/screwdriver_icon_active.png",
+				       "screwdriver_icon_active"));
 
-	texture_cache_put(
-	    cache, make_texture("assets/ui/theater_button_active.png",
-				"theater_button_active"));
-	texture_cache_put(
-	    cache, make_texture("assets/ui/theater_button_inactive.png",
-				"theater_button_inactive"));
+	texture_cache_put(cache,
+			  make_texture("assets/ui/theater_button_active.png",
+				       "theater_button_active"));
+	texture_cache_put(cache,
+			  make_texture("assets/ui/theater_button_inactive.png",
+				       "theater_button_inactive"));
 
-	texture_cache_put(
-	    cache, make_texture("assets/ui/theater_previews.png",
-				"theater_previews"));
+	texture_cache_put(cache, make_texture("assets/ui/theater_previews.png",
+					      "theater_previews"));
 
-	texture_cache_put(
-	    cache, make_texture("assets/ui/paw_icon.png",
-				"paw_icon"));
+	texture_cache_put(cache,
+			  make_texture("assets/ui/paw_icon.png", "paw_icon"));
+
+	texture_cache_put(cache, make_texture("assets/ui/score_preview.png",
+					      "score_preview"));
+
+	texture_cache_put(cache, make_texture("assets/ui/red_font.png",
+					      "red_font"));
 }

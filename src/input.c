@@ -1,5 +1,6 @@
 #include "input.h"
 #include "engine.h"
+#include "util.h"
 
 #include <stdio.h>
 
@@ -10,7 +11,7 @@ void handle_menu_click(GLFWwindow *window, int button, int action, int mods)
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
 		double x, y;
 		glfwGetCursorPos(window, &x, &y);
-		Vector2D mouse_pos = make_vec2d(x, y);
+		Vector2D mouse_pos = (Vector2D){x, y};
 
 		Scene *scene = engine->menu->scene;
 

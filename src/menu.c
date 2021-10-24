@@ -12,11 +12,13 @@
 #include "sprite.h"
 #include "text.h"
 #include "texture.h"
+#include "util.h"
 #include "window.h"
 
 static void update_menu_time(Menu *menu);
 static void get_menu_timestring(char *target, Menu *menu);
-static int init_menu_scene(Menu *menu, ResourceCache *resource_cache);
+static int init_menu_scene(Menu *menu, GameState *game_state,
+			   ResourceCache *resource_cache);
 static void animate_menu_expand(Menu *menu, GLFWwindow *window,
 				ResourceCache *resource_cache);
 static void animate_menu(Menu *menu, GLFWwindow *window,
@@ -25,15 +27,20 @@ static void main_ui_bar_click(void *ctx, Sprite *clicked_sprite,
 			      Vector2D click_pos);
 static void toggle_theater_preview(void *ctx, Sprite *clicked_sprite,
 				   Vector2D click_pos);
+static void toggle_score_preview(void *ctx, Sprite *clicked_sprite,
+				 Vector2D click_pos);
 
-static int init_menu_scene(Menu *menu, ResourceCache *resource_cache)
+static int init_menu_scene(Menu *menu, GameState *game_state,
+			   ResourceCache *resource_cache)
 {
 	// sprites
 	SceneSprite sprites[] = {
 	    (SceneSprite){.loc = &menu->sprites->lain->sprite,
 			  .sprite = (Sprite){.pos = {6.0f, 6.0f},
 					     .size = {64.0f, 64.0f},
-					     .texture_index = 0,
+					     .texture = texture_cache_get(
+						 resource_cache->textures,
+						 "ui_lain_bear"),
 					     .is_spritesheet = true,
 					     .max_frame = 8,
 					     .visible = true,
@@ -43,87 +50,122 @@ static int init_menu_scene(Menu *menu, ResourceCache *resource_cache)
 			      (Sprite){
 				  .pos = {-34.0f, -70.0f},
 				  .size = {200.0f, 200.0f},
-				  .texture_index = 1,
+				  .texture = texture_cache_get(
+				      resource_cache->textures, "main_ui"),
 				  .is_spritesheet = true,
 				  .max_frame = 6,
 				  .visible = true,
 				  .z_index = 3,
 			      }},
-	    (SceneSprite){.loc = &menu->sprites->main_ui_bar,
-			  .sprite =
-			      (Sprite){
-				  .pos = {102.0f, 38.0f},
-				  .size = {64.0f, 8.0f},
-				  .texture_index = 2,
-				  .visible = true,
-				  .z_index = 4,
-			      }},
-	    (SceneSprite){.loc = &menu->sprites->dressup_button,
-			  .sprite =
-			      (Sprite){
-				  .pos = {112.0f, 96.0f},
-				  .size = {72.0f, 72.0f},
-				  .texture_index = 3,
-				  .visible = false,
-				  .z_index = 4,
-			      }},
-	    (SceneSprite){.loc = &menu->sprites->theater_preview,
-			  .sprite =
-			      (Sprite){
-				  .pos = {104.0f, 80.0f},
-				  .size = {96.0f, 64.0f},
-				  .texture_index = 9,
-				  .visible = false,
-				  .z_index = 7,
-				  .is_spritesheet = true,
-				  .max_frame = 6,
-			      }},
-	    (SceneSprite){.loc = &menu->sprites->theater_button,
-			  .sprite =
-			      (Sprite){
-				  .pos = {0.0f, 128.0f},
-				  .size = {128.0f, 64.0f},
-				  .texture_index = 8,
-				  .visible = false,
-				  .z_index = 4,
-			      }},
-	    (SceneSprite){.loc = &menu->sprites->bear_icon,
-			  .sprite =
-			      (Sprite){
-				  .pos = {56.0f, 56.0f},
-				  .size = {32.0f, 32.0f},
-				  .texture_index = 4,
-				  .visible = false,
-				  .z_index = 1,
-			      }},
+	    (SceneSprite){
+		.loc = &menu->sprites->main_ui_bar,
+		.sprite =
+		    (Sprite){
+			.pos = {102.0f, 38.0f},
+			.size = {64.0f, 8.0f},
+			.texture = texture_cache_get(resource_cache->textures,
+						     "main_ui_bar_inactive"),
+			.visible = true,
+			.z_index = 4,
+		    }},
+	    (SceneSprite){
+		.loc = &menu->sprites->dressup_button,
+		.sprite =
+		    (Sprite){
+			.pos = {112.0f, 96.0f},
+			.size = {72.0f, 72.0f},
+			.texture = texture_cache_get(resource_cache->textures,
+						     "dressup_button_inactive"),
+			.visible = false,
+			.z_index = 4,
+		    }},
+	    (SceneSprite){
+		.loc = &menu->sprites->theater_preview,
+		.sprite =
+		    (Sprite){
+			.pos = {104.0f, 80.0f},
+			.size = {96.0f, 64.0f},
+			.texture = texture_cache_get(resource_cache->textures,
+						     "theater_previews"),
+			.visible = false,
+			.z_index = 7,
+			.is_spritesheet = true,
+			.max_frame = 6,
+		    }},
+	    (SceneSprite){
+		.loc = &menu->sprites->theater_button,
+		.sprite =
+		    (Sprite){
+			.pos = {0.0f, 128.0f},
+			.size = {128.0f, 64.0f},
+			.texture = texture_cache_get(resource_cache->textures,
+						     "theater_button_inactive"),
+			.visible = false,
+			.z_index = 4,
+		    }},
+	    (SceneSprite){
+		.loc = &menu->sprites->bear_icon,
+		.sprite =
+		    (Sprite){
+			.pos = {56.0f, 56.0f},
+			.size = {32.0f, 32.0f},
+			.texture_index = 4,
+			.texture = texture_cache_get(resource_cache->textures,
+						     "bear_icon_inactive"),
+			.visible = false,
+			.z_index = 1,
+		    }},
 	    (SceneSprite){.loc = &menu->sprites->screwdriver_icon,
 			  .sprite =
 			      (Sprite){
 				  .pos = {56.0f, 56.0f},
 				  .size = {32.0f, 32.0f},
-				  .texture_index = 6,
+				  .texture = texture_cache_get(
+				      resource_cache->textures,
+				      "screwdriver_icon_inactive"),
 				  .visible = false,
 				  .z_index = 2,
 			      }},
 	    (SceneSprite){.loc = &menu->sprites->paw_icon,
+			  .sprite =
+			      (Sprite){
+				  .pos = {56.0f, 56.0f},
+				  .size = {32.0f, 32.0f},
+				  .texture = texture_cache_get(
+				      resource_cache->textures, "paw_icon"),
+				  .visible = false,
+				  .z_index = 1,
+			      }},
+	    (SceneSprite){.loc = &menu->sprites->score_preview,
 			  .sprite = (Sprite){
-			      .pos = {56.0f, 56.0f},
-			      .size = {32.0f, 32.0f},
-			      .texture_index = 7,
+			      .pos = {0.0f, 0.0f},
+			      .size = {200.0f, 88.0f},
+			      .texture_index = 10,
+			      .texture = texture_cache_get(
+				  resource_cache->textures, "score_preview"),
 			      .visible = false,
-			      .z_index = 1,
-			  }}};
+			      .z_index = 7}}};
 	unsigned int sprite_count = sizeof(sprites) / sizeof(sprites[0]);
 
 	char timestring[11];
 	get_menu_timestring(timestring, menu);
-	SceneText text_objects[] = {(SceneText){
-	    .loc = &menu->text_objs->clock,
-	    .text_def = (TextDefinition){.pos = {70.0f, 22.0f},
-					 .texture_index = 5,
-					 .texture_glyph_count = 13.0f,
-					 .initial_text = timestring}}};
 
+	char score[16];
+	sprintf(score, "%d", game_state->score);
+
+	SceneText text_objects[] = {
+	    (SceneText){.loc = &menu->text_objs->clock,
+			.text =
+			    (Text){.pos = {70.0f, 22.0f},
+				   .current_text = timestring,
+				   .glyph_size = {32.0f, 16.0f},
+				   .font = resource_cache->fonts[WHITE_FONT]}},
+	    (SceneText){.loc = &menu->text_objs->score,
+			.text =
+			    (Text){.pos = {168.0f, 16.0f},
+				   .current_text = score,
+				   .glyph_size = {10.0f, 16.0f},
+				   .font = resource_cache->fonts[RED_FONT]}}};
 	unsigned int text_obj_count =
 	    sizeof(text_objects) / sizeof(text_objects[0]);
 
@@ -131,49 +173,23 @@ static int init_menu_scene(Menu *menu, ResourceCache *resource_cache)
 	SpriteBehavior behaviors[] = {
 	    (SpriteBehavior){.sprite = &menu->sprites->main_ui_bar,
 			     .on_click = &main_ui_bar_click},
+
 	    (SpriteBehavior){.sprite = &menu->sprites->theater_button,
-			     .on_click = &toggle_theater_preview}
+			     .on_click = &toggle_theater_preview},
+
+	    (SpriteBehavior){.sprite = &menu->sprites->lain->sprite,
+			     .on_click = &toggle_score_preview}
 
 	};
 	unsigned int behavior_count = sizeof(behaviors) / sizeof(behaviors[0]);
-
-	// texture slots
-	SceneTextureSlot *texture_slots[] = {
-	    make_texture_slot(
-		0, texture_cache_get(resource_cache->textures, "ui_lain_bear")),
-	    make_texture_slot(
-		1, texture_cache_get(resource_cache->textures, "main_ui")),
-	    make_texture_slot(2, texture_cache_get(resource_cache->textures,
-						   "main_ui_bar_inactive")),
-	    make_texture_slot(3, texture_cache_get(resource_cache->textures,
-						   "dressup_button_inactive")),
-	    make_texture_slot(4, texture_cache_get(resource_cache->textures,
-						   "bear_icon_inactive")),
-	    make_texture_slot(
-		5, texture_cache_get(resource_cache->textures, "white_font")),
-	    make_texture_slot(6,
-			      texture_cache_get(resource_cache->textures,
-						"screwdriver_icon_inactive")),
-	    make_texture_slot(
-		7, texture_cache_get(resource_cache->textures, "paw_icon")),
-	    make_texture_slot(8, texture_cache_get(resource_cache->textures,
-						   "theater_button_inactive")),
-	    make_texture_slot(9, texture_cache_get(resource_cache->textures,
-						   "theater_previews")),
-	};
-
-	unsigned int texture_slot_count =
-	    sizeof(texture_slots) / sizeof(texture_slots[0]);
 
 	SceneDefinition menu_scene_def = {
 	    .sprites = sprites,
 	    .sprite_count = sprite_count,
 	    .behaviors = behaviors,
 	    .behavior_count = behavior_count,
-	    .texture_slots = texture_slots,
-	    .texture_slot_count = texture_slot_count,
 	    .text_objects = text_objects,
-	    .text_obj_count = text_obj_count,
+	    .text_object_count = text_obj_count,
 	};
 
 	if (!(init_scene(menu->scene, &menu_scene_def, resource_cache))) {
@@ -184,7 +200,7 @@ static int init_menu_scene(Menu *menu, ResourceCache *resource_cache)
 	return 1;
 }
 
-int init_menu(ResourceCache *resource_cache, Menu **menu)
+int init_menu(ResourceCache *resource_cache, GameState *game_state, Menu **menu)
 {
 	// allocate mem for the menu struct
 	*menu = malloc(sizeof(Menu));
@@ -222,7 +238,7 @@ int init_menu(ResourceCache *resource_cache, Menu **menu)
 	}
 
 	// load scene
-	if (!(init_menu_scene(*menu, resource_cache))) {
+	if (!(init_menu_scene(*menu, game_state, resource_cache))) {
 		printf("Failed to initialize menu scene.\n");
 		return 0;
 	}
@@ -245,6 +261,18 @@ static void update_menu_time(Menu *menu)
 static void get_menu_timestring(char *target, Menu *menu)
 {
 	strftime(target, sizeof(char) * 11, "%p%I:%M:%S", menu->current_time);
+}
+
+static void toggle_score_preview(void *ctx, Sprite *clicked_sprite,
+				 Vector2D click_pos)
+{
+	Engine *engine = (Engine *)ctx;
+
+	Sprite *score_preview = engine->menu->sprites->score_preview;
+
+	if (engine->menu->expanded) {
+		score_preview->visible = !score_preview->visible;
+	}
 }
 
 static void toggle_theater_preview(void *ctx, Sprite *clicked_sprite,
@@ -307,11 +335,11 @@ static void animate_menu_expand(Menu *menu, GLFWwindow *window,
 		if (main_ui->current_frame == 1) {
 			expand_main_window(window);
 
-			main_ui->pos = make_vec2d(0.0f, 0.0f);
-			ui_lain->pos = make_vec2d(40.0f, 40.0f);
-			main_ui_bar->pos = make_vec2d(136.0f, 72.0f);
+			main_ui->pos = (Vector2D){0.0f, 0.0f};
+			ui_lain->pos = (Vector2D){40.0f, 40.0f};
+			main_ui_bar->pos = (Vector2D){136.0f, 72.0f};
 
-			clock->pos = make_vec2d(104.0f, 56.0f);
+			clock->pos = (Vector2D){104.0f, 56.0f};
 
 			bear_icon->visible = true;
 			screwdriver_icon->visible = true;
@@ -344,12 +372,14 @@ static void animate_menu_shrink(Menu *menu, GLFWwindow *window,
 	Sprite *paw_icon = sprites->paw_icon;
 	Sprite *dressup_button = sprites->dressup_button;
 	Sprite *theater_button = sprites->theater_button;
+	Sprite *score_preview = sprites->score_preview;
 
 	if (main_ui->current_frame > 0) {
 		main_ui->current_frame--;
 		if (main_ui->current_frame == main_ui->max_frame - 1) {
 			dressup_button->visible = false;
 			theater_button->visible = false;
+			score_preview->visible = false;
 		}
 		if (main_ui->current_frame == 1) {
 			shrink_main_window(window);
@@ -358,7 +388,7 @@ static void animate_menu_shrink(Menu *menu, GLFWwindow *window,
 			ui_lain->pos = ui_lain->origin_pos;
 			main_ui_bar->pos = main_ui_bar->origin_pos;
 
-			clock->pos = make_vec2d(70.0f, 22.0f);
+			clock->pos = (Vector2D){70.0f, 22.0f};
 
 			bear_icon->visible = false;
 			screwdriver_icon->visible = false;
@@ -394,25 +424,30 @@ static void update_menu_icons(Menu *menu)
 
 	struct tm *curr_time = menu->current_time;
 
-	int secs = curr_time->tm_sec;
-	int mins = curr_time->tm_min;
-	int hrs = curr_time->tm_hour;
+	int secs = curr_time->tm_sec - 15;
+	int mins = curr_time->tm_min - 15;
+	int hrs = curr_time->tm_hour - 3;
 
-	float v1 = 3.14 / 30.0f;
-	float v2 = 3.14 / 6.0f;
+	float deg_60 = PI / 3.0f;
+	float deg_30 = PI / 6.0f;
 
-	// todo the -15 and -3 are hacky
-	screwdriver_icon->pos = make_vec2d(
-	    screwdriver_icon->origin_pos.x + cos((secs - 15) * v1) * 44.0f,
-	    screwdriver_icon->origin_pos.y + sin((secs - 15) * v1) * 44.0f);
+	float secs_angle = secs * (deg_60 / 10);
+	float mins_angle = mins * (deg_60 / 10);
+	float hrs_angle = hrs * deg_30;
+
+	float radius = 44.0f;
+
+	screwdriver_icon->pos = (Vector2D){
+	    screwdriver_icon->origin_pos.x + cos(secs_angle) * radius,
+	    screwdriver_icon->origin_pos.y + sin(secs_angle) * radius};
 
 	bear_icon->pos =
-	    make_vec2d(bear_icon->origin_pos.x + cos((mins - 15) * v1) * 44.0f,
-		       bear_icon->origin_pos.y + sin((mins - 15) * v1) * 44.0f);
+	    (Vector2D){bear_icon->origin_pos.x + cos(mins_angle) * radius,
+		       bear_icon->origin_pos.y + sin(mins_angle) * radius};
 
 	paw_icon->pos =
-	    make_vec2d(paw_icon->origin_pos.x + cos((hrs - 3) * v2) * 44.0f,
-		       paw_icon->origin_pos.y + sin((hrs - 3) * v2) * 44.0f);
+	    (Vector2D){paw_icon->origin_pos.x + cos(hrs_angle) * radius,
+		       paw_icon->origin_pos.y + sin(hrs_angle) * radius};
 }
 
 static void animate_lain_blink(MenuLain *lain)
@@ -448,14 +483,18 @@ static void animate_lain_blink(MenuLain *lain)
 	}
 }
 
-void update_menu(Menu *menu, GLFWwindow *window, ResourceCache *resource_cache)
+void update_menu(Menu *menu, GameState *game_state, GLFWwindow *window, ResourceCache *resource_cache)
 {
 	update_menu_time(menu);
 
 	char timestring[11];
 	get_menu_timestring(timestring, menu);
 
+	char score[16];
+	sprintf(score, "%d", game_state->score);
+
 	menu->text_objs->clock->current_text = timestring;
+	menu->text_objs->score->current_text = score;
 
 	if (menu->current_time->tm_sec % 15 == 0) {
 		MenuLain *lain = menu->sprites->lain;

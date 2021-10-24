@@ -1,9 +1,8 @@
 #pragma once
-#include <GL/glew.h>
 #include <stdint.h>
 
-#include "vector2d.h"
 #include "hashmap.h"
+#include "util.h"
 
 typedef struct {
 	GLuint id;
