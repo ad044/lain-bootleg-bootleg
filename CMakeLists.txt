@@ -51,7 +51,11 @@ set(HEADERS
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 
-target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic)
+if(MSVC)
+  target_compile_options(${PROJECT_NAME} PRIVATE /W4)
+else()
+  target_compile_options(${PROEJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic)
+endif()
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_SOURCE_DIR}/src)
 
