@@ -3,7 +3,11 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#ifdef __linux__
 #include <unistd.h>
+#else
+#define access _access
+#endif
 
 #include "util.h"
 #include "sprite.h"
@@ -17,7 +21,7 @@ int init_texture(Texture *texture, char *image_path)
 {
 	stbi_set_flip_vertically_on_load(true);
 
-	if (!(access(image_path, F_OK) == 0)) {
+	if (!(access(image_path, 0) == 0)) {
 		printf("Can't find texture %s.\n", image_path);
 		return 0;
 	}
