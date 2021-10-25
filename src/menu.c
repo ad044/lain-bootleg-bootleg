@@ -159,12 +159,15 @@ static int init_menu_scene(Menu *menu, GameState *game_state,
 			    (Text){.pos = {70.0f, 22.0f},
 				   .current_text = timestring,
 				   .glyph_size = {32.0f, 16.0f},
+				   .visible = true,
 				   .font = resource_cache->fonts[WHITE_FONT]}},
 	    (SceneText){.loc = &menu->text_objs->score,
 			.text =
-			    (Text){.pos = {168.0f, 16.0f},
+			    (Text){.pos = {178.0f, 16.0f},
 				   .current_text = score,
 				   .glyph_size = {10.0f, 16.0f},
+				   .visible = false,
+				   .left_aligned = true,
 				   .font = resource_cache->fonts[RED_FONT]}}};
 	unsigned int text_obj_count =
 	    sizeof(text_objects) / sizeof(text_objects[0]);
@@ -269,9 +272,11 @@ static void toggle_score_preview(void *ctx, Sprite *clicked_sprite,
 	Engine *engine = (Engine *)ctx;
 
 	Sprite *score_preview = engine->menu->sprites->score_preview;
+	Text *score = engine->menu->text_objs->score;
 
 	if (engine->menu->expanded) {
 		score_preview->visible = !score_preview->visible;
+		score->visible = !score->visible;
 	}
 }
 
@@ -361,6 +366,7 @@ static void animate_menu_shrink(Menu *menu, GLFWwindow *window,
 				ResourceCache *resource_cache)
 {
 	Text *clock = menu->text_objs->clock;
+	Text *score = menu->text_objs->score;
 
 	MenuSprites *sprites = menu->sprites;
 
@@ -380,6 +386,7 @@ static void animate_menu_shrink(Menu *menu, GLFWwindow *window,
 			dressup_button->visible = false;
 			theater_button->visible = false;
 			score_preview->visible = false;
+			score->visible = false;
 		}
 		if (main_ui->current_frame == 1) {
 			shrink_main_window(window);
@@ -483,7 +490,8 @@ static void animate_lain_blink(MenuLain *lain)
 	}
 }
 
-void update_menu(Menu *menu, GameState *game_state, GLFWwindow *window, ResourceCache *resource_cache)
+void update_menu(Menu *menu, GameState *game_state, GLFWwindow *window,
+		 ResourceCache *resource_cache)
 {
 	update_menu_time(menu);
 
@@ -493,8 +501,8 @@ void update_menu(Menu *menu, GameState *game_state, GLFWwindow *window, Resource
 	char score[16];
 	sprintf(score, "%d", game_state->score);
 
-	menu->text_objs->clock->current_text = timestring;
-	menu->text_objs->score->current_text = score;
+	update_text(menu->text_objs->clock, timestring);
+	update_text(menu->text_objs->score, score);
 
 	if (menu->current_time->tm_sec % 15 == 0) {
 		MenuLain *lain = menu->sprites->lain;

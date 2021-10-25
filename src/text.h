@@ -1,6 +1,5 @@
 #pragma once
 
-#include "texture.h"
 #include "sprite.h"
 #include "texture.h"
 
@@ -12,12 +11,17 @@ typedef struct {
 	float letter_spacing;
 	unsigned int glyph_count;
 	Vector2D glyph_texture_size;
-	uint16_t *glyph_order;
+	const uint16_t *glyph_order;
 	Texture *texture;
 } Font;
 
 typedef struct {
 	Vector2D pos;
+	Vector2D origin_pos; // keeps track of initially passed position.
+	_Bool visible;
+	// text rendered with left-aligned set to true expands to the left as more
+	// letters get added. i dont know a better name for it.
+	_Bool left_aligned;
 	Vector2D glyph_size;
 	unsigned int texture_index;
 	Font *font;
@@ -25,4 +29,5 @@ typedef struct {
 } Text;
 
 void fonts_init(Font **fonts, TextureCache *textures);
+void update_text(Text *text_obj, char *new_text);
 Sprite get_glyph(Text *text_obj, char letter, unsigned int nth);

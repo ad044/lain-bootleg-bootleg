@@ -75,6 +75,8 @@ static int register_text_object(Scene *scene, SceneText scene_text)
 
 	scene_text.text.texture_index = slot->texture_index;
 
+	scene_text.text.origin_pos = scene_text.text.pos;
+
 	memcpy(*scene_text.loc, &scene_text.text, sizeof(Text));
 
 	cvector_push_back(scene->text_objects, *scene_text.loc);
@@ -183,9 +185,15 @@ void update_scene(Scene *scene)
 
 	for (int i = 0; i < cvector_size(scene->text_objects); i++) {
 		Text *text_obj = scene->text_objects[i];
-		char *text = text_obj->current_text;
+		if (!text_obj->visible) {
+			continue;
+		}
 
-		for (int j = 0; j < strlen(text); j++) {
+		char *text = text_obj->current_text;
+		int text_len = strlen(text);
+		// on each letter pad the entire text back by one letter size
+
+		for (int j = 0; j < text_len; j++) {
 			Sprite glyph = get_glyph(text_obj, text[j], j);
 			buffer_ptr = get_quad_vertices(buffer_ptr, &glyph);
 			quad_count++;

@@ -43,13 +43,32 @@ void fonts_init(Font **fonts, TextureCache *textures)
 	fonts[WHITE_FONT] = white_font;
 }
 
+void update_text(Text *text_obj, char *new_text)
+{
+	if (strcmp(text_obj->current_text, new_text) == 0) {
+		return;
+	}
+
+	if (text_obj->left_aligned) {
+		float x_pad = ((strlen(new_text) - 1) * text_obj->glyph_size.x);
+
+		text_obj->pos.x = text_obj->origin_pos.x - x_pad;
+	}
+
+	text_obj->current_text = new_text;
+}
+
+// update text function
+// update scene -> update secene quads
 Sprite get_glyph(Text *text_obj, char letter, unsigned int nth)
 {
-	return (Sprite){
+	Sprite glyph = (Sprite){
 	    .size = text_obj->glyph_size,
 	    .pos = {text_obj->pos.x + nth * text_obj->font->letter_spacing,
 		    text_obj->pos.y},
 	    .texture_size = text_obj->font->glyph_texture_size,
 	    .current_frame = text_obj->font->glyph_order[letter],
 	    .texture_index = text_obj->texture_index};
+
+	return glyph;
 }
