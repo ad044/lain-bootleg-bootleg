@@ -168,4 +168,10 @@ void preload_textures(TextureCache *cache)
 
 	texture_cache_put(cache, make_texture("assets/ui/red_font.png",
 					      "red_font"));
+
+	texture_cache_put(cache, make_texture("assets/kumashoot/bush_overlay.png",
+					      "bush_overlay"));
+
+	texture_cache_put(cache, make_texture("assets/backgrounds/kumashoot.png",
+					      "kumashoot_bg"));
 }

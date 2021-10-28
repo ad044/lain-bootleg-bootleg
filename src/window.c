@@ -7,12 +7,6 @@
 #include "scene.h"
 #include "window.h"
 
-#define SHRINKED_MENU_WIDTH 161
-#define SHRINKED_MENU_HEIGHT 74
-
-#define EXPANDED_MENU_WIDTH 196
-#define EXPANDED_MENU_HEIGHT 196
-
 static void GLAPIENTRY gl_debug_message_callback(GLenum source, GLenum type,
 						 GLuint id, GLenum severity,
 						 GLsizei length,
@@ -21,17 +15,6 @@ static void GLAPIENTRY gl_debug_message_callback(GLenum source, GLenum type,
 {
 	fprintf(stderr, "\ntype = 0x%x, severity = 0x%x, message = %s\n", type,
 		severity, message);
-}
-
-int make_main_window(GLFWwindow **window)
-{
-	if (!(make_window(window, SHRINKED_MENU_WIDTH, SHRINKED_MENU_HEIGHT,
-			  "lain"))) {
-		printf("Failed to create main window.\n");
-		return 0;
-	}
-
-	return 1;
 }
 
 void shrink_main_window(GLFWwindow *window)
@@ -44,11 +27,11 @@ void expand_main_window(GLFWwindow *window)
 	glfwSetWindowSize(window, EXPANDED_MENU_WIDTH, EXPANDED_MENU_HEIGHT);
 }
 
-
-int make_window(GLFWwindow **window, int width, int height, char *name)
+int make_window(GLFWwindow **window, int width, int height, char *name,
+		GLFWwindow *share)
 {
 	glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-	*window = glfwCreateWindow(width, height, name, NULL, NULL);
+	*window = glfwCreateWindow(width, height, name, NULL, share);
 
 	if (window == NULL) {
 		printf("Failed to initialize window.\n");

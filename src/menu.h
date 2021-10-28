@@ -61,4 +61,3 @@ int init_menu(ResourceCache *resource_cache, GameState *game_state,
 	      Menu **menu);
 void update_menu(Menu *menu, GameState *game_state, GLFWwindow *window,
 		 ResourceCache *resource_cache);
-void draw_menu(Menu *menu, GLFWwindow *window);

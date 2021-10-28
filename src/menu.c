@@ -5,6 +5,7 @@
 #include <time.h>
 
 #include "input.h"
+#include "kumashoot.h"
 #include "menu.h"
 #include "resource_cache.h"
 #include "scene.h"
@@ -19,6 +20,8 @@ static void update_menu_time(Menu *menu);
 static void get_menu_timestring(char *target, Menu *menu);
 static int init_menu_scene(Menu *menu, GameState *game_state,
 			   ResourceCache *resource_cache);
+static void animate_menu_shrink(Menu *menu, GLFWwindow *window,
+				ResourceCache *resource_cache);
 static void animate_menu_expand(Menu *menu, GLFWwindow *window,
 				ResourceCache *resource_cache);
 static void animate_menu(Menu *menu, GLFWwindow *window,
@@ -181,7 +184,10 @@ static int init_menu_scene(Menu *menu, GameState *game_state,
 			     .on_click = &toggle_theater_preview},
 
 	    (SpriteBehavior){.sprite = &menu->sprites->lain->sprite,
-			     .on_click = &toggle_score_preview}
+			     .on_click = &toggle_score_preview},
+
+	    (SpriteBehavior){.sprite = &menu->sprites->bear_icon,
+			     .on_click = &start_kumashoot}
 
 	};
 	unsigned int behavior_count = sizeof(behaviors) / sizeof(behaviors[0]);
@@ -523,9 +529,4 @@ void update_menu(Menu *menu, GameState *game_state, GLFWwindow *window,
 	update_menu_icons(menu);
 
 	update_scene(menu->scene);
-}
-
-void draw_menu(Menu *menu, GLFWwindow *window)
-{
-	draw_scene(menu->scene, window);
 }

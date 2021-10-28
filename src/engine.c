@@ -18,8 +18,9 @@ static void engine_stop(Engine *engine);
 int engine_init(Engine *engine)
 {
 	// init main (menu) window
-	if (!(make_main_window(&engine->main_window))) {
-		printf("Failed to create menu window.\n");
+	if (!(make_window(&engine->main_window, SHRINKED_MENU_WIDTH,
+			  SHRINKED_MENU_HEIGHT, "lain", NULL))) {
+		printf("Failed to create main window.\n");
 		return 0;
 	}
 
@@ -47,6 +48,14 @@ int engine_init(Engine *engine)
 		return 0;
 	}
 
+	// malloc minigame
+	engine->minigame_window = NULL;
+	engine->minigame = malloc(sizeof(Minigame));
+	if (engine->minigame == NULL) {
+		printf("Failed to allocate memory for minigame struct.\n");
+		return 0;
+	}
+
 	// set user pointer to access engine inside callback function
 	glfwSetWindowUserPointer(engine->main_window, engine);
 	// set callbacks
@@ -70,10 +79,25 @@ static void engine_renderloop(Engine *engine)
 			glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 			glClear(GL_COLOR_BUFFER_BIT);
 
+			glfwMakeContextCurrent(engine->main_window);
+
 			update_menu(engine->menu, engine->game_state,
 				    engine->main_window,
 				    engine->resource_cache);
-			draw_menu(engine->menu, engine->main_window);
+
+			draw_scene(engine->menu->scene, engine->main_window);
+
+			if (engine->minigame_window != NULL) {
+				glfwMakeContextCurrent(engine->minigame_window);
+
+				engine->minigame->updater(
+				    engine->game_state,
+				    engine->minigame->minigame_struct);
+
+				draw_scene(engine->minigame->scene,
+					   engine->minigame_window);
+				glfwSwapBuffers(engine->minigame_window);
+			}
 
 			glfwPollEvents();
 			glfwSwapBuffers(engine->main_window);

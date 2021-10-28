@@ -29,6 +29,8 @@ set(SOURCES
    src/window.c
    src/quad.c
    src/state.c
+   src/kumashoot.c
+   src/minigame.c
 )
 
 set(HEADERS
@@ -47,6 +49,8 @@ set(HEADERS
    src/quad.h
    src/util.h
    src/state.h
+   src/kumashoot.h
+   src/minigame.h
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})
