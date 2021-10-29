@@ -9,17 +9,16 @@
 #include "texture.h"
 #include "window.h"
 
-static void engine_renderloop(Engine *engine);
 // todo
 static void engine_stop(Engine *engine);
 
-#define FRAMERATE_CAP 0.033
+#define FRAMERATE_CAP 30
 
 int engine_init(Engine *engine)
 {
 	// init main (menu) window
 	if (!(make_window(&engine->main_window, SHRINKED_MENU_WIDTH,
-			  SHRINKED_MENU_HEIGHT, "lain", NULL))) {
+			  SHRINKED_MENU_HEIGHT, "lain", NULL, false))) {
 		printf("Failed to create main window.\n");
 		return 0;
 	}
@@ -64,52 +63,58 @@ int engine_init(Engine *engine)
 	return 1;
 }
 
-static void engine_renderloop(Engine *engine)
+static void engine_render(Engine *engine)
 {
-	double last_frame_time = glfwGetTime();
+	glfwMakeContextCurrent(engine->main_window);
 
-	while (!glfwWindowShouldClose(engine->main_window)) {
-		double curr_time = glfwGetTime();
-		double delta = curr_time - last_frame_time;
-		if (delta >= FRAMERATE_CAP) {
-			last_frame_time = curr_time;
-			// temporary benchmark to see how changes affect things
-			float startTime = (float)clock() / CLOCKS_PER_SEC;
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	update_menu(engine->menu, engine->game_state, engine->main_window,
+		    engine->resource_cache);
+
+	draw_scene(engine->menu->scene, engine->main_window);
+
+	glfwSwapBuffers(engine->main_window);
+
+	if (engine->minigame_window != NULL) {
+		if (glfwWindowShouldClose(engine->minigame_window)) {
+			kill_minigame(&engine->minigame_window,
+				      engine->minigame);
+		} else {
+			glfwMakeContextCurrent(engine->minigame_window);
 
 			glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 			glClear(GL_COLOR_BUFFER_BIT);
 
-			glfwMakeContextCurrent(engine->main_window);
+			engine->minigame->updater(
+			    engine->game_state,
+			    engine->minigame->minigame_struct);
 
-			update_menu(engine->menu, engine->game_state,
-				    engine->main_window,
-				    engine->resource_cache);
+			draw_scene(engine->minigame->scene,
+				   engine->minigame_window);
 
-			draw_scene(engine->menu->scene, engine->main_window);
-
-			if (engine->minigame_window != NULL) {
-				glfwMakeContextCurrent(engine->minigame_window);
-
-				engine->minigame->updater(
-				    engine->game_state,
-				    engine->minigame->minigame_struct);
-
-				draw_scene(engine->minigame->scene,
-					   engine->minigame_window);
-				glfwSwapBuffers(engine->minigame_window);
-			}
-
-			glfwPollEvents();
-			glfwSwapBuffers(engine->main_window);
-
-			float endTime = (float)clock() / CLOCKS_PER_SEC;
-			// printf("%f\n", endTime - startTime);
+			glfwSwapBuffers(engine->minigame_window);
 		}
+	}
+
+	glfwPollEvents();
+}
+
+static void engine_renderloop(Engine *engine, float framerate)
+{
+	double last_frame_time = glfwGetTime();
+
+	while (!glfwWindowShouldClose(engine->main_window)) {
+		engine_render(engine);
+		while (glfwGetTime() < last_frame_time + 1.0 / framerate)
+			;
+		last_frame_time += 1.0 / framerate;
 	}
 }
 
 void engine_run(Engine *engine)
 {
-	engine_renderloop(engine);
+	engine_renderloop(engine, FRAMERATE_CAP);
 	glfwTerminate();
 }

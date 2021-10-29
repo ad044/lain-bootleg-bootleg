@@ -11,3 +11,5 @@ typedef struct {
 	Scene *scene;
 	void *minigame_struct;
 } Minigame;
+
+void kill_minigame(GLFWwindow **window, Minigame *minigame);

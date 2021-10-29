@@ -43,19 +43,27 @@ static int init_kumashoot_scene(Scene *scene, KumaShoot *kumashoot,
 	return 1;
 }
 
-static void test(GameState *game_state, void *minigame_struct)
-{
-	printf("here\n");
-}
+static void test(GameState *game_state, void *minigame_struct) {}
 
 void start_kumashoot(void *ctx, Sprite *clicked_sprite, Vector2D click_pos)
 {
 	Engine *engine = (Engine *)ctx;
+	Minigame *minigame = engine->minigame;
 
+	kill_minigame(&engine->minigame_window, engine->minigame);
+
+	// make window
 	if (!(make_window(&engine->minigame_window, KUMASHOOT_WIDTH,
 			  KUMASHOOT_HEIGHT, "lain kuma shoot",
-			  engine->main_window))) {
-		printf("Failed to start kuma shoot.\n");
+			  engine->main_window, true))) {
+		printf("Failed to create kuma shoot window.\n");
+		exit(1);
+	}
+
+	// mallocs
+	minigame->scene = malloc(sizeof(Scene));
+	if (minigame->scene == NULL) {
+		printf("Failed to allocate memory for minigame scene.\n");
 		exit(1);
 	}
 
@@ -71,13 +79,7 @@ void start_kumashoot(void *ctx, Sprite *clicked_sprite, Vector2D click_pos)
 		exit(1);
 	}
 
-	Minigame *minigame = engine->minigame;
-
-	minigame->scene = malloc(sizeof(Scene));
-	if (minigame->scene == NULL) {
-		printf("Failed to allocate memory for menu scene.\n");
-		exit(1);
-	}
+	// set stuff up
 	if (!init_kumashoot_scene(minigame->scene, kumashoot,
 				  engine->resource_cache)) {
 		printf("Failed to initialize kuma shoot scene.\n");
