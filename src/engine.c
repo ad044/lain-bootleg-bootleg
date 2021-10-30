@@ -29,31 +29,12 @@ int engine_init(Engine *engine)
 		return 0;
 	}
 
-	// init game state
-	engine->game_state = malloc(sizeof(GameState));
-	if (engine->game_state == NULL) {
-		printf("Failed to allocate memory for game state.\n");
-		return 0;
-	}
-	if (!init_game_state(engine->game_state)) {
-		printf("Failed to initialize game state.\n");
-		return 0;
-	}
+	init_game_state(&engine->game_state);
 
-	// init menu
-	if (!(init_menu(engine->resource_cache, engine->game_state,
-			&engine->menu))) {
-		printf("Failed to initialize menu.\n");
-		return 0;
-	}
+	init_menu(&engine->resource_cache, &engine->game_state, &engine->menu);
 
-	// malloc minigame
 	engine->minigame_window = NULL;
-	engine->minigame = malloc(sizeof(Minigame));
-	if (engine->minigame == NULL) {
-		printf("Failed to allocate memory for minigame struct.\n");
-		return 0;
-	}
+	engine->minigame.running = false;
 
 	// set user pointer to access engine inside callback function
 	glfwSetWindowUserPointer(engine->main_window, engine);
@@ -70,31 +51,31 @@ static void engine_render(Engine *engine)
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	update_menu(engine->menu, engine->game_state, engine->main_window,
-		    engine->resource_cache);
+	update_menu(&engine->menu, &engine->game_state, engine->main_window,
+		    &engine->resource_cache);
 
-	draw_scene(engine->menu->scene, engine->main_window);
+	draw_scene(&engine->menu.scene, engine->main_window);
 
 	glfwSwapBuffers(engine->main_window);
 
-	if (engine->minigame_window != NULL) {
-		if (glfwWindowShouldClose(engine->minigame_window)) {
-			kill_minigame(&engine->minigame_window,
-				      engine->minigame);
+	GLFWwindow *minigame_window = engine->minigame_window;
+	Minigame *minigame = &engine->minigame;
+
+	if (minigame->running) {
+		if (glfwWindowShouldClose(minigame_window)) {
+			kill_minigame(minigame, &minigame_window);
 		} else {
-			glfwMakeContextCurrent(engine->minigame_window);
+			glfwMakeContextCurrent(minigame_window);
 
 			glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 			glClear(GL_COLOR_BUFFER_BIT);
 
-			engine->minigame->updater(
-			    engine->game_state,
-			    engine->minigame->minigame_struct);
+			minigame->update(minigame->current,
+					 &engine->game_state);
 
-			draw_scene(engine->minigame->scene,
-				   engine->minigame_window);
+			draw_scene(minigame->scene, minigame_window);
 
-			glfwSwapBuffers(engine->minigame_window);
+			glfwSwapBuffers(minigame_window);
 		}
 	}
 

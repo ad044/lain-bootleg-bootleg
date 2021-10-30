@@ -26,38 +26,31 @@ typedef enum {
 } BlinkState;
 
 typedef struct {
-	BlinkState blink_state;
-	Sprite *sprite;
-} MenuLain;
+	struct tm *current_time;
 
-typedef struct {
-	MenuLain *lain;
-	Sprite *main_ui;
-	Sprite *main_ui_bar;
-	Sprite *dressup_button;
-	Sprite *theater_button;
-	Sprite *bear_icon;
-	Sprite *screwdriver_icon;
-	Sprite *paw_icon;
-	Sprite *theater_preview;
-	Sprite *score_preview;
-} MenuSprites;
-
-typedef struct {
-	Text *clock;
-	Text *score;
-} MenuTextObjects;
-
-typedef struct {
 	_Bool expanded;
 	_Bool animating;
-	Scene *scene;
-	struct tm *current_time;
-	MenuSprites *sprites;
-	MenuTextObjects *text_objs;
+
+	BlinkState lain_blink_state;
+
+	Scene scene;
+
+	Sprite ui_lain;
+	Sprite main_ui;
+	Sprite main_ui_bar;
+	Sprite dressup_button;
+	Sprite theater_button;
+	Sprite bear_icon;
+	Sprite screwdriver_icon;
+	Sprite paw_icon;
+	Sprite theater_preview;
+	Sprite score_preview;
+
+	Text clock;
+	Text score_text;
 } Menu;
 
-int init_menu(ResourceCache *resource_cache, GameState *game_state,
-	      Menu **menu);
-void update_menu(Menu *menu, GameState *game_state, GLFWwindow *window,
-		 ResourceCache *resource_cache);
+void init_menu(ResourceCache *resource_cache, GameState *game_state,
+	       Menu *menu);
+void update_menu(Menu *menu, const GameState *game_state, GLFWwindow *window,
+		 const ResourceCache *resource_cache);

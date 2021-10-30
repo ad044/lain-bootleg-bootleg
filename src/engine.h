@@ -9,12 +9,12 @@
 #include "kumashoot.h"
 
 typedef struct {
-	ResourceCache *resource_cache;
+	ResourceCache resource_cache;
 	GLFWwindow *main_window;
-	Menu *menu;
+	Menu menu;
 	GLFWwindow *minigame_window;
-	Minigame *minigame;
-	GameState *game_state;
+	Minigame minigame;
+	GameState game_state;
 } Engine;
 
 int engine_init(Engine *engine);

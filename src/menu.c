@@ -18,244 +18,193 @@
 
 static void update_menu_time(Menu *menu);
 static void get_menu_timestring(char *target, Menu *menu);
-static int init_menu_scene(Menu *menu, GameState *game_state,
-			   ResourceCache *resource_cache);
+static void init_menu_scene(Menu *menu, GameState *game_state,
+			    ResourceCache *resource_cache);
 static void animate_menu_shrink(Menu *menu, GLFWwindow *window,
-				ResourceCache *resource_cache);
+				const ResourceCache *resource_cache);
 static void animate_menu_expand(Menu *menu, GLFWwindow *window,
-				ResourceCache *resource_cache);
+				const ResourceCache *resource_cache);
 static void animate_menu(Menu *menu, GLFWwindow *window,
-			 ResourceCache *resource_cache);
+			 const ResourceCache *resource_cache);
 static void main_ui_bar_click(void *ctx, Sprite *clicked_sprite,
 			      Vector2D click_pos);
 static void toggle_theater_preview(void *ctx, Sprite *clicked_sprite,
 				   Vector2D click_pos);
 static void toggle_score_preview(void *ctx, Sprite *clicked_sprite,
 				 Vector2D click_pos);
+static void animate_lain_blink(Sprite *ui_lain, BlinkState *blink_state);
 
-static int init_menu_scene(Menu *menu, GameState *game_state,
-			   ResourceCache *resource_cache)
+static void init_menu_sprites(Menu *menu, ResourceCache *resource_cache)
 {
-	// sprites
-	SceneSprite sprites[] = {
-	    (SceneSprite){.loc = &menu->sprites->lain->sprite,
-			  .sprite = (Sprite){.pos = {6.0f, 6.0f},
-					     .size = {64.0f, 64.0f},
-					     .texture = texture_cache_get(
-						 resource_cache->textures,
-						 "ui_lain_bear"),
-					     .is_spritesheet = true,
-					     .max_frame = 8,
-					     .visible = true,
-					     .z_index = 4}},
-	    (SceneSprite){.loc = &menu->sprites->main_ui,
-			  .sprite =
-			      (Sprite){
-				  .pos = {-34.0f, -70.0f},
-				  .size = {200.0f, 200.0f},
-				  .texture = texture_cache_get(
-				      resource_cache->textures, "main_ui"),
-				  .is_spritesheet = true,
-				  .max_frame = 6,
-				  .visible = true,
-				  .z_index = 3,
-			      }},
-	    (SceneSprite){
-		.loc = &menu->sprites->main_ui_bar,
-		.sprite =
-		    (Sprite){
-			.pos = {102.0f, 38.0f},
-			.size = {64.0f, 8.0f},
-			.texture = texture_cache_get(resource_cache->textures,
-						     "main_ui_bar_inactive"),
-			.visible = true,
-			.z_index = 4,
-		    }},
-	    (SceneSprite){
-		.loc = &menu->sprites->dressup_button,
-		.sprite =
-		    (Sprite){
-			.pos = {112.0f, 96.0f},
-			.size = {72.0f, 72.0f},
-			.texture = texture_cache_get(resource_cache->textures,
-						     "dressup_button_inactive"),
-			.visible = false,
-			.z_index = 4,
-		    }},
-	    (SceneSprite){
-		.loc = &menu->sprites->theater_preview,
-		.sprite =
-		    (Sprite){
-			.pos = {104.0f, 80.0f},
-			.size = {96.0f, 64.0f},
-			.texture = texture_cache_get(resource_cache->textures,
-						     "theater_previews"),
-			.visible = false,
-			.z_index = 7,
-			.is_spritesheet = true,
-			.max_frame = 6,
-		    }},
-	    (SceneSprite){
-		.loc = &menu->sprites->theater_button,
-		.sprite =
-		    (Sprite){
-			.pos = {0.0f, 128.0f},
-			.size = {128.0f, 64.0f},
-			.texture = texture_cache_get(resource_cache->textures,
-						     "theater_button_inactive"),
-			.visible = false,
-			.z_index = 4,
-		    }},
-	    (SceneSprite){
-		.loc = &menu->sprites->bear_icon,
-		.sprite =
-		    (Sprite){
-			.pos = {56.0f, 56.0f},
-			.size = {32.0f, 32.0f},
-			.texture_index = 4,
-			.texture = texture_cache_get(resource_cache->textures,
-						     "bear_icon_inactive"),
-			.visible = false,
-			.z_index = 1,
-		    }},
-	    (SceneSprite){.loc = &menu->sprites->screwdriver_icon,
-			  .sprite =
-			      (Sprite){
-				  .pos = {56.0f, 56.0f},
-				  .size = {32.0f, 32.0f},
-				  .texture = texture_cache_get(
-				      resource_cache->textures,
-				      "screwdriver_icon_inactive"),
-				  .visible = false,
-				  .z_index = 2,
-			      }},
-	    (SceneSprite){.loc = &menu->sprites->paw_icon,
-			  .sprite =
-			      (Sprite){
-				  .pos = {56.0f, 56.0f},
-				  .size = {32.0f, 32.0f},
-				  .texture = texture_cache_get(
-				      resource_cache->textures, "paw_icon"),
-				  .visible = false,
-				  .z_index = 1,
-			      }},
-	    (SceneSprite){.loc = &menu->sprites->score_preview,
-			  .sprite = (Sprite){
-			      .pos = {0.0f, 0.0f},
-			      .size = {200.0f, 88.0f},
-			      .texture_index = 10,
-			      .texture = texture_cache_get(
-				  resource_cache->textures, "score_preview"),
-			      .visible = false,
-			      .z_index = 7}}};
-	unsigned int sprite_count = sizeof(sprites) / sizeof(sprites[0]);
+	menu->ui_lain = (Sprite){.pos = {6.0f, 6.0f},
+				 .size = {64.0f, 64.0f},
+				 .texture = texture_cache_get(
+				     resource_cache->textures, "ui_lain_bear"),
+				 .is_spritesheet = true,
+				 .max_frame = 8,
+				 .visible = true,
+				 .z_index = 4};
 
+	menu->main_ui = (Sprite){
+	    .pos = {-34.0f, -70.0f},
+	    .size = {200.0f, 200.0f},
+	    .texture = texture_cache_get(resource_cache->textures, "main_ui"),
+	    .is_spritesheet = true,
+	    .max_frame = 6,
+	    .visible = true,
+	    .z_index = 3,
+	};
+
+	menu->main_ui_bar = (Sprite){
+	    .pos = {102.0f, 38.0f},
+	    .size = {64.0f, 8.0f},
+	    .texture = texture_cache_get(resource_cache->textures,
+					 "main_ui_bar_inactive"),
+	    .visible = true,
+	    .z_index = 4,
+	};
+
+	menu->dressup_button = (Sprite){
+	    .pos = {112.0f, 96.0f},
+	    .size = {72.0f, 72.0f},
+	    .texture = texture_cache_get(resource_cache->textures,
+					 "dressup_button_inactive"),
+	    .visible = false,
+	    .z_index = 4,
+	};
+
+	menu->theater_preview = (Sprite){
+	    .pos = {104.0f, 80.0f},
+	    .size = {96.0f, 64.0f},
+	    .texture =
+		texture_cache_get(resource_cache->textures, "theater_previews"),
+	    .visible = false,
+	    .z_index = 7,
+	    .is_spritesheet = true,
+	    .max_frame = 6,
+	};
+
+	menu->theater_button = (Sprite){
+	    .pos = {0.0f, 128.0f},
+	    .size = {128.0f, 64.0f},
+	    .texture = texture_cache_get(resource_cache->textures,
+					 "theater_button_inactive"),
+	    .visible = false,
+	    .z_index = 4,
+	};
+
+	menu->bear_icon = (Sprite){
+	    .pos = {56.0f, 56.0f},
+	    .size = {32.0f, 32.0f},
+	    .texture_index = 4,
+	    .texture = texture_cache_get(resource_cache->textures,
+					 "bear_icon_inactive"),
+	    .visible = false,
+	    .z_index = 1,
+	};
+
+	menu->screwdriver_icon = (Sprite){
+	    .pos = {56.0f, 56.0f},
+	    .size = {32.0f, 32.0f},
+	    .texture = texture_cache_get(resource_cache->textures,
+					 "screwdriver_icon_inactive"),
+	    .visible = false,
+	    .z_index = 2,
+	};
+
+	menu->paw_icon = (Sprite){
+	    .pos = {56.0f, 56.0f},
+	    .size = {32.0f, 32.0f},
+	    .texture = texture_cache_get(resource_cache->textures, "paw_icon"),
+	    .visible = false,
+	    .z_index = 1,
+	};
+
+	menu->score_preview =
+	    (Sprite){.pos = {0.0f, 0.0f},
+		     .size = {200.0f, 88.0f},
+		     .texture_index = 10,
+		     .texture = texture_cache_get(resource_cache->textures,
+						  "score_preview"),
+		     .visible = false,
+		     .z_index = 7};
+}
+
+static void init_menu_text_objects(Menu *menu, ResourceCache *resource_cache,
+				   GameState *game_state)
+{
 	char timestring[11];
 	get_menu_timestring(timestring, menu);
+
+	menu->clock = (Text){.pos = {70.0f, 22.0f},
+			     .current_text = timestring,
+			     .glyph_size = {32.0f, 16.0f},
+			     .visible = true,
+			     .font = &resource_cache->fonts[WHITE_FONT]};
 
 	char score[16];
 	sprintf(score, "%d", game_state->score);
 
-	SceneText text_objects[] = {
-	    (SceneText){.loc = &menu->text_objs->clock,
-			.text =
-			    (Text){.pos = {70.0f, 22.0f},
-				   .current_text = timestring,
-				   .glyph_size = {32.0f, 16.0f},
-				   .visible = true,
-				   .font = resource_cache->fonts[WHITE_FONT]}},
-	    (SceneText){.loc = &menu->text_objs->score,
-			.text =
-			    (Text){.pos = {178.0f, 16.0f},
-				   .current_text = score,
-				   .glyph_size = {10.0f, 16.0f},
-				   .visible = false,
-				   .left_aligned = true,
-				   .font = resource_cache->fonts[RED_FONT]}}};
-	unsigned int text_obj_count =
-	    sizeof(text_objects) / sizeof(text_objects[0]);
+	menu->score_text = (Text){.pos = {178.0f, 16.0f},
+				  .current_text = score,
+				  .glyph_size = {10.0f, 16.0f},
+				  .visible = false,
+				  .left_aligned = true,
+				  .font = &resource_cache->fonts[RED_FONT]};
+}
+
+static void init_menu_scene(Menu *menu, GameState *game_state,
+			    ResourceCache *resource_cache)
+{
+	init_menu_sprites(menu, resource_cache);
+
+	init_menu_text_objects(menu, resource_cache, game_state);
+
+	Sprite *sprites[] = {
+	    &menu->ui_lain,	     &menu->main_ui,
+	    &menu->main_ui_bar,	     &menu->dressup_button,
+	    &menu->theater_button,   &menu->bear_icon,
+	    &menu->screwdriver_icon, &menu->paw_icon,
+	    &menu->theater_preview,  &menu->score_preview,
+	};
+	uint8_t sprite_count = sizeof(sprites) / sizeof(sprites[0]);
+
+	Text *text_objs[] = {&menu->clock, &menu->score_text};
+	uint8_t text_obj_count = sizeof(text_objs) / sizeof(text_objs[0]);
 
 	// behavior definitions for sprites
-	SpriteBehavior behaviors[] = {
-	    (SpriteBehavior){.sprite = &menu->sprites->main_ui_bar,
+	SpriteBehavior sprite_behaviors[] = {
+	    (SpriteBehavior){.sprite = &menu->main_ui_bar,
 			     .on_click = &main_ui_bar_click},
 
-	    (SpriteBehavior){.sprite = &menu->sprites->theater_button,
+	    (SpriteBehavior){.sprite = &menu->theater_button,
 			     .on_click = &toggle_theater_preview},
 
-	    (SpriteBehavior){.sprite = &menu->sprites->lain->sprite,
+	    (SpriteBehavior){.sprite = &menu->ui_lain,
 			     .on_click = &toggle_score_preview},
 
-	    (SpriteBehavior){.sprite = &menu->sprites->bear_icon,
+	    (SpriteBehavior){.sprite = &menu->bear_icon,
 			     .on_click = &start_kumashoot}
 
 	};
-	unsigned int behavior_count = sizeof(behaviors) / sizeof(behaviors[0]);
+	unsigned int sprite_behavior_count =
+	    sizeof(sprite_behaviors) / sizeof(sprite_behaviors[0]);
 
-	SceneDefinition menu_scene_def = {
-	    .sprites = sprites,
-	    .sprite_count = sprite_count,
-	    .behaviors = behaviors,
-	    .behavior_count = behavior_count,
-	    .text_objects = text_objects,
-	    .text_object_count = text_obj_count,
-	};
+	ShaderProgram shader = resource_cache->shaders[QUAD_SHADER];
 
-	if (!(init_scene(menu->scene, &menu_scene_def, resource_cache))) {
-		printf("Failed to initialize menu scene.\n");
-		return 0;
-	};
-
-	return 1;
+	init_scene(&menu->scene, sprites, sprite_count, sprite_behaviors,
+		   sprite_behavior_count, text_objs, text_obj_count, shader);
 }
 
-int init_menu(ResourceCache *resource_cache, GameState *game_state, Menu **menu)
+void init_menu(ResourceCache *resource_cache, GameState *game_state, Menu *menu)
 {
-	// allocate mem for the menu struct
-	*menu = malloc(sizeof(Menu));
-	if (menu == NULL) {
-		printf("Failed to allocate memory for the menu.\n");
-		return 0;
-	}
+	update_menu_time(menu);
 
-	update_menu_time((*menu));
+	menu->lain_blink_state = NOT_BLINKING;
+	menu->expanded = false;
+	menu->animating = false;
 
-	(*menu)->sprites = malloc(sizeof(MenuSprites));
-	if ((*menu)->sprites == NULL) {
-		printf("Failed to allocate memory for menu sprites.\n");
-		return 0;
-	}
-
-	(*menu)->sprites->lain = malloc(sizeof(MenuLain));
-	if ((*menu)->sprites->lain == NULL) {
-		printf("Failed to allocate memory for menu Lain.\n");
-		return 0;
-	}
-
-	(*menu)->sprites->lain->blink_state = NOT_BLINKING;
-
-	(*menu)->text_objs = malloc(sizeof(MenuTextObjects));
-	if ((*menu)->text_objs == NULL) {
-		printf("Failed to allocate memory for menu text objects.\n");
-		return 0;
-	}
-
-	(*menu)->scene = malloc(sizeof(Scene));
-	if ((*menu)->scene == NULL) {
-		printf("Failed to allocate memory for menu scene.\n");
-		return 0;
-	}
-
-	// load scene
-	if (!(init_menu_scene(*menu, game_state, resource_cache))) {
-		printf("Failed to initialize menu scene.\n");
-		return 0;
-	}
-
-	(*menu)->expanded = false;
-	(*menu)->animating = false;
-
-	return 1;
+	init_menu_scene(menu, game_state, resource_cache);
 }
 
 static void update_menu_time(Menu *menu)
@@ -277,10 +226,10 @@ static void toggle_score_preview(void *ctx, Sprite *clicked_sprite,
 {
 	Engine *engine = (Engine *)ctx;
 
-	Sprite *score_preview = engine->menu->sprites->score_preview;
-	Text *score = engine->menu->text_objs->score;
+	Sprite *score_preview = &engine->menu.score_preview;
+	Text *score = &engine->menu.score_text;
 
-	if (engine->menu->expanded) {
+	if (engine->menu.expanded) {
 		score_preview->visible = !score_preview->visible;
 		score->visible = !score->visible;
 	}
@@ -291,8 +240,8 @@ static void toggle_theater_preview(void *ctx, Sprite *clicked_sprite,
 {
 	Engine *engine = (Engine *)ctx;
 
-	Sprite *theater_preview = engine->menu->sprites->theater_preview;
-	Sprite *theater_button = engine->menu->sprites->theater_button;
+	Sprite *theater_preview = &engine->menu.theater_preview;
+	Sprite *theater_button = &engine->menu.theater_button;
 
 	theater_preview->visible = !theater_preview->visible;
 	char *new_texture_name = theater_preview->visible
@@ -300,9 +249,9 @@ static void toggle_theater_preview(void *ctx, Sprite *clicked_sprite,
 				     : "theater_button_inactive";
 
 	Texture *new_theater_button_texture = texture_cache_get(
-	    engine->resource_cache->textures, new_texture_name);
+	    engine->resource_cache.textures, new_texture_name);
 
-	update_texture_slot(engine->menu->scene, theater_button,
+	update_texture_slot(&engine->menu.scene, theater_button,
 			    new_theater_button_texture);
 }
 
@@ -311,7 +260,7 @@ static void main_ui_bar_click(void *ctx, Sprite *clicked_sprite,
 {
 	Engine *engine = (Engine *)ctx;
 
-	Sprite *theater_preview = engine->menu->sprites->theater_preview;
+	Sprite *theater_preview = &engine->menu.theater_preview;
 
 	if (theater_preview->visible) {
 		if (theater_preview->current_frame <
@@ -321,25 +270,14 @@ static void main_ui_bar_click(void *ctx, Sprite *clicked_sprite,
 			theater_preview->current_frame = 0;
 		}
 	} else {
-		engine->menu->animating = true;
+		engine->menu.animating = true;
 	}
 }
 
 static void animate_menu_expand(Menu *menu, GLFWwindow *window,
-				ResourceCache *resource_cache)
+				const ResourceCache *resource_cache)
 {
-	Text *clock = menu->text_objs->clock;
-
-	MenuSprites *sprites = menu->sprites;
-
-	Sprite *main_ui = sprites->main_ui;
-	Sprite *main_ui_bar = sprites->main_ui_bar;
-	Sprite *bear_icon = sprites->bear_icon;
-	Sprite *screwdriver_icon = sprites->screwdriver_icon;
-	Sprite *ui_lain = sprites->lain->sprite;
-	Sprite *paw_icon = sprites->paw_icon;
-	Sprite *dressup_button = sprites->dressup_button;
-	Sprite *theater_button = sprites->theater_button;
+	Sprite *main_ui = &menu->main_ui;
 
 	if (main_ui->current_frame < main_ui->max_frame) {
 		main_ui->current_frame++;
@@ -347,68 +285,55 @@ static void animate_menu_expand(Menu *menu, GLFWwindow *window,
 			expand_main_window(window);
 
 			main_ui->pos = (Vector2D){0.0f, 0.0f};
-			ui_lain->pos = (Vector2D){40.0f, 40.0f};
-			main_ui_bar->pos = (Vector2D){136.0f, 72.0f};
+			menu->ui_lain.pos = (Vector2D){40.0f, 40.0f};
+			menu->main_ui_bar.pos = (Vector2D){136.0f, 72.0f};
 
-			clock->pos = (Vector2D){104.0f, 56.0f};
+			menu->clock.pos = (Vector2D){104.0f, 56.0f};
 
-			bear_icon->visible = true;
-			screwdriver_icon->visible = true;
-			paw_icon->visible = true;
+			menu->bear_icon.visible = true;
+			menu->screwdriver_icon.visible = true;
+			menu->paw_icon.visible = true;
 		}
 	} else {
 		// completed expanding
 		menu->animating = false;
 		menu->expanded = true;
-		dressup_button->visible = true;
-		theater_button->visible = true;
-		update_texture_slot(menu->scene, main_ui_bar,
+		menu->dressup_button.visible = true;
+		menu->theater_button.visible = true;
+		update_texture_slot(&menu->scene, &menu->main_ui_bar,
 				    texture_cache_get(resource_cache->textures,
 						      "main_ui_bar_active"));
 	}
 }
 
 static void animate_menu_shrink(Menu *menu, GLFWwindow *window,
-				ResourceCache *resource_cache)
+				const ResourceCache *resource_cache)
 {
-	Text *clock = menu->text_objs->clock;
-	Text *score = menu->text_objs->score;
-
-	MenuSprites *sprites = menu->sprites;
-
-	Sprite *main_ui = sprites->main_ui;
-	Sprite *main_ui_bar = sprites->main_ui_bar;
-	Sprite *ui_lain = sprites->lain->sprite;
-	Sprite *bear_icon = sprites->bear_icon;
-	Sprite *screwdriver_icon = sprites->screwdriver_icon;
-	Sprite *paw_icon = sprites->paw_icon;
-	Sprite *dressup_button = sprites->dressup_button;
-	Sprite *theater_button = sprites->theater_button;
-	Sprite *score_preview = sprites->score_preview;
+	Sprite *main_ui = &menu->main_ui;
 
 	if (main_ui->current_frame > 0) {
 		main_ui->current_frame--;
 		if (main_ui->current_frame == main_ui->max_frame - 1) {
-			dressup_button->visible = false;
-			theater_button->visible = false;
-			score_preview->visible = false;
-			score->visible = false;
+			menu->dressup_button.visible = false;
+			menu->theater_button.visible = false;
+			menu->score_preview.visible = false;
+			menu->score_text.visible = false;
 		}
 		if (main_ui->current_frame == 1) {
 			shrink_main_window(window);
 
 			main_ui->pos = main_ui->origin_pos;
-			ui_lain->pos = ui_lain->origin_pos;
-			main_ui_bar->pos = main_ui_bar->origin_pos;
+			menu->ui_lain.pos = menu->ui_lain.origin_pos;
+			menu->main_ui_bar.pos = menu->main_ui_bar.origin_pos;
 
-			clock->pos = (Vector2D){70.0f, 22.0f};
+			menu->clock.pos = (Vector2D){70.0f, 22.0f};
 
-			bear_icon->visible = false;
-			screwdriver_icon->visible = false;
-			paw_icon->visible = false;
+			menu->bear_icon.visible = false;
+			menu->screwdriver_icon.visible = false;
+			menu->paw_icon.visible = false;
 
 			update_texture_slot(
-			    menu->scene, main_ui_bar,
+			    &menu->scene, &menu->main_ui_bar,
 			    texture_cache_get(resource_cache->textures,
 					      "main_ui_bar_inactive"));
 		}
@@ -420,7 +345,7 @@ static void animate_menu_shrink(Menu *menu, GLFWwindow *window,
 }
 
 static void animate_menu(Menu *menu, GLFWwindow *window,
-			 ResourceCache *resource_cache)
+			 const ResourceCache *resource_cache)
 {
 	if (menu->expanded) {
 		animate_menu_shrink(menu, window, resource_cache);
@@ -431,9 +356,9 @@ static void animate_menu(Menu *menu, GLFWwindow *window,
 
 static void update_menu_icons(Menu *menu)
 {
-	Sprite *bear_icon = menu->sprites->bear_icon;
-	Sprite *screwdriver_icon = menu->sprites->screwdriver_icon;
-	Sprite *paw_icon = menu->sprites->paw_icon;
+	Sprite *bear_icon = &menu->bear_icon;
+	Sprite *screwdriver_icon = &menu->screwdriver_icon;
+	Sprite *paw_icon = &menu->paw_icon;
 
 	struct tm *curr_time = menu->current_time;
 
@@ -463,41 +388,39 @@ static void update_menu_icons(Menu *menu)
 		       paw_icon->origin_pos.y + sin(hrs_angle) * radius};
 }
 
-static void animate_lain_blink(MenuLain *lain)
+static void animate_lain_blink(Sprite *ui_lain, BlinkState *blink_state)
 {
-	Sprite *sprite = lain->sprite;
-
-	if (lain->blink_state == BLINK_CLOSING) {
-		switch (sprite->current_frame) {
+	if (*blink_state == BLINK_CLOSING) {
+		switch (ui_lain->current_frame) {
 		case 0:
 		case 1:
 		case 4:
 		case 5:
-			sprite->current_frame++;
+			ui_lain->current_frame++;
 			break;
 		case 2:
 		case 6:
-			lain->blink_state = BLINK_OPENING;
+			*blink_state = BLINK_OPENING;
 			break;
 		}
-	} else if (lain->blink_state == BLINK_OPENING) {
-		switch (sprite->current_frame) {
+	} else if (*blink_state == BLINK_OPENING) {
+		switch (ui_lain->current_frame) {
 		case 0:
 		case 4:
-			lain->blink_state = HAS_BLINKED;
+			*blink_state = HAS_BLINKED;
 			break;
 		case 1:
 		case 5:
 		case 2:
 		case 6:
-			sprite->current_frame--;
+			ui_lain->current_frame--;
 			break;
 		}
 	}
 }
 
-void update_menu(Menu *menu, GameState *game_state, GLFWwindow *window,
-		 ResourceCache *resource_cache)
+void update_menu(Menu *menu, const GameState *game_state, GLFWwindow *window,
+		 const ResourceCache *resource_cache)
 {
 	update_menu_time(menu);
 
@@ -507,19 +430,21 @@ void update_menu(Menu *menu, GameState *game_state, GLFWwindow *window,
 	char score[16];
 	sprintf(score, "%d", game_state->score);
 
-	update_text(menu->text_objs->clock, timestring);
-	update_text(menu->text_objs->score, score);
+	update_text(&menu->clock, timestring);
+	update_text(&menu->score_text, score);
+
+	Sprite *ui_lain = &menu->ui_lain;
+	BlinkState *lain_blink_state = &menu->lain_blink_state;
 
 	if (menu->current_time->tm_sec % 15 == 0) {
-		MenuLain *lain = menu->sprites->lain;
-		if (lain->blink_state != HAS_BLINKED) {
-			if (lain->blink_state == NOT_BLINKING) {
-				lain->blink_state = BLINK_CLOSING;
+		if (*lain_blink_state != HAS_BLINKED) {
+			if (*lain_blink_state == NOT_BLINKING) {
+				*lain_blink_state = BLINK_CLOSING;
 			}
-			animate_lain_blink(lain);
+			animate_lain_blink(ui_lain, lain_blink_state);
 		}
 	} else {
-		menu->sprites->lain->blink_state = NOT_BLINKING;
+		*lain_blink_state = NOT_BLINKING;
 	}
 
 	if (menu->animating) {
@@ -528,5 +453,5 @@ void update_menu(Menu *menu, GameState *game_state, GLFWwindow *window,
 
 	update_menu_icons(menu);
 
-	update_scene(menu->scene);
+	update_scene(&menu->scene);
 }

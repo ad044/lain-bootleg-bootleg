@@ -1,7 +1,10 @@
 #include "minigame.h"
 
-void kill_minigame(GLFWwindow **minigame_window, Minigame *minigame)
+void kill_minigame(Minigame *minigame, GLFWwindow **minigame_window)
 {
+	minigame->running = false;
+
 	glfwDestroyWindow(*minigame_window);
-	*minigame_window = NULL;
+
+	free(minigame->current);
 }

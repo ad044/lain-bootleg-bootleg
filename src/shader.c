@@ -8,37 +8,53 @@
 #include "hashmap.h"
 #include "shader.h"
 
-#define MAX_SHADER_COUNT 10
+static char quad_fragment[] =
+    "#version 410\n"
+    "out vec4 FragColor;"
 
-static GLchar *read_shader_source(const char *path);
+    "in vec2 v_TexCoord;"
+    "in float v_TexIndex;"
+
+    "uniform sampler2D u_Textures[20];"
+
+    "void main()"
+    "{"
+    "int index = int(v_TexIndex);"
+    "FragColor = texture(u_Textures[index], v_TexCoord);"
+    "}";
+
+static char quad_vertex[] =
+    "#version 410\n"
+    "layout (location = 0) in vec2 a_Pos;"
+    "layout (location = 1) in vec2 a_TexCoord;"
+    "layout (location = 2) in float a_TexIndex;"
+
+    "out vec2 v_TexCoord;"
+    "out float v_TexIndex;"
+
+    "uniform mat4 u_Model;"
+    "uniform mat4 u_Projection;"
+    "uniform mat4 u_View;"
+
+    "void main()"
+    "{"
+    "v_TexCoord = a_TexCoord;"
+    "v_TexIndex = a_TexIndex;"
+    "gl_Position = u_Projection * u_View * u_Model * vec4(a_Pos, 0.0, 1.0);"
+    "}";
+
 static GLuint compile_shader(GLenum shader_type, const GLchar *shader_source);
 static GLint check_shader_compile_errors(GLuint shader);
 static GLint check_shader_program_link_errors(GLuint program);
-static ShaderProgram create_shader(const char *vertex_shader_path,
-				   const char *fragment_shader_path);
 
-static ShaderProgram create_shader(const char *vertex_shader_path,
-				   const char *fragment_shader_path)
+static ShaderProgram create_shader(const char *vertex, const char *fragment)
 {
-	GLchar *vertex_source = read_shader_source(vertex_shader_path);
-	if (vertex_source == NULL) {
-		return 0;
-	}
-
-	GLchar *fragment_source = read_shader_source(fragment_shader_path);
-	if (fragment_source == NULL) {
-		return 0;
-	}
-
-	GLuint vertex_shader = compile_shader(GL_VERTEX_SHADER, vertex_source);
-	free(vertex_source);
+	GLuint vertex_shader = compile_shader(GL_VERTEX_SHADER, vertex);
 	if (!vertex_shader) {
 		return 0;
 	}
 
-	GLuint fragment_shader =
-	    compile_shader(GL_FRAGMENT_SHADER, fragment_source);
-	free(fragment_source);
+	GLuint fragment_shader = compile_shader(GL_FRAGMENT_SHADER, fragment);
 	if (!fragment_shader) {
 		return 0;
 	}
@@ -98,6 +114,18 @@ static GLint check_shader_program_link_errors(GLuint program)
 	return success;
 }
 
+int shaders_init(ShaderProgram *shaders)
+{
+	ShaderProgram quad_shader = create_shader(quad_vertex, quad_fragment);
+	if (!quad_shader) {
+		printf("Failed to create quad shader.\n");
+		return 0;
+	}
+	shaders[QUAD_SHADER] = quad_shader;
+
+	return 1;
+}
+
 void shader_program_set_texture_samplers(ShaderProgram program,
 					 const GLint *samplers,
 					 const GLint sampler_count)
@@ -111,46 +139,4 @@ void shader_program_set_mat4(ShaderProgram program, const GLchar *name,
 {
 	glUniformMatrix4fv(glGetUniformLocation(program, name), 1, GL_FALSE,
 			   (const GLfloat *)mat);
-}
-
-void shader_program_set_texture(ShaderProgram program, const GLint texture)
-{
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, texture);
-	glUniform1i(glGetUniformLocation(program, "u_Texture"), 0);
-}
-
-int shader_cache_init(ShaderProgram **shaders)
-{
-	*shaders = malloc(sizeof(ShaderProgram) * MAX_SHADER_COUNT);
-
-	if (*shaders == NULL) {
-		printf("Failed to allocate memory for shader cache.\n");
-		return 0;
-	}
-
-	(*shaders)[QUAD_SHADER] =
-	    create_shader("shaders/quad.vs", "shaders/quad.fs");
-
-	return 1;
-}
-
-static GLchar *read_shader_source(const char *path)
-{
-	FILE *file = fopen(path, "rb");
-	if (file == NULL) {
-		printf("Could not load shader at %s\n.", path);
-		return NULL;
-	}
-
-	fseek(file, 0, SEEK_END);
-	int length = ftell(file);
-	fseek(file, 0, SEEK_SET);
-	GLchar *buf = malloc(sizeof(GLchar) * (length + 1));
-	fread(buf, 1, length, file);
-	buf[length] = '\0';
-
-	fclose(file);
-
-	return buf;
 }

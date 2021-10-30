@@ -14,28 +14,9 @@ typedef struct {
 } SceneTextureSlot;
 
 typedef struct {
-	Text **loc;
-	Text text;
-} SceneText;
-
-typedef struct {
-	Sprite **loc;
-	Sprite sprite;
-} SceneSprite;
-
-typedef struct {
-	Sprite **sprite;
+	Sprite *sprite;
 	OnClickFunc on_click;
 } SpriteBehavior;
-
-typedef struct {
-	SceneSprite *sprites;
-	unsigned int sprite_count;
-	SpriteBehavior *behaviors;
-	unsigned int behavior_count;
-	SceneText *text_objects;
-	unsigned int text_object_count;
-} SceneDefinition;
 
 typedef struct {
 	GLuint VAO;
@@ -43,15 +24,15 @@ typedef struct {
 	GLuint IBO;
 	ShaderProgram shader;
 	unsigned int quad_count;
-	cvector_vector_type(SceneTextureSlot *) texture_slots;
+	cvector_vector_type(SceneTextureSlot) texture_slots;
 	cvector_vector_type(Sprite *) sprites;
 	cvector_vector_type(Text *) text_objects;
 	cvector_vector_type(SpriteBehavior) sprite_behaviors;
 } Scene;
 
-int init_scene(Scene *scene, SceneDefinition *scene_definition,
-	       ResourceCache *resource_cache);
+void init_scene(Scene *scene, Sprite **sprites, uint8_t sprite_count,
+		SpriteBehavior *sprite_behaviors, uint8_t sprite_behavior_count,
+		Text **text_objs, uint8_t text_obj_count, ShaderProgram shader);
 void update_scene(Scene *scene);
 void draw_scene(Scene *scene, GLFWwindow *window);
-SceneTextureSlot *make_texture_slot(unsigned int index, Texture *texture);
 void update_texture_slot(Scene *scene, Sprite *sprite, Texture *texture);

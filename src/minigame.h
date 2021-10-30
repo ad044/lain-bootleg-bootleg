@@ -1,15 +1,16 @@
 #pragma once
 
-#include "state.h"
 #include "scene.h"
+#include "state.h"
 
-typedef void (*UpdateMinigameFunc)(GameState *game_state,
-				   void *minigame_struct);
+typedef void (*UpdateMinigameFunc)(void *minigame_struct,
+				   GameState *game_state);
 
 typedef struct {
-	UpdateMinigameFunc updater;
+	_Bool running;
+	UpdateMinigameFunc update;
 	Scene *scene;
-	void *minigame_struct;
+	void *current;
 } Minigame;
 
-void kill_minigame(GLFWwindow **window, Minigame *minigame);
+void kill_minigame(Minigame *minigame, GLFWwindow **window);
