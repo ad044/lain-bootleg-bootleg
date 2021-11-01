@@ -6,7 +6,7 @@
 #define CVECTOR_LOGARITHMIC_GROWTH
 
 #include "quad.h"
-#include "resource_cache.h"
+#include "resources.h"
 #include "scene.h"
 #include "shader.h"
 #include "sprite.h"

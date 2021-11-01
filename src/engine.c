@@ -23,15 +23,16 @@ int engine_init(Engine *engine)
 		return 0;
 	}
 
-	// initialize resource cache
-	if (!(init_resource_cache(&engine->resource_cache))) {
-		printf("Failed to initialize resource cache.\n");
-		return 0;
-	}
+	shaders_init(engine->resources.shaders);
+
+	textures_init(engine->resources.textures);
+
+	fonts_init(engine->resources.fonts,
+		   engine->resources.textures);
 
 	init_game_state(&engine->game_state);
 
-	init_menu(&engine->resource_cache, &engine->game_state, &engine->menu);
+	init_menu(&engine->resources, &engine->game_state, &engine->menu);
 
 	engine->minigame_window = NULL;
 	engine->minigame.running = false;
@@ -52,7 +53,7 @@ static void engine_render(Engine *engine)
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	update_menu(&engine->menu, &engine->game_state, engine->main_window,
-		    &engine->resource_cache);
+		    &engine->resources);
 
 	draw_scene(&engine->menu.scene, engine->main_window);
 

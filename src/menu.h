@@ -1,6 +1,6 @@
 #pragma once
 
-#include "resource_cache.h"
+#include "resources.h"
 #include "scene.h"
 #include "state.h"
 #include "text.h"
@@ -50,7 +50,6 @@ typedef struct {
 	Text score_text;
 } Menu;
 
-void init_menu(ResourceCache *resource_cache, GameState *game_state,
-	       Menu *menu);
+void init_menu(Resources *resources, GameState *game_state, Menu *menu);
 void update_menu(Menu *menu, const GameState *game_state, GLFWwindow *window,
-		 const ResourceCache *resource_cache);
+		 Resources *resources);

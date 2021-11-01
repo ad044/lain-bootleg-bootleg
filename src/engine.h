@@ -1,7 +1,8 @@
 #pragma once
+
 #include "menu.h"
 #include "minigame.h"
-#include "resource_cache.h"
+#include "resources.h"
 #include "scene.h"
 #include "shader.h"
 #include "state.h"
@@ -9,7 +10,7 @@
 #include "kumashoot.h"
 
 typedef struct {
-	ResourceCache resource_cache;
+	Resources resources;
 	GLFWwindow *main_window;
 	Menu menu;
 	GLFWwindow *minigame_window;

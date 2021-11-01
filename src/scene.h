@@ -2,7 +2,7 @@
 
 #include "cvector.h"
 #include "input.h"
-#include "resource_cache.h"
+#include "resources.h"
 #include "shader.h"
 #include "sprite.h"
 #include "text.h"

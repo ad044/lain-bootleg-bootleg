@@ -7,7 +7,7 @@
 #include "input.h"
 #include "kumashoot.h"
 #include "menu.h"
-#include "resource_cache.h"
+#include "resources.h"
 #include "scene.h"
 #include "shader.h"
 #include "sprite.h"
@@ -19,13 +19,11 @@
 static void update_menu_time(Menu *menu);
 static void get_menu_timestring(char *target, Menu *menu);
 static void init_menu_scene(Menu *menu, GameState *game_state,
-			    ResourceCache *resource_cache);
+			    Resources *resources);
 static void animate_menu_shrink(Menu *menu, GLFWwindow *window,
-				const ResourceCache *resource_cache);
+				Texture *textures);
 static void animate_menu_expand(Menu *menu, GLFWwindow *window,
-				const ResourceCache *resource_cache);
-static void animate_menu(Menu *menu, GLFWwindow *window,
-			 const ResourceCache *resource_cache);
+				Texture *textures);
 static void main_ui_bar_click(void *ctx, Sprite *clicked_sprite,
 			      Vector2D click_pos);
 static void toggle_theater_preview(void *ctx, Sprite *clicked_sprite,
@@ -34,12 +32,11 @@ static void toggle_score_preview(void *ctx, Sprite *clicked_sprite,
 				 Vector2D click_pos);
 static void animate_lain_blink(Sprite *ui_lain, BlinkState *blink_state);
 
-static void init_menu_sprites(Menu *menu, ResourceCache *resource_cache)
+static void init_menu_sprites(Menu *menu, Texture *textures)
 {
 	menu->ui_lain = (Sprite){.pos = {6.0f, 6.0f},
 				 .size = {64.0f, 64.0f},
-				 .texture = texture_cache_get(
-				     resource_cache->textures, "ui_lain_bear"),
+				 .texture = &textures[UI_LAIN_BEAR],
 				 .is_spritesheet = true,
 				 .max_frame = 8,
 				 .visible = true,
@@ -48,7 +45,7 @@ static void init_menu_sprites(Menu *menu, ResourceCache *resource_cache)
 	menu->main_ui = (Sprite){
 	    .pos = {-34.0f, -70.0f},
 	    .size = {200.0f, 200.0f},
-	    .texture = texture_cache_get(resource_cache->textures, "main_ui"),
+	    .texture = &textures[MAIN_UI],
 	    .is_spritesheet = true,
 	    .max_frame = 6,
 	    .visible = true,
@@ -58,8 +55,7 @@ static void init_menu_sprites(Menu *menu, ResourceCache *resource_cache)
 	menu->main_ui_bar = (Sprite){
 	    .pos = {102.0f, 38.0f},
 	    .size = {64.0f, 8.0f},
-	    .texture = texture_cache_get(resource_cache->textures,
-					 "main_ui_bar_inactive"),
+	    .texture = &textures[MAIN_UI_BAR_INACTIVE],
 	    .visible = true,
 	    .z_index = 4,
 	};
@@ -67,8 +63,7 @@ static void init_menu_sprites(Menu *menu, ResourceCache *resource_cache)
 	menu->dressup_button = (Sprite){
 	    .pos = {112.0f, 96.0f},
 	    .size = {72.0f, 72.0f},
-	    .texture = texture_cache_get(resource_cache->textures,
-					 "dressup_button_inactive"),
+	    .texture = &textures[DRESSUP_BUTTON_INACTIVE],
 	    .visible = false,
 	    .z_index = 4,
 	};
@@ -76,8 +71,7 @@ static void init_menu_sprites(Menu *menu, ResourceCache *resource_cache)
 	menu->theater_preview = (Sprite){
 	    .pos = {104.0f, 80.0f},
 	    .size = {96.0f, 64.0f},
-	    .texture =
-		texture_cache_get(resource_cache->textures, "theater_previews"),
+	    .texture = &textures[THEATER_PREVIEWS],
 	    .visible = false,
 	    .z_index = 7,
 	    .is_spritesheet = true,
@@ -87,8 +81,7 @@ static void init_menu_sprites(Menu *menu, ResourceCache *resource_cache)
 	menu->theater_button = (Sprite){
 	    .pos = {0.0f, 128.0f},
 	    .size = {128.0f, 64.0f},
-	    .texture = texture_cache_get(resource_cache->textures,
-					 "theater_button_inactive"),
+	    .texture = &textures[THEATER_BUTTON_INACTIVE],
 	    .visible = false,
 	    .z_index = 4,
 	};
@@ -97,8 +90,7 @@ static void init_menu_sprites(Menu *menu, ResourceCache *resource_cache)
 	    .pos = {56.0f, 56.0f},
 	    .size = {32.0f, 32.0f},
 	    .texture_index = 4,
-	    .texture = texture_cache_get(resource_cache->textures,
-					 "bear_icon_inactive"),
+	    .texture = &textures[BEAR_ICON_INACTIVE],
 	    .visible = false,
 	    .z_index = 1,
 	};
@@ -106,8 +98,7 @@ static void init_menu_sprites(Menu *menu, ResourceCache *resource_cache)
 	menu->screwdriver_icon = (Sprite){
 	    .pos = {56.0f, 56.0f},
 	    .size = {32.0f, 32.0f},
-	    .texture = texture_cache_get(resource_cache->textures,
-					 "screwdriver_icon_inactive"),
+	    .texture = &textures[SCREWDRIVER_ICON_INACTIVE],
 	    .visible = false,
 	    .z_index = 2,
 	};
@@ -115,22 +106,20 @@ static void init_menu_sprites(Menu *menu, ResourceCache *resource_cache)
 	menu->paw_icon = (Sprite){
 	    .pos = {56.0f, 56.0f},
 	    .size = {32.0f, 32.0f},
-	    .texture = texture_cache_get(resource_cache->textures, "paw_icon"),
+	    .texture = &textures[PAW_ICON],
 	    .visible = false,
 	    .z_index = 1,
 	};
 
-	menu->score_preview =
-	    (Sprite){.pos = {0.0f, 0.0f},
-		     .size = {200.0f, 88.0f},
-		     .texture_index = 10,
-		     .texture = texture_cache_get(resource_cache->textures,
-						  "score_preview"),
-		     .visible = false,
-		     .z_index = 7};
+	menu->score_preview = (Sprite){.pos = {0.0f, 0.0f},
+				       .size = {200.0f, 88.0f},
+				       .texture_index = 10,
+				       .texture = &textures[SCORE_PREVIEW],
+				       .visible = false,
+				       .z_index = 7};
 }
 
-static void init_menu_text_objects(Menu *menu, ResourceCache *resource_cache,
+static void init_menu_text_objects(Menu *menu, Font *fonts,
 				   GameState *game_state)
 {
 	char timestring[11];
@@ -140,7 +129,7 @@ static void init_menu_text_objects(Menu *menu, ResourceCache *resource_cache,
 			     .current_text = timestring,
 			     .glyph_size = {32.0f, 16.0f},
 			     .visible = true,
-			     .font = &resource_cache->fonts[WHITE_FONT]};
+			     .font = &fonts[WHITE_FONT]};
 
 	char score[16];
 	sprintf(score, "%d", game_state->score);
@@ -150,15 +139,15 @@ static void init_menu_text_objects(Menu *menu, ResourceCache *resource_cache,
 				  .glyph_size = {10.0f, 16.0f},
 				  .visible = false,
 				  .left_aligned = true,
-				  .font = &resource_cache->fonts[RED_FONT]};
+				  .font = &fonts[RED_FONT]};
 }
 
 static void init_menu_scene(Menu *menu, GameState *game_state,
-			    ResourceCache *resource_cache)
+			    Resources *resources)
 {
-	init_menu_sprites(menu, resource_cache);
+	init_menu_sprites(menu, resources->textures);
 
-	init_menu_text_objects(menu, resource_cache, game_state);
+	init_menu_text_objects(menu, resources->fonts, game_state);
 
 	Sprite *sprites[] = {
 	    &menu->ui_lain,	     &menu->main_ui,
@@ -190,13 +179,13 @@ static void init_menu_scene(Menu *menu, GameState *game_state,
 	unsigned int sprite_behavior_count =
 	    sizeof(sprite_behaviors) / sizeof(sprite_behaviors[0]);
 
-	ShaderProgram shader = resource_cache->shaders[QUAD_SHADER];
+	ShaderProgram shader = resources->shaders[QUAD_SHADER];
 
 	init_scene(&menu->scene, sprites, sprite_count, sprite_behaviors,
 		   sprite_behavior_count, text_objs, text_obj_count, shader);
 }
 
-void init_menu(ResourceCache *resource_cache, GameState *game_state, Menu *menu)
+void init_menu(Resources *resources, GameState *game_state, Menu *menu)
 {
 	update_menu_time(menu);
 
@@ -204,7 +193,7 @@ void init_menu(ResourceCache *resource_cache, GameState *game_state, Menu *menu)
 	menu->expanded = false;
 	menu->animating = false;
 
-	init_menu_scene(menu, game_state, resource_cache);
+	init_menu_scene(menu, game_state, resources);
 }
 
 static void update_menu_time(Menu *menu)
@@ -239,20 +228,17 @@ static void toggle_theater_preview(void *ctx, Sprite *clicked_sprite,
 				   Vector2D click_pos)
 {
 	Engine *engine = (Engine *)ctx;
+	Texture *textures = engine->resources.textures;
 
 	Sprite *theater_preview = &engine->menu.theater_preview;
 	Sprite *theater_button = &engine->menu.theater_button;
 
 	theater_preview->visible = !theater_preview->visible;
-	char *new_texture_name = theater_preview->visible
-				     ? "theater_button_active"
-				     : "theater_button_inactive";
 
-	Texture *new_theater_button_texture = texture_cache_get(
-	    engine->resource_cache.textures, new_texture_name);
-
-	update_texture_slot(&engine->menu.scene, theater_button,
-			    new_theater_button_texture);
+	update_texture_slot(
+	    &engine->menu.scene, theater_button,
+	    &textures[theater_preview->visible ? THEATER_BUTTON_ACTIVE
+					       : THEATER_BUTTON_INACTIVE]);
 }
 
 static void main_ui_bar_click(void *ctx, Sprite *clicked_sprite,
@@ -275,7 +261,7 @@ static void main_ui_bar_click(void *ctx, Sprite *clicked_sprite,
 }
 
 static void animate_menu_expand(Menu *menu, GLFWwindow *window,
-				const ResourceCache *resource_cache)
+				Texture *textures)
 {
 	Sprite *main_ui = &menu->main_ui;
 
@@ -301,13 +287,12 @@ static void animate_menu_expand(Menu *menu, GLFWwindow *window,
 		menu->dressup_button.visible = true;
 		menu->theater_button.visible = true;
 		update_texture_slot(&menu->scene, &menu->main_ui_bar,
-				    texture_cache_get(resource_cache->textures,
-						      "main_ui_bar_active"));
+				    &textures[MAIN_UI_BAR_ACTIVE]);
 	}
 }
 
 static void animate_menu_shrink(Menu *menu, GLFWwindow *window,
-				const ResourceCache *resource_cache)
+				Texture *textures)
 {
 	Sprite *main_ui = &menu->main_ui;
 
@@ -332,25 +317,13 @@ static void animate_menu_shrink(Menu *menu, GLFWwindow *window,
 			menu->screwdriver_icon.visible = false;
 			menu->paw_icon.visible = false;
 
-			update_texture_slot(
-			    &menu->scene, &menu->main_ui_bar,
-			    texture_cache_get(resource_cache->textures,
-					      "main_ui_bar_inactive"));
+			update_texture_slot(&menu->scene, &menu->main_ui_bar,
+					    &textures[MAIN_UI_BAR_INACTIVE]);
 		}
 	} else {
 		// completed shrinking
 		menu->animating = false;
 		menu->expanded = false;
-	}
-}
-
-static void animate_menu(Menu *menu, GLFWwindow *window,
-			 const ResourceCache *resource_cache)
-{
-	if (menu->expanded) {
-		animate_menu_shrink(menu, window, resource_cache);
-	} else {
-		animate_menu_expand(menu, window, resource_cache);
 	}
 }
 
@@ -420,7 +393,7 @@ static void animate_lain_blink(Sprite *ui_lain, BlinkState *blink_state)
 }
 
 void update_menu(Menu *menu, const GameState *game_state, GLFWwindow *window,
-		 const ResourceCache *resource_cache)
+		 Resources *resources)
 {
 	update_menu_time(menu);
 
@@ -448,7 +421,11 @@ void update_menu(Menu *menu, const GameState *game_state, GLFWwindow *window,
 	}
 
 	if (menu->animating) {
-		animate_menu(menu, window, resource_cache);
+		if (menu->expanded) {
+			animate_menu_shrink(menu, window, resources->textures);
+		} else {
+			animate_menu_expand(menu, window, resources->textures);
+		}
 	}
 
 	update_menu_icons(menu);

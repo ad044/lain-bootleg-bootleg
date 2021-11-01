@@ -1,37 +1,21 @@
-#include <GL/glew.h>
-#include <stdbool.h>
-#include <stdint.h>
 #include <stdio.h>
-#include <string.h>
-#ifdef __linux__
-#include <unistd.h>
-#else
-#define access _access
-#endif
 
-#include "util.h"
+#include "embedded.h"
 #include "sprite.h"
 #include "stb_image.h"
 #include "texture.h"
 
-static uint64_t texture_hash(const void *item, uint64_t seed0, uint64_t seed1);
-static int texture_compare(const void *a, const void *b, void *udata);
-
-int init_texture(Texture *texture, char *image_path)
+static void init_texture(Texture *texture, const unsigned char *bytes,
+			 int length)
 {
 	stbi_set_flip_vertically_on_load(true);
 
-	if (!(access(image_path, 0) == 0)) {
-		printf("Can't find texture %s.\n", image_path);
-		return 0;
-	}
-
 	int width, height, nr_channels;
-	unsigned char *data =
-	    stbi_load(image_path, &width, &height, &nr_channels, 0);
-	if (!data) {
+	unsigned char *data = stbi_load_from_memory(bytes, length, &width,
+						    &height, &nr_channels, 0);
+	if (data == NULL) {
 		printf("Failed to load texture.\n");
-		return 0;
+		exit(1);
 	}
 
 	texture->size = (Vector2D){width, height};
@@ -46,132 +30,59 @@ int init_texture(Texture *texture, char *image_path)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 	stbi_image_free(data);
-	return 1;
 }
 
-int texture_cache_init(TextureCache **cache)
+void textures_init(Texture *textures)
 {
-	*cache = hashmap_new(sizeof(Texture), 0, 0, 0, texture_hash,
-			     texture_compare, NULL);
-	if (*cache == NULL) {
-		printf("Failed to allocate memory for texture cache.\n");
-		return 0;
-	}
+	init_texture(&textures[BEAR_ICON_ACTIVE], bear_icon_active_png,
+		     bear_icon_active_png_size);
 
-	// preload textures into cache
-	preload_textures(*cache);
+	init_texture(&textures[BEAR_ICON_INACTIVE], bear_icon_inactive_png,
+		     bear_icon_inactive_png_size);
 
-	return 1;
-}
+	init_texture(&textures[UI_LAIN_BEAR], ui_lain_bear_png,
+		     ui_lain_bear_png_size);
 
-static uint64_t texture_hash(const void *item, uint64_t seed0, uint64_t seed1)
-{
-	const Texture *texture = item;
-	return hashmap_sip(texture->name, strlen(texture->name), seed0, seed1);
-}
+	init_texture(&textures[MAIN_UI], main_ui_png, main_ui_png_size);
 
-static int texture_compare(const void *a, const void *b, void *udata)
-{
-	const Texture *ua = a;
-	const Texture *ub = b;
-	return strcmp(ua->name, ub->name);
-}
+	init_texture(&textures[MAIN_UI_BAR_ACTIVE], main_ui_bar_active_png,
+		     main_ui_bar_active_png_size);
 
-Texture *texture_cache_get(TextureCache *cache, char *texture_name)
-{
-	Texture *cached_texture =
-	    hashmap_get(cache, &(Texture){.name = texture_name});
-	if (cached_texture == NULL) {
-		printf("Failed to load cached texture %s.\n", texture_name);
-		exit(1);
-	}
-	return cached_texture;
-}
+	init_texture(&textures[MAIN_UI_BAR_INACTIVE], main_ui_bar_inactive_png,
+		     main_ui_bar_inactive_png_size);
 
-Texture make_texture(char *image_path, char *name)
-{
-	Texture texture;
-	if (!(init_texture(&texture, image_path))) {
-		printf("Failed to initialize texture %s", image_path);
-		exit(1);
-	};
+	init_texture(&textures[DRESSUP_BUTTON_INACTIVE],
+		     dressup_button_inactive_png,
+		     dressup_button_inactive_png_size);
 
-	texture.name = name;
+	init_texture(&textures[THEATER_PREVIEWS], theater_previews_png,
+		     theater_previews_png_size);
 
-	return texture;
-}
+	init_texture(&textures[THEATER_BUTTON_ACTIVE],
+		     theater_button_active_png, theater_button_active_png_size);
 
-void texture_cache_put(TextureCache *cache, Texture texture)
-{
-	hashmap_set(cache, &texture);
-}
+	init_texture(&textures[THEATER_BUTTON_INACTIVE],
+		     theater_button_inactive_png,
+		     theater_button_inactive_png_size);
 
-// perhaps this one can recursively search the texture directory
-// and load the textures into cache with the keys being filename - extension
-void preload_textures(TextureCache *cache)
-{
-	texture_cache_put(cache,
-			  make_texture("assets/ui/main_ui.png", "main_ui"));
+	init_texture(&textures[SCREWDRIVER_ICON_INACTIVE],
+		     screwdriver_icon_inactive_png,
+		     screwdriver_icon_inactive_png_size);
 
-	texture_cache_put(cache,
-			  make_texture("assets/ui/ui_lain.png", "ui_lain"));
+	init_texture(&textures[PAW_ICON], paw_icon_png, paw_icon_png_size);
 
-	texture_cache_put(
-	    cache, make_texture("assets/ui/ui_lain_bear.png", "ui_lain_bear"));
+	init_texture(&textures[SCORE_PREVIEW], score_preview_png,
+		     score_preview_png_size);
 
-	texture_cache_put(
-	    cache, make_texture("assets/ui/white_font.png", "white_font"));
+	init_texture(&textures[RED_FONT_TEXTURE], red_font_png,
+		     red_font_png_size);
 
-	texture_cache_put(cache,
-			  make_texture("assets/ui/main_ui_bar_active.png",
-				       "main_ui_bar_active"));
+	init_texture(&textures[WHITE_FONT_TEXTURE], white_font_png,
+		     white_font_png_size);
 
-	texture_cache_put(cache,
-			  make_texture("assets/ui/main_ui_bar_inactive.png",
-				       "main_ui_bar_inactive"));
+	init_texture(&textures[KUMA_SHOOT_BG], kuma_shoot_bg_png,
+		     kuma_shoot_bg_png_size);
 
-	texture_cache_put(cache,
-			  make_texture("assets/ui/dressup_button_active.png",
-				       "dressup_button_active"));
-
-	texture_cache_put(cache,
-			  make_texture("assets/ui/dressup_button_inactive.png",
-				       "dressup_button_inactive"));
-
-	texture_cache_put(cache,
-			  make_texture("assets/ui/bear_icon_inactive.png",
-				       "bear_icon_inactive"));
-
-	texture_cache_put(
-	    cache, make_texture("assets/ui/screwdriver_icon_inactive.png",
-				"screwdriver_icon_inactive"));
-
-	texture_cache_put(cache,
-			  make_texture("assets/ui/screwdriver_icon_active.png",
-				       "screwdriver_icon_active"));
-
-	texture_cache_put(cache,
-			  make_texture("assets/ui/theater_button_active.png",
-				       "theater_button_active"));
-	texture_cache_put(cache,
-			  make_texture("assets/ui/theater_button_inactive.png",
-				       "theater_button_inactive"));
-
-	texture_cache_put(cache, make_texture("assets/ui/theater_previews.png",
-					      "theater_previews"));
-
-	texture_cache_put(cache,
-			  make_texture("assets/ui/paw_icon.png", "paw_icon"));
-
-	texture_cache_put(cache, make_texture("assets/ui/score_preview.png",
-					      "score_preview"));
-
-	texture_cache_put(cache, make_texture("assets/ui/red_font.png",
-					      "red_font"));
-
-	texture_cache_put(cache, make_texture("assets/kumashoot/bush_overlay.png",
-					      "bush_overlay"));
-
-	texture_cache_put(cache, make_texture("assets/backgrounds/kumashoot.png",
-					      "kumashoot_bg"));
+	init_texture(&textures[KUMA_SHOOT_BUSH_OVERLAY], bush_overlay_png,
+		     bush_overlay_png_size);
 }

@@ -4,7 +4,7 @@
 #include <string.h>
 
 #include "quad.h"
-#include "resource_cache.h"
+#include "resources.h"
 #include "scene.h"
 #include "sprite.h"
 #include "text.h"
@@ -19,21 +19,19 @@ static const uint16_t red_glyphs_order[256] = {
     ['0'] = 0, ['1'] = 1, ['2'] = 2, ['3'] = 3, ['4'] = 4, ['5'] = 5,
     ['6'] = 6, ['7'] = 7, ['8'] = 8, ['9'] = 9, ['-'] = 10};
 
-void fonts_init(Font *fonts, TextureCache *textures)
+void fonts_init(Font *fonts, Texture *textures)
 {
-	Font red_font =
-	    (Font){.letter_spacing = 10.0f,
-		   .glyph_count = 11,
-		   .glyph_texture_size = {1.0f / 11.0f, 1.0f},
-		   .glyph_order = red_glyphs_order,
-		   .texture = texture_cache_get(textures, "red_font")};
+	Font red_font = (Font){.letter_spacing = 10.0f,
+			       .glyph_count = 11,
+			       .glyph_texture_size = {1.0f / 11.0f, 1.0f},
+			       .glyph_order = red_glyphs_order,
+			       .texture = &textures[RED_FONT_TEXTURE]};
 
-	Font white_font =
-	    (Font){.letter_spacing = 11.4f,
-		   .glyph_count = 13,
-		   .glyph_texture_size = {1.0f / 13.0f, 1.0f},
-		   .glyph_order = white_glyphs_order,
-		   .texture = texture_cache_get(textures, "white_font")};
+	Font white_font = (Font){.letter_spacing = 11.4f,
+				 .glyph_count = 13,
+				 .glyph_texture_size = {1.0f / 13.0f, 1.0f},
+				 .glyph_order = white_glyphs_order,
+				 .texture = &textures[WHITE_FONT_TEXTURE]};
 
 	fonts[RED_FONT] = red_font;
 	fonts[WHITE_FONT] = white_font;

@@ -1,6 +1,5 @@
 #include "sprite.h"
 #include "engine.h"
-#include "hashmap.h"
 #include "input.h"
 #include "quad.h"
 

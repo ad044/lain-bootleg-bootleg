@@ -3,7 +3,7 @@
 #include "sprite.h"
 #include "texture.h"
 
-#define FONT_COUNT 2
+#define MAX_FONT_COUNT 2
 
 enum { RED_FONT, WHITE_FONT };
 
@@ -28,6 +28,6 @@ typedef struct {
 	char *current_text;
 } Text;
 
-void fonts_init(Font *fonts, TextureCache *textures);
+void fonts_init(Font *fonts, Texture *textures);
 void update_text(Text *text_obj, char *new_text);
 Sprite get_glyph(Text *text_obj, char letter, unsigned int nth);

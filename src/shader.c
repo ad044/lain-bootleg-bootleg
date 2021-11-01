@@ -5,7 +5,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "hashmap.h"
 #include "shader.h"
 
 static char quad_fragment[] =
@@ -114,16 +113,14 @@ static GLint check_shader_program_link_errors(GLuint program)
 	return success;
 }
 
-int shaders_init(ShaderProgram *shaders)
+void shaders_init(ShaderProgram *shaders)
 {
 	ShaderProgram quad_shader = create_shader(quad_vertex, quad_fragment);
 	if (!quad_shader) {
 		printf("Failed to create quad shader.\n");
-		return 0;
+		exit(1);
 	}
 	shaders[QUAD_SHADER] = quad_shader;
-
-	return 1;
 }
 
 void shader_program_set_texture_samplers(ShaderProgram program,

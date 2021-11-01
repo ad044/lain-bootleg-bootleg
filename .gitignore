@@ -3,3 +3,4 @@ build/
 .vs/
 .cache/
 .dir-locals.el
+embedded.*

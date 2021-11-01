@@ -1,8 +1,29 @@
 #pragma once
 #include <stdint.h>
 
-#include "hashmap.h"
 #include "util.h"
+
+#define MAX_TEXTURE_COUNT 64
+
+enum {
+	BEAR_ICON_ACTIVE,
+	BEAR_ICON_INACTIVE,
+	UI_LAIN_BEAR,
+	MAIN_UI,
+	MAIN_UI_BAR_ACTIVE,
+	MAIN_UI_BAR_INACTIVE,
+	DRESSUP_BUTTON_INACTIVE,
+	THEATER_PREVIEWS,
+	THEATER_BUTTON_ACTIVE,
+	THEATER_BUTTON_INACTIVE,
+	SCREWDRIVER_ICON_INACTIVE,
+	PAW_ICON,
+	SCORE_PREVIEW,
+	RED_FONT_TEXTURE,
+	WHITE_FONT_TEXTURE,
+	KUMA_SHOOT_BG,
+	KUMA_SHOOT_BUSH_OVERLAY,
+};
 
 typedef struct {
 	GLuint id;
@@ -11,13 +32,5 @@ typedef struct {
 	char *name;
 } Texture;
 
-typedef struct hashmap TextureCache;
-
-int init_texture(Texture *texture, char *image_path);
 Texture make_texture(char *image_path, char *name);
-int texture_cache_init(TextureCache **cache);
-Texture *texture_cache_get(TextureCache *cache, char *texture_name);
-void texture_cache_put(TextureCache *cache, Texture texture);
-void preload_textures(TextureCache *cache);
-// todo
-void texture_cache_free(TextureCache *cache);
+void textures_init(Texture *textures);

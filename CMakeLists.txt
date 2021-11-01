@@ -16,10 +16,8 @@ endif (MINGW)
 set(SOURCES
    src/main.c
    src/engine.c
-   src/hashmap.c
    src/input.c
    src/menu.c
-   src/resource_cache.c
    src/scene.c
    src/shader.c
    src/sprite.c
@@ -31,26 +29,7 @@ set(SOURCES
    src/state.c
    src/kumashoot.c
    src/minigame.c
-)
-
-set(HEADERS
-   src/engine.h
-   src/hashmap.h
-   src/input.h
-   src/menu.h
-   src/resource_cache.h
-   src/scene.h
-   src/shader.h
-   src/sprite.h
-   src/stb_image.h
-   src/text.h
-   src/texture.h
-   src/window.h
-   src/quad.h
-   src/util.h
-   src/state.h
-   src/kumashoot.h
-   src/minigame.h
+   src/embedded.c
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})
@@ -72,5 +51,3 @@ target_link_libraries(${PROJECT_NAME} PRIVATE libglew_static)
 
 add_subdirectory(${CMAKE_SOURCE_DIR}/external/glfw EXCLUDE_FROM_ALL)
 target_link_libraries(${PROJECT_NAME} PRIVATE glfw)
-
-file(COPY ${CMAKE_SOURCE_DIR}/assets DESTINATION ${CMAKE_BINARY_DIR}/)
