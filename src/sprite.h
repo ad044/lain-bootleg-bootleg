@@ -1,7 +1,6 @@
 #pragma once
 
 #include "texture.h"
-#include "util.h"
 
 #include <stdbool.h>
 
@@ -22,4 +21,5 @@ typedef struct {
 } Sprite;
 
 void depth_sort(Sprite **sprites, unsigned int sprite_count);
+void initialize_sprite(Sprite *sprite);
 _Bool is_sprite_within_bounds(const Sprite *sprite, const Vector2D point);

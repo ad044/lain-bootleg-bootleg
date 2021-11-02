@@ -1,4 +1,5 @@
 #pragma once
+
 #include <GL/glew.h>
 #include <cglm/types.h>
 #include <stdbool.h>

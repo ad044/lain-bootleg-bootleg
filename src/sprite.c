@@ -30,3 +30,18 @@ _Bool is_sprite_within_bounds(const Sprite *sprite, const Vector2D point)
 	return (left_x <= point.x && point.x <= right_x) &&
 	       (top_y <= point.y && point.y <= bottom_y);
 }
+
+void initialize_sprite(Sprite *sprite)
+{
+	sprite->origin_pos = sprite->pos;
+
+	// if spritesheet, set size for single sprite (of what will be
+	// displayed), and initialize current frame to 0
+	if (sprite->is_spritesheet) {
+		float size_x = 1.0f / ((float)sprite->max_frame + 1.0f);
+		sprite->texture_size = (Vector2D){size_x, 1.0f};
+		sprite->current_frame = 0;
+	} else {
+		sprite->texture_size = (Vector2D){1.0f, 1.0f};
+	}
+}

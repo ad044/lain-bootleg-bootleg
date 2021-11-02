@@ -1,12 +1,7 @@
 #pragma once
 
-#include "resources.h"
 #include "scene.h"
 #include "state.h"
-#include "text.h"
-
-#include <GLFW/glfw3.h>
-#include <stdbool.h>
 
 typedef enum {
 	CLASSROOM,
@@ -24,6 +19,16 @@ typedef enum {
 	BLINK_OPENING,
 	BLINK_CLOSING
 } BlinkState;
+
+// i think ideally youd have a separate contextual processor
+// for _CLICK events and then dispatch actions accordingly
+// but in our case its so simple might aswell merge them together
+typedef enum {
+	MAIN_UI_BAR_CLICK,
+	TOGGLE_THEATER_PREVIEW,
+	TOGGLE_SCORE_PREVIEW,
+	BEAR_ICON_CLICK,
+} MenuEvent;
 
 typedef struct {
 	struct tm *current_time;
@@ -50,6 +55,12 @@ typedef struct {
 	Text score_text;
 } Menu;
 
-void init_menu(Resources *resources, GameState *game_state, Menu *menu);
+void init_menu(Menu *menu, GameState *game_state, Texture *textures,
+	       Font *fonts);
 void update_menu(Menu *menu, const GameState *game_state, GLFWwindow *window,
-		 Resources *resources);
+		 Texture *textures);
+
+// void * game here is Engine but because header files are cancer
+// i cant pass it directly without creating circular dependencies
+// and forward declaring would likely be messy, perhaps ill take a look
+void handle_menu_event(MenuEvent event, void *game);

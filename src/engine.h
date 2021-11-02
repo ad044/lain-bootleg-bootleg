@@ -2,15 +2,16 @@
 
 #include "menu.h"
 #include "minigame.h"
-#include "resources.h"
 #include "scene.h"
 #include "shader.h"
 #include "state.h"
 #include "texture.h"
-#include "kumashoot.h"
 
 typedef struct {
-	Resources resources;
+	ShaderProgram shaders[MAX_SHADER_COUNT];
+	Font fonts[MAX_FONT_COUNT];
+	Texture textures[MAX_TEXTURE_COUNT];
+
 	GLFWwindow *main_window;
 	Menu menu;
 	GLFWwindow *minigame_window;

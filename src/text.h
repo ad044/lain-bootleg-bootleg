@@ -1,7 +1,8 @@
 #pragma once
 
+#include <stdint.h>
+
 #include "sprite.h"
-#include "texture.h"
 
 #define MAX_FONT_COUNT 2
 

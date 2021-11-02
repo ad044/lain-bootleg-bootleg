@@ -1,13 +1,13 @@
 #include <stdio.h>
 #include <time.h>
 
-#include "engine.h"
-#include "input.h"
 #include "menu.h"
 #include "scene.h"
 #include "shader.h"
 #include "texture.h"
 #include "window.h"
+#include "engine.h"
+#include "input.h"
 
 // todo
 static void engine_stop(Engine *engine);
@@ -23,19 +23,19 @@ int engine_init(Engine *engine)
 		return 0;
 	}
 
-	shaders_init(engine->resources.shaders);
+	shaders_init(engine->shaders);
 
-	textures_init(engine->resources.textures);
+	textures_init(engine->textures);
 
-	fonts_init(engine->resources.fonts,
-		   engine->resources.textures);
+	fonts_init(engine->fonts, engine->textures);
 
 	init_game_state(&engine->game_state);
 
-	init_menu(&engine->resources, &engine->game_state, &engine->menu);
+	init_menu(&engine->menu, &engine->game_state, engine->textures,
+		  engine->fonts);
 
 	engine->minigame_window = NULL;
-	engine->minigame.running = false;
+	engine->minigame.type = NONE;
 
 	// set user pointer to access engine inside callback function
 	glfwSetWindowUserPointer(engine->main_window, engine);
@@ -53,18 +53,20 @@ static void engine_render(Engine *engine)
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	update_menu(&engine->menu, &engine->game_state, engine->main_window,
-		    &engine->resources);
+		    engine->textures);
 
-	draw_scene(&engine->menu.scene, engine->main_window);
+	draw_scene(&engine->menu.scene, engine->main_window,
+		   engine->shaders[QUAD_SHADER]);
 
 	glfwSwapBuffers(engine->main_window);
 
 	GLFWwindow *minigame_window = engine->minigame_window;
 	Minigame *minigame = &engine->minigame;
 
-	if (minigame->running) {
+	if (minigame->type != NONE) {
 		if (glfwWindowShouldClose(minigame_window)) {
-			kill_minigame(minigame, &minigame_window);
+			kill_minigame(&engine->menu, minigame, &minigame_window,
+				      engine->textures);
 		} else {
 			glfwMakeContextCurrent(minigame_window);
 
@@ -74,7 +76,8 @@ static void engine_render(Engine *engine)
 			minigame->update(minigame->current,
 					 &engine->game_state);
 
-			draw_scene(minigame->scene, minigame_window);
+			draw_scene(minigame->scene, minigame_window,
+				   engine->shaders[QUAD_SHADER]);
 
 			glfwSwapBuffers(minigame_window);
 		}

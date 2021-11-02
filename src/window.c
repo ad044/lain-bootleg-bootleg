@@ -1,5 +1,3 @@
- #include <GL/glew.h>
-#include <GLFW/glfw3.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -119,5 +117,10 @@ int make_window(GLFWwindow **window, int width, int height, char *name,
 	glEnable(GL_DEBUG_OUTPUT);
 	glDebugMessageCallback(gl_debug_message_callback, 0);
 
+	if (shared_ctx != NULL) {
+		Engine *engine = (Engine *)glfwGetWindowUserPointer(shared_ctx);
+		glfwSetWindowUserPointer(*window, engine);
+		glfwSetMouseButtonCallback(*window, handle_minigame_click);
+	}
 	return 1;
 }

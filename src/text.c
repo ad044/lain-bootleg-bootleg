@@ -4,7 +4,6 @@
 #include <string.h>
 
 #include "quad.h"
-#include "resources.h"
 #include "scene.h"
 #include "sprite.h"
 #include "text.h"
@@ -52,8 +51,6 @@ void update_text(Text *text_obj, char *new_text)
 	text_obj->current_text = new_text;
 }
 
-// update text function
-// update scene -> update secene quads
 Sprite get_glyph(Text *text_obj, char letter, unsigned int nth)
 {
 	Sprite glyph = (Sprite){
@@ -66,3 +63,4 @@ Sprite get_glyph(Text *text_obj, char letter, unsigned int nth)
 
 	return glyph;
 }
+

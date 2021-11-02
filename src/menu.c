@@ -4,10 +4,8 @@
 #include <string.h>
 #include <time.h>
 
-#include "input.h"
 #include "kumashoot.h"
 #include "menu.h"
-#include "resources.h"
 #include "scene.h"
 #include "shader.h"
 #include "sprite.h"
@@ -16,21 +14,19 @@
 #include "util.h"
 #include "window.h"
 
-static void update_menu_time(Menu *menu);
-static void get_menu_timestring(char *target, Menu *menu);
-static void init_menu_scene(Menu *menu, GameState *game_state,
-			    Resources *resources);
-static void animate_menu_shrink(Menu *menu, GLFWwindow *window,
-				Texture *textures);
-static void animate_menu_expand(Menu *menu, GLFWwindow *window,
-				Texture *textures);
-static void main_ui_bar_click(void *ctx, Sprite *clicked_sprite,
-			      Vector2D click_pos);
-static void toggle_theater_preview(void *ctx, Sprite *clicked_sprite,
-				   Vector2D click_pos);
-static void toggle_score_preview(void *ctx, Sprite *clicked_sprite,
-				 Vector2D click_pos);
-static void animate_lain_blink(Sprite *ui_lain, BlinkState *blink_state);
+static void update_menu_time(Menu *menu)
+{
+	time_t t;
+
+	time(&t);
+
+	menu->current_time = localtime(&t);
+}
+
+static void get_menu_timestring(char *target, Menu *menu)
+{
+	strftime(target, sizeof(char) * 11, "%p%I:%M:%S", menu->current_time);
+}
 
 static void init_menu_sprites(Menu *menu, Texture *textures)
 {
@@ -142,124 +138,6 @@ static void init_menu_text_objects(Menu *menu, Font *fonts,
 				  .font = &fonts[RED_FONT]};
 }
 
-static void init_menu_scene(Menu *menu, GameState *game_state,
-			    Resources *resources)
-{
-	init_menu_sprites(menu, resources->textures);
-
-	init_menu_text_objects(menu, resources->fonts, game_state);
-
-	Sprite *sprites[] = {
-	    &menu->ui_lain,	     &menu->main_ui,
-	    &menu->main_ui_bar,	     &menu->dressup_button,
-	    &menu->theater_button,   &menu->bear_icon,
-	    &menu->screwdriver_icon, &menu->paw_icon,
-	    &menu->theater_preview,  &menu->score_preview,
-	};
-	uint8_t sprite_count = sizeof(sprites) / sizeof(sprites[0]);
-
-	Text *text_objs[] = {&menu->clock, &menu->score_text};
-	uint8_t text_obj_count = sizeof(text_objs) / sizeof(text_objs[0]);
-
-	// behavior definitions for sprites
-	SpriteBehavior sprite_behaviors[] = {
-	    (SpriteBehavior){.sprite = &menu->main_ui_bar,
-			     .on_click = &main_ui_bar_click},
-
-	    (SpriteBehavior){.sprite = &menu->theater_button,
-			     .on_click = &toggle_theater_preview},
-
-	    (SpriteBehavior){.sprite = &menu->ui_lain,
-			     .on_click = &toggle_score_preview},
-
-	    (SpriteBehavior){.sprite = &menu->bear_icon,
-			     .on_click = &start_kumashoot}
-
-	};
-	unsigned int sprite_behavior_count =
-	    sizeof(sprite_behaviors) / sizeof(sprite_behaviors[0]);
-
-	ShaderProgram shader = resources->shaders[QUAD_SHADER];
-
-	init_scene(&menu->scene, sprites, sprite_count, sprite_behaviors,
-		   sprite_behavior_count, text_objs, text_obj_count, shader);
-}
-
-void init_menu(Resources *resources, GameState *game_state, Menu *menu)
-{
-	update_menu_time(menu);
-
-	menu->lain_blink_state = NOT_BLINKING;
-	menu->expanded = false;
-	menu->animating = false;
-
-	init_menu_scene(menu, game_state, resources);
-}
-
-static void update_menu_time(Menu *menu)
-{
-	time_t t;
-
-	time(&t);
-
-	menu->current_time = localtime(&t);
-}
-
-static void get_menu_timestring(char *target, Menu *menu)
-{
-	strftime(target, sizeof(char) * 11, "%p%I:%M:%S", menu->current_time);
-}
-
-static void toggle_score_preview(void *ctx, Sprite *clicked_sprite,
-				 Vector2D click_pos)
-{
-	Engine *engine = (Engine *)ctx;
-
-	Sprite *score_preview = &engine->menu.score_preview;
-	Text *score = &engine->menu.score_text;
-
-	if (engine->menu.expanded) {
-		score_preview->visible = !score_preview->visible;
-		score->visible = !score->visible;
-	}
-}
-
-static void toggle_theater_preview(void *ctx, Sprite *clicked_sprite,
-				   Vector2D click_pos)
-{
-	Engine *engine = (Engine *)ctx;
-	Texture *textures = engine->resources.textures;
-
-	Sprite *theater_preview = &engine->menu.theater_preview;
-	Sprite *theater_button = &engine->menu.theater_button;
-
-	theater_preview->visible = !theater_preview->visible;
-
-	update_texture_slot(
-	    &engine->menu.scene, theater_button,
-	    &textures[theater_preview->visible ? THEATER_BUTTON_ACTIVE
-					       : THEATER_BUTTON_INACTIVE]);
-}
-
-static void main_ui_bar_click(void *ctx, Sprite *clicked_sprite,
-			      Vector2D click_pos)
-{
-	Engine *engine = (Engine *)ctx;
-
-	Sprite *theater_preview = &engine->menu.theater_preview;
-
-	if (theater_preview->visible) {
-		if (theater_preview->current_frame <
-		    theater_preview->max_frame) {
-			theater_preview->current_frame++;
-		} else {
-			theater_preview->current_frame = 0;
-		}
-	} else {
-		engine->menu.animating = true;
-	}
-}
-
 static void animate_menu_expand(Menu *menu, GLFWwindow *window,
 				Texture *textures)
 {
@@ -286,8 +164,8 @@ static void animate_menu_expand(Menu *menu, GLFWwindow *window,
 		menu->expanded = true;
 		menu->dressup_button.visible = true;
 		menu->theater_button.visible = true;
-		update_texture_slot(&menu->scene, &menu->main_ui_bar,
-				    &textures[MAIN_UI_BAR_ACTIVE]);
+
+		menu->main_ui_bar.texture = &textures[MAIN_UI_BAR_ACTIVE];
 	}
 }
 
@@ -317,8 +195,8 @@ static void animate_menu_shrink(Menu *menu, GLFWwindow *window,
 			menu->screwdriver_icon.visible = false;
 			menu->paw_icon.visible = false;
 
-			update_texture_slot(&menu->scene, &menu->main_ui_bar,
-					    &textures[MAIN_UI_BAR_INACTIVE]);
+			menu->main_ui_bar.texture =
+			    &textures[MAIN_UI_BAR_INACTIVE];
 		}
 	} else {
 		// completed shrinking
@@ -393,7 +271,7 @@ static void animate_lain_blink(Sprite *ui_lain, BlinkState *blink_state)
 }
 
 void update_menu(Menu *menu, const GameState *game_state, GLFWwindow *window,
-		 Resources *resources)
+		 Texture *textures)
 {
 	update_menu_time(menu);
 
@@ -422,13 +300,122 @@ void update_menu(Menu *menu, const GameState *game_state, GLFWwindow *window,
 
 	if (menu->animating) {
 		if (menu->expanded) {
-			animate_menu_shrink(menu, window, resources->textures);
+			animate_menu_shrink(menu, window, textures);
 		} else {
-			animate_menu_expand(menu, window, resources->textures);
+			animate_menu_expand(menu, window, textures);
 		}
 	}
 
 	update_menu_icons(menu);
 
 	update_scene(&menu->scene);
+}
+
+void init_menu(Menu *menu, GameState *game_state, Texture *textures,
+	       Font *fonts)
+{
+	update_menu_time(menu);
+
+	menu->lain_blink_state = NOT_BLINKING;
+	menu->expanded = false;
+	menu->animating = false;
+
+	init_menu_sprites(menu, textures);
+
+	init_menu_text_objects(menu, fonts, game_state);
+
+	Sprite *sprites[] = {
+	    &menu->ui_lain,	     &menu->main_ui,
+	    &menu->main_ui_bar,	     &menu->dressup_button,
+	    &menu->theater_button,   &menu->bear_icon,
+	    &menu->screwdriver_icon, &menu->paw_icon,
+	    &menu->theater_preview,  &menu->score_preview,
+	};
+	uint8_t sprite_count = sizeof(sprites) / sizeof(sprites[0]);
+
+	Text *text_objs[] = {&menu->clock, &menu->score_text};
+	uint8_t text_obj_count = sizeof(text_objs) / sizeof(text_objs[0]);
+
+	// behavior definitions for sprites
+	SpriteBehavior sprite_behaviors[] = {
+	    (SpriteBehavior){.sprite = &menu->main_ui_bar,
+			     .click_event = MAIN_UI_BAR_CLICK},
+
+	    (SpriteBehavior){.sprite = &menu->theater_button,
+			     .click_event = TOGGLE_THEATER_PREVIEW},
+
+	    (SpriteBehavior){.sprite = &menu->ui_lain,
+			     .click_event = TOGGLE_SCORE_PREVIEW},
+
+	    (SpriteBehavior){.sprite = &menu->bear_icon,
+			     .click_event = BEAR_ICON_CLICK}
+
+	};
+	uint8_t sprite_behavior_count =
+	    sizeof(sprite_behaviors) / sizeof(sprite_behaviors[0]);
+
+	init_scene(&menu->scene, sprites, sprite_count, sprite_behaviors,
+		   sprite_behavior_count, text_objs, text_obj_count);
+}
+
+void handle_menu_event(MenuEvent event, void *game)
+{
+	Engine *engine = (Engine *)game;
+
+	switch (event) {
+	case MAIN_UI_BAR_CLICK: {
+		Sprite *theater_preview = &engine->menu.theater_preview;
+
+		if (theater_preview->visible) {
+			if (theater_preview->current_frame <
+			    theater_preview->max_frame) {
+				theater_preview->current_frame++;
+			} else {
+				theater_preview->current_frame = 0;
+			}
+		} else {
+			engine->menu.animating = true;
+		}
+		break;
+	}
+	case TOGGLE_THEATER_PREVIEW: {
+		Sprite *theater_preview = &engine->menu.theater_preview;
+		theater_preview->visible = !theater_preview->visible;
+
+		engine->menu.theater_button.texture =
+		    &engine->textures[theater_preview->visible
+					  ? THEATER_BUTTON_ACTIVE
+					  : THEATER_BUTTON_INACTIVE];
+		break;
+	}
+	case TOGGLE_SCORE_PREVIEW: {
+		Sprite *score_preview = &engine->menu.score_preview;
+		Text *score = &engine->menu.score_text;
+
+		if (engine->menu.expanded) {
+			score_preview->visible = !score_preview->visible;
+			score->visible = !score->visible;
+		}
+		break;
+	}
+	case BEAR_ICON_CLICK: {
+		MinigameType minigame_type = engine->minigame.type;
+
+		if (minigame_type != NONE) {
+			kill_minigame(&engine->menu, &engine->minigame,
+				      &engine->minigame_window,
+				      engine->textures);
+		}
+
+		if (minigame_type != KUMASHOOT) {
+			start_kumashoot(&engine->minigame,
+					&engine->minigame_window,
+					engine->main_window, engine->textures);
+
+			engine->menu.bear_icon.texture =
+			    &engine->textures[BEAR_ICON_ACTIVE];
+		}
+		break;
+	}
+	}
 }
