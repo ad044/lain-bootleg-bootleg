@@ -55,6 +55,11 @@ def compile_resources(src, dst):
         # X?D
         if f == "desktop.ini":
             continue
+        if f[0].isdigit():
+            print("Filename starts with a digit. Skipping.")
+            continue
+
+        print("Compiling {}...".format(f))
 
         filename, ext = path.splitext(f)[0], path.splitext(f)[1][1:]
         symbol = "{}_{}".format(filename, ext)
