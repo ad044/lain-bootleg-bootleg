@@ -7,7 +7,15 @@
 
 typedef enum { CHARACTER_CLICK } KumaShootEvent;
 
-typedef enum { WHITE_BEAR, BROWN_BEAR } KumaShootSpriteType;
+typedef enum {
+	WHITE_BEAR,
+	BROWN_BEAR,
+	YASUO,
+	MIHO,
+	MIKA,
+	LAIN,
+	LAIN_WITH_SCREWDRIVER
+} KumaShootSpriteType;
 
 typedef struct {
 	_Bool vaporized;

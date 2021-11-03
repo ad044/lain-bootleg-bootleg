@@ -17,7 +17,7 @@ typedef struct {
 	// sprite from the atlas.
 	Vector2D texture_size;
 	unsigned int current_frame; // 0 if non-spritesheet texture
-	unsigned int max_frame;
+	unsigned int max_frame; // 0 if non-spritesheet texture
 } Sprite;
 
 void depth_sort(Sprite **sprites, unsigned int sprite_count);

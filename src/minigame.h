@@ -9,7 +9,7 @@ typedef enum {
 	KUMASHOOT,
 } MinigameType;
 
-typedef void (*UpdateMinigameFunc)(void *minigame_struct,
+typedef void (*UpdateMinigameFunc)(Texture *textures, void *minigame_struct,
 				   GameState *game_state);
 
 typedef struct {

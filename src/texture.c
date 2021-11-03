@@ -134,5 +134,10 @@ void textures_init(Texture *textures)
 	init_texture(&textures[KUMA_SHOOT_YASUO],
 		     kuma_shoot_yasuo_png,
 		     kuma_shoot_yasuo_png_size);
+
+	init_texture(&textures[KUMA_SHOOT_SCREWDRIVER_LAIN],
+		     kuma_shoot_screwdriver_lain_png,
+		     kuma_shoot_screwdriver_lain_png_size);
+
 }
 // clang-format on

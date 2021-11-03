@@ -1,13 +1,13 @@
 #include <stdio.h>
 #include <time.h>
 
+#include "engine.h"
+#include "input.h"
 #include "menu.h"
 #include "scene.h"
 #include "shader.h"
 #include "texture.h"
 #include "window.h"
-#include "engine.h"
-#include "input.h"
 
 // todo
 static void engine_stop(Engine *engine);
@@ -73,7 +73,7 @@ static void engine_render(Engine *engine)
 			glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 			glClear(GL_COLOR_BUFFER_BIT);
 
-			minigame->update(minigame->current,
+			minigame->update(engine->textures, minigame->current,
 					 &engine->game_state);
 
 			draw_scene(minigame->scene, minigame_window,
