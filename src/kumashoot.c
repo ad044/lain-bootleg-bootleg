@@ -69,8 +69,6 @@ static void spawn_character(Texture *textures, KumaShootSprite *character,
 	}
 	}
 
-	printf("%d", character->type);
-
 	character->sprite = (Sprite){.pos = pos,
 				     .size = {96.0f, 128.0f},
 				     .texture = texture,
@@ -116,6 +114,7 @@ static void kill_bear(Scene *scene, KumaShootSprite *character,
 		} else {
 			// todo give 5 points
 			character->type = BROWN_BEAR;
+			get_random_pos(&character->sprite.pos);
 		}
 	} else if (character->type == WHITE_BEAR) {
 		if (chance <= 4.0f / 16.0f) {
@@ -132,6 +131,7 @@ static void kill_bear(Scene *scene, KumaShootSprite *character,
 		} else {
 			// todo give 10 points
 			character->type = WHITE_BEAR;
+			get_random_pos(&character->sprite.pos);
 		}
 	}
 }
@@ -211,7 +211,6 @@ static void update_kumashoot(Texture *textures, void *minigame_struct,
 		if (curr->vaporized) {
 			if (curr->sprite.current_frame ==
 			    curr->sprite.max_frame) {
-				curr->sprite.visible = false;
 				curr->vaporized = false;
 				spawn_character(textures, curr,
 						curr->sprite.pos);
