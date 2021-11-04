@@ -7,7 +7,7 @@
 
 #define MAX_SHADER_COUNT 10
 
-enum { QUAD_SHADER };
+enum { SPRITE_SHADER };
 
 typedef GLuint ShaderProgram;
 

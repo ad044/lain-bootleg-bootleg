@@ -25,12 +25,12 @@ set(SOURCES
    src/text.c
    src/texture.c
    src/window.c
-   src/quad.c
    src/state.c
    src/kumashoot.c
    src/minigame.c
    src/embedded.c
    src/vector2d.c
+   src/random.c
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})

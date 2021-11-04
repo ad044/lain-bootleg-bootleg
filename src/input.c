@@ -1,4 +1,5 @@
 #include "engine.h"
+#include "kumashoot.h"
 #include "sprite.h"
 #include "vector2d.h"
 
@@ -8,7 +9,7 @@
 static _Bool get_behavior(SpriteBehavior *behavior,
 			  SpriteBehavior *sprite_behaviors, Vector2D click_pos)
 {
-	_Bool found;
+	_Bool found = false;
 	float lowest_dist = FLT_MAX;
 
 	for (int i = 0; i < cvector_size(sprite_behaviors); i++) {

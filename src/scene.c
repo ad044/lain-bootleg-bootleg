@@ -5,16 +5,15 @@
 
 #define CVECTOR_LOGARITHMIC_GROWTH
 
-#include "quad.h"
 #include "scene.h"
 #include "shader.h"
 #include "sprite.h"
 
-#define MAX_SCENE_QUADS 30
+#define MAX_SCENE_SPRITES 30
 #define MAX_SCENE_TEXTURES 20
 
-#define MAX_SCENE_VBO_SIZE MAX_SCENE_QUADS *QUAD_VBO_SIZE
-#define MAX_SCENE_IBO_SIZE MAX_SCENE_QUADS *QUAD_INDEX_COUNT
+#define MAX_SCENE_VBO_SIZE MAX_SCENE_SPRITES *SPRITE_VBO_SIZE
+#define MAX_SCENE_IBO_SIZE MAX_SCENE_SPRITES *SPRITE_INDEX_COUNT
 
 static void init_scene_buffers(Scene *scene)
 {
@@ -27,12 +26,25 @@ static void init_scene_buffers(Scene *scene)
 	glGenBuffers(1, &scene->IBO);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, scene->IBO);
 
-	GLuint indices[MAX_SCENE_IBO_SIZE];
+	GLuint index_buffer[MAX_SCENE_IBO_SIZE];
+	GLuint *p = index_buffer;
 
-	generate_quad_indices(indices, MAX_SCENE_IBO_SIZE);
+	unsigned int offset = 0;
+	for (int i = 0; i < MAX_SCENE_IBO_SIZE; i += 6) {
+		GLuint indices[] = {
+		    0 + offset, 1 + offset, 3 + offset,
+		    1 + offset, 2 + offset, 3 + offset,
 
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices,
-		     GL_STATIC_DRAW);
+		};
+
+		memcpy(p, indices, sizeof(indices));
+		p += sizeof(indices) / sizeof(GLuint);
+
+		offset += 4;
+	};
+
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(index_buffer),
+		     index_buffer, GL_STATIC_DRAW);
 
 	// position
 	glEnableVertexAttribArray(0);
@@ -183,6 +195,6 @@ void draw_scene(Scene *scene, GLFWwindow *window, ShaderProgram shader)
 	glBindVertexArray(scene->VAO);
 
 	// draw
-	glDrawElements(GL_TRIANGLES, get_quad_index_count(scene->quad_count),
+	glDrawElements(GL_TRIANGLES, scene->quad_count * SPRITE_INDEX_COUNT,
 		       GL_UNSIGNED_INT, 0);
 }

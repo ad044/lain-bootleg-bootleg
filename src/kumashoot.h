@@ -21,6 +21,9 @@ typedef struct {
 	_Bool vaporized;
 	KumaShootSpriteType type;
 	Sprite sprite;
+	double animation_start_time;
+	int dx;
+	int dy;
 } KumaShootSprite;
 
 typedef struct {

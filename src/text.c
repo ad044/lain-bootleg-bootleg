@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "quad.h"
 #include "scene.h"
 #include "sprite.h"
 #include "text.h"

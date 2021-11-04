@@ -12,7 +12,7 @@
 // todo
 static void engine_stop(Engine *engine);
 
-#define FRAMERATE_CAP 30
+#define FRAMERATE_CAP 15 
 
 int engine_init(Engine *engine)
 {
@@ -56,7 +56,7 @@ static void engine_render(Engine *engine)
 		    engine->textures);
 
 	draw_scene(&engine->menu.scene, engine->main_window,
-		   engine->shaders[QUAD_SHADER]);
+		   engine->shaders[SPRITE_SHADER]);
 
 	glfwSwapBuffers(engine->main_window);
 
@@ -77,7 +77,7 @@ static void engine_render(Engine *engine)
 					 &engine->game_state);
 
 			draw_scene(minigame->scene, minigame_window,
-				   engine->shaders[QUAD_SHADER]);
+				   engine->shaders[SPRITE_SHADER]);
 
 			glfwSwapBuffers(minigame_window);
 		}

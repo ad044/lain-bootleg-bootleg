@@ -120,7 +120,7 @@ void shaders_init(ShaderProgram *shaders)
 		printf("Failed to create quad shader.\n");
 		exit(1);
 	}
-	shaders[QUAD_SHADER] = quad_shader;
+	shaders[SPRITE_SHADER] = quad_shader;
 }
 
 void shader_program_set_texture_samplers(ShaderProgram program,
