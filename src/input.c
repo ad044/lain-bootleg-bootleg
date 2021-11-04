@@ -31,7 +31,7 @@ void handle_minigame_click(GLFWwindow *window, int button, int action, int mods)
 {
 	Engine *engine = (Engine *)glfwGetWindowUserPointer(window);
 
-	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+	if (!(button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)) {
 		return;
 	}
 
