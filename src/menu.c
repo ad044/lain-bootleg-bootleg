@@ -11,8 +11,10 @@
 #include "sprite.h"
 #include "text.h"
 #include "texture.h"
-#include "util.h"
+#include "vector2d.h"
 #include "window.h"
+
+#define PI 3.14159265359
 
 static void update_menu_time(Menu *menu)
 {

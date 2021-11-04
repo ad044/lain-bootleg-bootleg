@@ -23,3 +23,4 @@ typedef struct {
 void depth_sort(Sprite **sprites, unsigned int sprite_count);
 void initialize_sprite(Sprite *sprite);
 _Bool is_sprite_within_bounds(const Sprite *sprite, const Vector2D point);
+Vector2D get_sprite_center_coords(Sprite *sprite);

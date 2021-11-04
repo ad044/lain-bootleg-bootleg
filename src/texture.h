@@ -1,6 +1,6 @@
 #pragma once
 
-#include "util.h"
+#include "vector2d.h"
 
 #define MAX_TEXTURE_COUNT 64
 

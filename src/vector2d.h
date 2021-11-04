@@ -2,9 +2,9 @@
 
 #include <GL/glew.h>
 
-#define PI 3.14159265359
-
 typedef struct {
 	GLfloat x;
 	GLfloat y;
 } Vector2D;
+
+float dist_between(Vector2D v1, Vector2D v2);

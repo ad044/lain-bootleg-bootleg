@@ -7,7 +7,7 @@
 #include "scene.h"
 #include "sprite.h"
 #include "text.h"
-#include "util.h"
+#include "vector2d.h"
 
 static const uint16_t white_glyphs_order[256] = {
     ['A'] = 0,	['P'] = 1,  ['0'] = 2, ['1'] = 3, ['2'] = 4,

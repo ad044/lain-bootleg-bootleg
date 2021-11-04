@@ -1,7 +1,37 @@
 #include "engine.h"
-#include "util.h"
+#include "sprite.h"
+#include "vector2d.h"
 
+#include <float.h>
 #include <stdio.h>
+
+static _Bool get_behavior(SpriteBehavior *behavior,
+			  SpriteBehavior *sprite_behaviors, Vector2D click_pos)
+{
+	_Bool found;
+	float lowest_dist = FLT_MAX;
+
+	for (int i = 0; i < cvector_size(sprite_behaviors); i++) {
+		Sprite *sprite = sprite_behaviors[i].sprite;
+
+		if (is_sprite_within_bounds(sprite, click_pos)) {
+
+			Vector2D sprite_center =
+			    get_sprite_center_coords(sprite);
+
+			float curr_dist =
+			    dist_between(sprite_center, click_pos);
+
+			if (curr_dist < lowest_dist) {
+				found = true;
+				*behavior = sprite_behaviors[i];
+				lowest_dist = curr_dist;
+			}
+		}
+	}
+
+	return found;
+}
 
 void handle_menu_click(GLFWwindow *window, int button, int action, int mods)
 {
@@ -17,13 +47,12 @@ void handle_menu_click(GLFWwindow *window, int button, int action, int mods)
 
 	Scene scene = engine->menu.scene;
 
-	for (int i = 0; i < cvector_size(scene.sprite_behaviors); i++) {
-		Sprite *sprite = scene.sprite_behaviors[i].sprite;
-		MenuEvent event = scene.sprite_behaviors[i].click_event;
+	SpriteBehavior behavior;
+	_Bool behavior_found =
+	    get_behavior(&behavior, scene.sprite_behaviors, click_pos);
 
-		if (is_sprite_within_bounds(sprite, click_pos)) {
-			handle_menu_event(event, engine);
-		}
+	if (behavior_found) {
+		handle_menu_event(behavior.click_event, engine);
 	}
 }
 
@@ -39,23 +68,23 @@ void handle_minigame_click(GLFWwindow *window, int button, int action, int mods)
 	glfwGetCursorPos(window, &x, &y);
 	Vector2D click_pos = (Vector2D){x, y};
 
-	Scene *scene = engine->minigame.scene;
+	Scene scene = *engine->minigame.scene;
 
-	for (int i = 0; i < cvector_size(scene->sprite_behaviors); i++) {
-		SpriteBehavior sprite_behavior = scene->sprite_behaviors[i];
-		Sprite *sprite = sprite_behavior.sprite;
-		int event = sprite_behavior.click_event;
-		void *obj = sprite_behavior.object;
+	SpriteBehavior behavior;
+	_Bool behavior_found =
+	    get_behavior(&behavior, scene.sprite_behaviors, click_pos);
 
-		if (is_sprite_within_bounds(sprite, click_pos)) {
-			switch (engine->minigame.type) {
-			case KUMASHOOT: {
-				handle_kumashoot_event(event, obj, engine);
-				return;
-			} break;
-			case NONE:
-				return;
-			}
+	if (behavior_found) {
+		int event = behavior.click_event;
+		void *obj = behavior.object;
+
+		switch (engine->minigame.type) {
+		case KUMASHOOT: {
+			handle_kumashoot_event(event, obj, engine);
+			return;
+		} break;
+		case NONE:
+			return;
 		}
 	}
 }

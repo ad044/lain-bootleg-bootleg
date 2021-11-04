@@ -30,6 +30,7 @@ set(SOURCES
    src/kumashoot.c
    src/minigame.c
    src/embedded.c
+   src/vector2d.c
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})

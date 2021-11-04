@@ -45,3 +45,9 @@ void initialize_sprite(Sprite *sprite)
 		sprite->texture_size = (Vector2D){1.0f, 1.0f};
 	}
 }
+
+Vector2D get_sprite_center_coords(Sprite *sprite)
+{
+	return (Vector2D){sprite->pos.x + sprite->size.x / 2.0f,
+			  sprite->pos.y + sprite->size.y / 2.0f};
+}
