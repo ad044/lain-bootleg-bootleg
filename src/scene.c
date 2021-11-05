@@ -104,11 +104,19 @@ void update_scene(Scene *scene)
 
 	unsigned int quad_count = 0;
 	for (int i = 0; i < cvector_size(scene->sprites); i++) {
-		scene->sprites[i]->texture_index = i;
-		if (!scene->sprites[i]->visible) {
+		Sprite *sprite = scene->sprites[i];
+
+		sprite->texture_index = i;
+		if (!sprite->visible) {
 			continue;
 		}
-		buffer_ptr = get_quad_vertices(buffer_ptr, scene->sprites[i]);
+
+		if (sprite->pivot_centered) {
+			buffer_ptr = get_pivoted_centered_sprite_vertices(
+			    buffer_ptr, sprite);
+		} else {
+			buffer_ptr = get_sprite_vertices(buffer_ptr, sprite);
+		}
 		quad_count++;
 	};
 
@@ -130,7 +138,7 @@ void update_scene(Scene *scene)
 
 			glyph.texture_index = text_obj->texture_index;
 
-			buffer_ptr = get_quad_vertices(buffer_ptr, &glyph);
+			buffer_ptr = get_sprite_vertices(buffer_ptr, &glyph);
 			quad_count++;
 
 			if (text[j] == 'A' || text[j] == 'P') {

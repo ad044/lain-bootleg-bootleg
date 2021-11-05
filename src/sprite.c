@@ -20,11 +20,21 @@ void depth_sort(Sprite **sprites, unsigned int sprite_count)
 
 _Bool is_sprite_within_bounds(const Sprite *sprite, const Vector2D point)
 {
-	float left_x = sprite->pos.x;
-	float right_x = sprite->pos.x + sprite->size.x;
+	float left_x, right_x, top_y, bottom_y;
 
-	float top_y = sprite->pos.y;
-	float bottom_y = sprite->pos.y + sprite->size.y;
+	if (sprite->pivot_centered) {
+		left_x = sprite->pos.x - sprite->size.x / 2.0f;
+		right_x = sprite->pos.x + sprite->size.x / 2.0f;
+
+		top_y = sprite->pos.y - sprite->size.y / 2.0f;
+		bottom_y = sprite->pos.y + sprite->size.y / 2.0f;
+	} else {
+		left_x = sprite->pos.x;
+		right_x = sprite->pos.x + sprite->size.x;
+
+		top_y = sprite->pos.y;
+		bottom_y = sprite->pos.y + sprite->size.y;
+	}
 
 	return (left_x <= point.x && point.x <= right_x) &&
 	       (top_y <= point.y && point.y <= bottom_y);
@@ -45,13 +55,17 @@ void initialize_sprite(Sprite *sprite)
 	}
 }
 
-Vector2D get_sprite_center_coords(Sprite *sprite)
+Vector2D get_sprite_center_coords(const Sprite *sprite)
 {
-	return (Vector2D){sprite->pos.x + sprite->size.x / 2.0f,
-			  sprite->pos.y + sprite->size.y / 2.0f};
+	if (sprite->pivot_centered) {
+		return sprite->pos;
+	} else {
+		return (Vector2D){sprite->pos.x + sprite->size.x / 2.0f,
+				  sprite->pos.y + sprite->size.y / 2.0f};
+	}
 }
 
-GLfloat *get_quad_vertices(GLfloat *buffer, Sprite *sprite)
+GLfloat *get_sprite_vertices(GLfloat *buffer, Sprite *sprite)
 {
 	GLfloat vertices[] = {
 	    // top right
@@ -80,6 +94,45 @@ GLfloat *get_quad_vertices(GLfloat *buffer, Sprite *sprite)
 	    // top left
 	    sprite->pos.x,
 	    sprite->pos.y,
+	    sprite->current_frame * sprite->texture_size.x,
+	    sprite->texture_size.y,
+	    sprite->texture_index,
+	};
+
+	memcpy(buffer, vertices, sizeof(vertices));
+	buffer += sizeof(vertices) / sizeof(vertices[0]);
+	return buffer;
+}
+
+GLfloat *get_pivoted_centered_sprite_vertices(GLfloat *buffer, Sprite *sprite)
+{
+	GLfloat vertices[] = {
+	    // top right
+	    sprite->pos.x + (sprite->size.x / 2),
+	    sprite->pos.y - (sprite->size.y / 2),
+	    sprite->current_frame * sprite->texture_size.x +
+		sprite->texture_size.x * (sprite->mirrored ? -1.0f : 1.0f),
+	    sprite->texture_size.y,
+	    sprite->texture_index,
+
+	    // bottom right
+	    sprite->pos.x + (sprite->size.x / 2),
+	    sprite->pos.y + (sprite->size.y / 2),
+	    sprite->current_frame * sprite->texture_size.x +
+		sprite->texture_size.x * (sprite->mirrored ? -1.0f : 1.0f),
+	    0.0f,
+	    sprite->texture_index,
+
+	    // bottom left
+	    sprite->pos.x - (sprite->size.x / 2),
+	    sprite->pos.y + (sprite->size.y / 2),
+	    sprite->current_frame * sprite->texture_size.x,
+	    0.0f,
+	    sprite->texture_index,
+
+	    // top left
+	    sprite->pos.x - (sprite->size.x / 2),
+	    sprite->pos.y - (sprite->size.y / 2),
 	    sprite->current_frame * sprite->texture_size.x,
 	    sprite->texture_size.y,
 	    sprite->texture_index,

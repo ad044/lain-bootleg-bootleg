@@ -1,7 +1,7 @@
 // original game uses its own deterministic rng
 // this is the decompiled version of it
 
-static int weird_global;
+static int weird_global = 1;
 
 unsigned int random_unsigned_int()
 {

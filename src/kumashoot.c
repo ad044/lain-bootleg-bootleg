@@ -6,9 +6,6 @@
 #include "texture.h"
 #include "window.h"
 
-#define BEAR_WIDTH 96.0f
-#define BEAR_HEIGHT 128.0f
-
 inline static _Bool is_bear(KumaShootSprite *character)
 {
 	return character->type == WHITE_BEAR || character->type == BROWN_BEAR;
@@ -26,6 +23,7 @@ static void vaporize_character(Texture *textures, KumaShootSprite *character)
 				.size = {96.0f, 128.0f},
 				.texture = &textures[SMOKE],
 				.visible = true,
+				.pivot_centered = true,
 				.is_spritesheet = true,
 				.max_frame = 3,
 				.z_index = 1};
@@ -81,6 +79,7 @@ static void spawn_character(Texture *textures, KumaShootSprite *character)
 				     .size = {96.0f, 128.0f},
 				     .texture = texture,
 				     .visible = true,
+				     .pivot_centered = true,
 				     .is_spritesheet = true,
 				     .max_frame = spritesheet_max_frame,
 				     .z_index = is_bear(character) ? 1 : 3};
@@ -95,11 +94,14 @@ static void set_random_pos(KumaShootSprite *character)
 	int iVar1;
 	int iVar2;
 
+	int half_height = character->sprite.size.y / 2;
+	int half_width = character->sprite.size.x / 2;
+
 	// TODO clean this up
-	int top = BEAR_HEIGHT;
-	int bottom = KUMASHOOT_HEIGHT - BEAR_HEIGHT;
-	int right = KUMASHOOT_WIDTH - BEAR_WIDTH;
-	int left = BEAR_WIDTH;
+	int top = half_height;
+	int bottom = KUMASHOOT_HEIGHT - half_height;
+	int right = KUMASHOOT_WIDTH - half_width;
+	int left = half_width;
 
 	do {
 		do {
@@ -130,7 +132,6 @@ static void set_random_velocity(KumaShootSprite *character)
 	uVar1 = random_int();
 	uVar2 = uVar1 >> 0x1f;
 	character->dy = (((uVar1 ^ uVar2) - uVar2 & 7) ^ uVar2) - uVar2;
-	return;
 }
 
 static void update_bear_position(KumaShootSprite *bear)
@@ -138,13 +139,16 @@ static void update_bear_position(KumaShootSprite *bear)
 	int next_y = bear->dy + bear->sprite.pos.y;
 	int next_x = bear->dx + bear->sprite.pos.x;
 
-	if ((next_x < BEAR_WIDTH) || (KUMASHOOT_WIDTH - BEAR_WIDTH < next_x)) {
+	int half_height = bear->sprite.size.y / 2;
+	int half_width = bear->sprite.size.x / 2;
+
+	if ((next_x < half_width) || (KUMASHOOT_WIDTH - half_width < next_x)) {
 		next_x = bear->sprite.pos.x;
 		bear->dx = -bear->dx;
 	}
 
-	if ((next_y < BEAR_HEIGHT) ||
-	    (KUMASHOOT_HEIGHT - BEAR_HEIGHT < next_y)) {
+	if ((next_y < half_height) ||
+	    (KUMASHOOT_HEIGHT - half_height < next_y)) {
 		next_y = bear->sprite.pos.y;
 		bear->dy = -bear->dy;
 	}
@@ -153,11 +157,7 @@ static void update_bear_position(KumaShootSprite *bear)
 		set_random_velocity(bear);
 	}
 
-	if (bear->sprite.pos.x > next_x) {
-		bear->sprite.mirrored = true;
-	} else {
-		bear->sprite.mirrored = false;
-	}
+	bear->sprite.mirrored = bear->sprite.pos.x > next_x;
 
 	bear->sprite.pos.x = next_x;
 	bear->sprite.pos.y = next_y;
@@ -285,13 +285,17 @@ static void init_kumashoot_sprites(KumaShoot *kumashoot, Texture *textures)
 
 	for (int i = 0; i < 3; i++) {
 		KumaShootSprite *character = &kumashoot->characters[i];
+
 		character->type = get_random_bear_type();
 		character->vaporized = false;
+		character->sprite.visible = false;
+
+		spawn_character(textures, character);
 
 		set_random_pos(character);
 		set_random_velocity(character);
 
-		spawn_character(textures, character);
+		character->sprite.visible = true;
 	}
 }
 
