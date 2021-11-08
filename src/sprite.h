@@ -3,6 +3,7 @@
 #include "texture.h"
 
 #include <stdbool.h>
+#include <stdint.h>
 
 #define SPRITE_VERTEX_COUNT 4
 #define SPRITE_INDEX_COUNT 6
@@ -16,7 +17,7 @@ typedef struct {
 	Vector2D size;
 	unsigned int z_index;
 	Texture *texture;
-	unsigned int texture_index;
+	int texture_index;
 	_Bool visible;
 	_Bool is_spritesheet;
 	_Bool mirrored;
@@ -36,3 +37,5 @@ _Bool is_sprite_within_bounds(const Sprite *sprite, const Vector2D point);
 Vector2D get_sprite_center_coords(const Sprite *sprite);
 GLfloat *get_sprite_vertices(GLfloat *buffer, Sprite *sprite);
 GLfloat *get_pivoted_centered_sprite_vertices(GLfloat *buffer, Sprite *sprite);
+Sprite make_click_barrier(GLfloat left, GLfloat top, GLfloat right,
+			  GLfloat bottom);

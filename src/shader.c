@@ -1,4 +1,3 @@
-#include <GL/glew.h>
 #include <cglm/types.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -19,7 +18,11 @@ static char quad_fragment[] =
     "void main()"
     "{"
     "int index = int(v_TexIndex);"
+    "if (index == -1) {"
+    "FragColor = vec4(1.0, 0.0, 0.0, 1.0);"
+    "} else {"
     "FragColor = texture(u_Textures[index], v_TexCoord);"
+    "}"
     "}";
 
 static char quad_vertex[] =

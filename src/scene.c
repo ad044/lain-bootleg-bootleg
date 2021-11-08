@@ -63,7 +63,8 @@ static void init_scene_buffers(Scene *scene)
 
 void init_scene(Scene *scene, Sprite **sprites, uint8_t sprite_count,
 		SpriteBehavior *sprite_behaviors, uint8_t sprite_behavior_count,
-		Text **text_objs, uint8_t text_obj_count)
+		Text **text_objs, uint8_t text_obj_count,
+		Sprite *click_barriers, uint8_t click_barrier_count)
 {
 	// initialize vao, vbo, ibo
 	init_scene_buffers(scene);
@@ -92,6 +93,13 @@ void init_scene(Scene *scene, Sprite **sprites, uint8_t sprite_count,
 		cvector_push_back(scene->text_objects, text);
 	}
 
+	scene->click_barriers = NULL;
+	for (int i = 0; i < click_barrier_count; i++) {
+		cvector_push_back(scene->click_barriers, click_barriers[i]);
+	}
+
+	scene->draw_barriers = false;
+
 	update_scene(scene);
 }
 
@@ -103,10 +111,12 @@ void update_scene(Scene *scene)
 	GLfloat *buffer_ptr = vertices;
 
 	unsigned int quad_count = 0;
+
 	for (int i = 0; i < cvector_size(scene->sprites); i++) {
 		Sprite *sprite = scene->sprites[i];
 
 		sprite->texture_index = i;
+
 		if (!sprite->visible) {
 			continue;
 		}
@@ -117,6 +127,7 @@ void update_scene(Scene *scene)
 		} else {
 			buffer_ptr = get_sprite_vertices(buffer_ptr, sprite);
 		}
+
 		quad_count++;
 	};
 
@@ -131,7 +142,6 @@ void update_scene(Scene *scene)
 
 		char *text = text_obj->current_text;
 		int text_len = strlen(text);
-		// on each letter pad the entire text back by one letter size
 
 		for (int j = 0; j < text_len; j++) {
 			Sprite glyph = get_glyph(text_obj, text[j], j);
@@ -144,6 +154,15 @@ void update_scene(Scene *scene)
 			if (text[j] == 'A' || text[j] == 'P') {
 				j++;
 			}
+		}
+	}
+
+	if (scene->draw_barriers) {
+		for (int i = 0; i < cvector_size(scene->click_barriers); i++) {
+			buffer_ptr = get_sprite_vertices(
+			    buffer_ptr, &scene->click_barriers[i]);
+
+			quad_count++;
 		}
 	}
 

@@ -1,6 +1,6 @@
 #include "sprite.h"
 #include "engine.h"
-#include "input.h"
+#include "vector2d.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -141,4 +141,23 @@ GLfloat *get_pivoted_centered_sprite_vertices(GLfloat *buffer, Sprite *sprite)
 	memcpy(buffer, vertices, sizeof(vertices));
 	buffer += sizeof(vertices) / sizeof(vertices[0]);
 	return buffer;
+}
+
+static Sprite make_transparent_sprite(GLfloat left, GLfloat top, GLfloat right,
+				      GLfloat bottom, int8_t z_index)
+{
+	return (Sprite){
+	    .pos = {left, top},
+	    .size = {right - left, bottom - top},
+	    .z_index = z_index,
+	    .texture_index = -1,
+	};
+}
+
+// a barrier block is simply a transparent sprite with an arbitrarily high z
+// index. this way we can also visualize them to see whether its misplaced/etc.
+Sprite make_click_barrier(GLfloat left, GLfloat top, GLfloat right,
+			  GLfloat bottom)
+{
+	return make_transparent_sprite(left, top, right, bottom, 127);
 }

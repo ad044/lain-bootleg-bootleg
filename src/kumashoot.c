@@ -1,9 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "kumashoot.h"
 #include "random.h"
+#include "sprite.h"
 #include "texture.h"
+#include "vector2d.h"
 #include "window.h"
 
 inline static _Bool is_bear(KumaShootSprite *character)
@@ -288,14 +291,11 @@ static void init_kumashoot_sprites(KumaShoot *kumashoot, Texture *textures)
 
 		character->type = get_random_bear_type();
 		character->vaporized = false;
-		character->sprite.visible = false;
 
 		spawn_character(textures, character);
 
 		set_random_pos(character);
 		set_random_velocity(character);
-
-		character->sprite.visible = true;
 	}
 }
 
@@ -304,13 +304,27 @@ static void init_kumashoot_scene(Scene *scene, KumaShoot *kumashoot,
 {
 	init_kumashoot_sprites(kumashoot, textures);
 
-	Sprite *sprites[] = {
-	    &kumashoot->background,	      &kumashoot->bush_overlay,
-	    &kumashoot->characters[0].sprite, &kumashoot->characters[1].sprite,
-	    &kumashoot->characters[2].sprite,
-	};
+	// TODO if "keep bugs" flag enabled barrier 8 shouldnt exist
+	Sprite *sprites[] = {&kumashoot->background, &kumashoot->bush_overlay,
+			     &kumashoot->characters[0].sprite,
+			     &kumashoot->characters[1].sprite,
+			     &kumashoot->characters[2].sprite};
 
 	uint8_t sprite_count = sizeof(sprites) / sizeof(sprites[0]);
+
+	Sprite click_barriers[] = {
+	    make_click_barrier(76, 28, 164, 83),
+	    make_click_barrier(48, 82, 295, 113),
+	    make_click_barrier(240, 62, 288, 82),
+	    make_click_barrier(81, 222, 167, 246),
+	    make_click_barrier(57, 246, 208, 301),
+	    make_click_barrier(485, 88, 557, 128),
+	    make_click_barrier(466, 128, 563, 170),
+	    make_click_barrier(563, 110, 582, 170),
+	    make_click_barrier(446, 321, 600, 400),
+	};
+	uint8_t click_barrier_count =
+	    sizeof(click_barriers) / sizeof(click_barriers[0]);
 
 	SpriteBehavior sprite_behaviors[3];
 
@@ -324,7 +338,8 @@ static void init_kumashoot_scene(Scene *scene, KumaShoot *kumashoot,
 	    sizeof(sprite_behaviors) / sizeof(sprite_behaviors[0]);
 
 	init_scene(scene, sprites, sprite_count, sprite_behaviors,
-		   sprite_behavior_count, NULL, 0);
+		   sprite_behavior_count, NULL, 0, click_barriers,
+		   click_barrier_count);
 }
 
 static KumaShoot *create_kumashoot(Texture *textures)

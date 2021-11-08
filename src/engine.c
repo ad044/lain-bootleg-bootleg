@@ -2,17 +2,18 @@
 #include <time.h>
 
 #include "engine.h"
-#include "input.h"
 #include "menu.h"
 #include "scene.h"
 #include "shader.h"
 #include "texture.h"
 #include "window.h"
 
+#include "input.h"
+
 // todo
 static void engine_stop(Engine *engine);
 
-#define FRAMERATE_CAP 15 
+#define FRAMERATE_CAP 15
 
 int engine_init(Engine *engine)
 {

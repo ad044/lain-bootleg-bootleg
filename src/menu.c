@@ -357,7 +357,7 @@ void init_menu(Menu *menu, GameState *game_state, Texture *textures,
 	    sizeof(sprite_behaviors) / sizeof(sprite_behaviors[0]);
 
 	init_scene(&menu->scene, sprites, sprite_count, sprite_behaviors,
-		   sprite_behavior_count, text_objs, text_obj_count);
+		   sprite_behavior_count, text_objs, text_obj_count, NULL, 0);
 }
 
 void handle_menu_event(MenuEvent event, void *game)
