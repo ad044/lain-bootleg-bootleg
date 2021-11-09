@@ -9,6 +9,11 @@
 #include "vector2d.h"
 #include "window.h"
 
+// TOOD macros for now
+// should be sprite hitbox/2
+#define HW 24
+#define HH 40
+
 inline static _Bool is_bear(KumaShootSprite *character)
 {
 	return character->type == WHITE_BEAR || character->type == BROWN_BEAR;
@@ -97,14 +102,10 @@ static void set_random_pos(KumaShootSprite *character)
 	int iVar1;
 	int iVar2;
 
-	int half_height = character->sprite.size.y / 2;
-	int half_width = character->sprite.size.x / 2;
-
-	// TODO clean this up
-	int top = half_height;
-	int bottom = KUMASHOOT_HEIGHT - half_height;
-	int right = KUMASHOOT_WIDTH - half_width;
-	int left = half_width;
+	int top = HH - 10;
+	int bottom = KUMASHOOT_HEIGHT - (HH + 10);
+	int right = KUMASHOOT_WIDTH - HW;
+	int left = HW;
 
 	do {
 		do {
@@ -129,29 +130,25 @@ static void set_random_velocity(KumaShootSprite *character)
 	unsigned int uVar2;
 
 	uVar1 = random_int();
-	uVar2 = uVar1 >> 0x1f;
+	uVar2 = (int)uVar1 >> 0x1f;
 	character->dx = (((uVar1 ^ uVar2) - uVar2 & 7) ^ uVar2) - uVar2;
 
 	uVar1 = random_int();
-	uVar2 = uVar1 >> 0x1f;
+	uVar2 = (int)uVar1 >> 0x1f;
 	character->dy = (((uVar1 ^ uVar2) - uVar2 & 7) ^ uVar2) - uVar2;
 }
 
 static void update_bear_position(KumaShootSprite *bear)
 {
-	int next_y = bear->dy + bear->sprite.pos.y;
 	int next_x = bear->dx + bear->sprite.pos.x;
+	int next_y = bear->dy + bear->sprite.pos.y;
 
-	int half_height = bear->sprite.size.y / 2;
-	int half_width = bear->sprite.size.x / 2;
-
-	if ((next_x < half_width) || (KUMASHOOT_WIDTH - half_width < next_x)) {
+	if ((next_x < HW) || (KUMASHOOT_WIDTH - HW < next_x)) {
 		next_x = bear->sprite.pos.x;
 		bear->dx = -bear->dx;
 	}
 
-	if ((next_y < half_height) ||
-	    (KUMASHOOT_HEIGHT - half_height < next_y)) {
+	if ((next_y < (HH - 10)) || (KUMASHOOT_HEIGHT - (HH + 10) < next_y)) {
 		next_y = bear->sprite.pos.y;
 		bear->dy = -bear->dy;
 	}
