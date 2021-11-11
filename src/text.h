@@ -5,6 +5,7 @@
 #include "sprite.h"
 
 #define MAX_FONT_COUNT 2
+#define MAX_TEXT_LENGTH 20
 
 enum { RED_FONT, WHITE_FONT };
 
@@ -26,7 +27,7 @@ typedef struct {
 	Vector2D glyph_size;
 	unsigned int texture_index;
 	Font *font;
-	char *current_text;
+	char current_text[MAX_TEXT_LENGTH];
 } Text;
 
 void fonts_init(Font *fonts, Texture *textures);

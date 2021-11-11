@@ -2,6 +2,7 @@
 
 #include "scene.h"
 #include "state.h"
+#include "resources.h"
 
 typedef enum {
 	CLASSROOM,
@@ -55,8 +56,7 @@ typedef struct {
 	Text score_text;
 } Menu;
 
-void init_menu(Menu *menu, GameState *game_state, Texture *textures,
-	       Font *fonts);
+void init_menu(Menu *menu, GameState *game_state, Resources *resources);
 void update_menu(Menu *menu, const GameState *game_state, GLFWwindow *window,
 		 Texture *textures);
 

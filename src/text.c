@@ -41,13 +41,14 @@ void update_text(Text *text_obj, char *new_text)
 		return;
 	}
 
+	int text_len = strlen(new_text);
 	if (text_obj->left_aligned) {
-		float x_pad = ((strlen(new_text) - 1) * text_obj->glyph_size.x);
+		float x_pad = ((text_len - 1) * text_obj->glyph_size.x);
 
 		text_obj->pos.x = text_obj->origin_pos.x - x_pad;
 	}
 
-	text_obj->current_text = new_text;
+	memcpy(text_obj->current_text, new_text, sizeof(char) * text_len);
 }
 
 Sprite get_glyph(Text *text_obj, char letter, unsigned int nth)
@@ -62,4 +63,3 @@ Sprite get_glyph(Text *text_obj, char letter, unsigned int nth)
 
 	return glyph;
 }
-

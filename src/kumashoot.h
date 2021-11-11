@@ -7,35 +7,57 @@
 
 typedef enum { CHARACTER_CLICK } KumaShootEvent;
 
+typedef enum { WHITE_BEAR, BROWN_BEAR } BearType;
+
 typedef enum {
-	WHITE_BEAR,
-	BROWN_BEAR,
+	NO_CHARACTER,
 	YASUO,
 	MIHO,
 	MIKA,
 	LAIN,
-	LAIN_WITH_SCREWDRIVER
-} KumaShootSpriteType;
+	LAIN_WITH_SCREWDRIVER,
+} CharacterType;
 
 typedef struct {
-	_Bool vaporized;
-	KumaShootSpriteType type;
+	_Bool scored;
+	_Bool is_smoke;
+
+	CharacterType type;
+
 	Sprite sprite;
-	double animation_start_time;
-	int dx;
-	int dy;
-} KumaShootSprite;
+
+	double time_revealed;
+	double time_scored;
+
+	int score_value;
+
+	int vel_x, vel_y;
+} Character;
+
+typedef struct {
+	_Bool needs_reset;
+	_Bool revealed;
+	_Bool is_smoke;
+
+	Character hidden_character;
+	BearType type;
+
+	Sprite sprite;
+
+	int vel_x, vel_y;
+} Bear;
 
 typedef struct {
 	Scene scene;
 
+	Bear bears[3];
+	Text score_displays[3];
+
 	Sprite background;
 	Sprite bush_overlay;
-
-	KumaShootSprite characters[3];
 } KumaShoot;
 
-void start_kumashoot(Minigame *minigame, GLFWwindow **minigame_window,
-		     GLFWwindow *main_window, Texture *textures);
-void handle_kumashoot_event(KumaShootEvent event, KumaShootSprite *character,
-			    Engine *engine);
+void start_kumashoot(Resources *resources, GameState *game_state,
+		     Minigame *minigame, GLFWwindow **minigame_window,
+		     GLFWwindow *main_window);
+void handle_kumashoot_event(KumaShootEvent event, Bear *bear, Engine *engine);

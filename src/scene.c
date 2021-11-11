@@ -9,7 +9,7 @@
 #include "shader.h"
 #include "sprite.h"
 
-#define MAX_SCENE_SPRITES 30
+#define MAX_SCENE_SPRITES 50
 #define MAX_SCENE_TEXTURES 20
 
 #define MAX_SCENE_VBO_SIZE MAX_SCENE_SPRITES *SPRITE_VBO_SIZE

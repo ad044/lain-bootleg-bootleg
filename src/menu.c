@@ -120,24 +120,18 @@ static void init_menu_sprites(Menu *menu, Texture *textures)
 static void init_menu_text_objects(Menu *menu, Font *fonts,
 				   GameState *game_state)
 {
-	char timestring[11];
-	get_menu_timestring(timestring, menu);
-
 	menu->clock = (Text){.pos = {70.0f, 22.0f},
-			     .current_text = timestring,
 			     .glyph_size = {32.0f, 16.0f},
 			     .visible = true,
 			     .font = &fonts[WHITE_FONT]};
-
-	char score[16];
-	sprintf(score, "%d", game_state->score);
+	get_menu_timestring(menu->clock.current_text, menu);
 
 	menu->score_text = (Text){.pos = {178.0f, 16.0f},
-				  .current_text = score,
 				  .glyph_size = {10.0f, 16.0f},
 				  .visible = false,
 				  .left_aligned = true,
 				  .font = &fonts[RED_FONT]};
+	sprintf(menu->score_text.current_text, "%d", game_state->score);
 }
 
 static void animate_menu_expand(Menu *menu, GLFWwindow *window,
@@ -313,8 +307,7 @@ void update_menu(Menu *menu, const GameState *game_state, GLFWwindow *window,
 	update_scene(&menu->scene);
 }
 
-void init_menu(Menu *menu, GameState *game_state, Texture *textures,
-	       Font *fonts)
+void init_menu(Menu *menu, GameState *game_state, Resources *resources)
 {
 	update_menu_time(menu);
 
@@ -322,9 +315,9 @@ void init_menu(Menu *menu, GameState *game_state, Texture *textures,
 	menu->expanded = false;
 	menu->animating = false;
 
-	init_menu_sprites(menu, textures);
+	init_menu_sprites(menu, resources->textures);
 
-	init_menu_text_objects(menu, fonts, game_state);
+	init_menu_text_objects(menu, resources->fonts, game_state);
 
 	Sprite *sprites[] = {
 	    &menu->ui_lain,	     &menu->main_ui,
@@ -356,8 +349,22 @@ void init_menu(Menu *menu, GameState *game_state, Texture *textures,
 	uint8_t sprite_behavior_count =
 	    sizeof(sprite_behaviors) / sizeof(sprite_behaviors[0]);
 
+	// TODO delete this
+	// only here to check actual clickboxes of sprites, temporary.
+	/* Sprite click_barriers[] = { */
+	/*     make_click_barrier(136, 73, 192, 79), */
+	/*     make_click_barrier(125, 111, 168, 145), */
+	/*     make_click_barrier(36, 145, 101, 177), */
+	/* }; */
+
+	/* uint8_t click_barrier_count = */
+	/*     sizeof(click_barriers) / sizeof(click_barriers[0]); */
+
 	init_scene(&menu->scene, sprites, sprite_count, sprite_behaviors,
-		   sprite_behavior_count, text_objs, text_obj_count, NULL, 0);
+		   sprite_behavior_count, text_objs, text_obj_count,
+		   NULL, 0);
+
+	/* menu->scene.draw_barriers = true; */
 }
 
 void handle_menu_event(MenuEvent event, void *game)
@@ -385,9 +392,9 @@ void handle_menu_event(MenuEvent event, void *game)
 		theater_preview->visible = !theater_preview->visible;
 
 		engine->menu.theater_button.texture =
-		    &engine->textures[theater_preview->visible
-					  ? THEATER_BUTTON_ACTIVE
-					  : THEATER_BUTTON_INACTIVE];
+		    &engine->resources.textures[theater_preview->visible
+						    ? THEATER_BUTTON_ACTIVE
+						    : THEATER_BUTTON_INACTIVE];
 		break;
 	}
 	case TOGGLE_SCORE_PREVIEW: {
@@ -406,16 +413,17 @@ void handle_menu_event(MenuEvent event, void *game)
 		if (minigame_type != NONE) {
 			kill_minigame(&engine->menu, &engine->minigame,
 				      &engine->minigame_window,
-				      engine->textures);
+				      engine->resources.textures);
 		}
 
 		if (minigame_type != KUMASHOOT) {
-			start_kumashoot(&engine->minigame,
+			start_kumashoot(&engine->resources, &engine->game_state,
+					&engine->minigame,
 					&engine->minigame_window,
-					engine->main_window, engine->textures);
+					engine->main_window);
 
 			engine->menu.bear_icon.texture =
-			    &engine->textures[BEAR_ICON_ACTIVE];
+			    &engine->resources.textures[BEAR_ICON_ACTIVE];
 		}
 		break;
 	}

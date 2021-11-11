@@ -18,3 +18,18 @@ int random_int()
 	uVar2 = random_unsigned_int();
 	return uVar2 * ((-(unsigned int)((uVar1 & 1) != 0) & 2) - 1);
 }
+
+int random_int_in_range(int start, int end)
+{
+	int iVar1;
+	int iVar2;
+
+	do {
+		do {
+			iVar1 = random_int();
+			iVar2 = iVar1 % (end - start);
+		} while (iVar2 < start);
+	} while (end < iVar2);
+
+	return iVar2;
+}

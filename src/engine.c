@@ -24,16 +24,15 @@ int engine_init(Engine *engine)
 		return 0;
 	}
 
-	shaders_init(engine->shaders);
+	shaders_init(engine->resources.shaders);
 
-	textures_init(engine->textures);
+	textures_init(engine->resources.textures);
 
-	fonts_init(engine->fonts, engine->textures);
+	fonts_init(engine->resources.fonts, engine->resources.textures);
 
 	init_game_state(&engine->game_state);
 
-	init_menu(&engine->menu, &engine->game_state, engine->textures,
-		  engine->fonts);
+	init_menu(&engine->menu, &engine->game_state, &engine->resources);
 
 	engine->minigame_window = NULL;
 	engine->minigame.type = NONE;
@@ -54,10 +53,10 @@ static void engine_render(Engine *engine)
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	update_menu(&engine->menu, &engine->game_state, engine->main_window,
-		    engine->textures);
+		    engine->resources.textures);
 
 	draw_scene(&engine->menu.scene, engine->main_window,
-		   engine->shaders[SPRITE_SHADER]);
+		   engine->resources.shaders[SPRITE_SHADER]);
 
 	glfwSwapBuffers(engine->main_window);
 
@@ -67,18 +66,19 @@ static void engine_render(Engine *engine)
 	if (minigame->type != NONE) {
 		if (glfwWindowShouldClose(minigame_window)) {
 			kill_minigame(&engine->menu, minigame, &minigame_window,
-				      engine->textures);
+				      engine->resources.textures);
 		} else {
 			glfwMakeContextCurrent(minigame_window);
 
 			glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 			glClear(GL_COLOR_BUFFER_BIT);
 
-			minigame->update(engine->textures, minigame->current,
+			minigame->update(engine->resources.textures,
+					 minigame->current,
 					 &engine->game_state);
 
 			draw_scene(minigame->scene, minigame_window,
-				   engine->shaders[SPRITE_SHADER]);
+				   engine->resources.shaders[SPRITE_SHADER]);
 
 			glfwSwapBuffers(minigame_window);
 		}
