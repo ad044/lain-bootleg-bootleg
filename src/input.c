@@ -71,6 +71,13 @@ void handle_minigame_click(GLFWwindow *window, int button, int action, int mods)
 
 	Scene scene = *engine->minigame.scene;
 
+	for (int i = 0; i < cvector_size(scene.click_barriers); i++) {
+		if (is_sprite_within_bounds(&scene.click_barriers[i],
+					    click_pos)) {
+			return;
+		}
+	}
+
 	SpriteBehavior behavior;
 	_Bool behavior_found =
 	    get_behavior(&behavior, scene.sprite_behaviors, click_pos);
