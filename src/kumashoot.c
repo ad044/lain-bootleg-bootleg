@@ -20,41 +20,40 @@ inline static BearType get_random_bear_type()
 	return random_int_in_range(0, 2) == 1;
 }
 
-// TODO i dont think this is good
 static CharacterType get_random_character_type(GameState *game_state,
 					       BearType bear_type)
 {
-	int perc = random_int_in_range(0, 101);
+	int rand_percent = random_int_in_range(0, 101);
 
 	switch (bear_type) {
 	case BROWN_BEAR: {
-		if (perc <= 19) {
+		if (rand_percent <= 19) {
 			return YASUO;
-		} else if (perc <= 31) {
+		} else if (rand_percent <= 31) {
 			return MIHO;
-		} else if (perc <= 38) {
+		} else if (rand_percent <= 38) {
 			return MIKA;
-		} else if (perc <= 43) {
-			return LAIN;
-		} else if (perc <= 50) {
+		} else if (rand_percent <= 43) {
+			return SCHOOL_LAIN;
+		} else if (rand_percent <= 50) {
 			// todo check if holding screwdriver
-			return LAIN_WITH_SCREWDRIVER;
+			return DEFAULT_LAIN;
 		} else {
 			return NO_CHARACTER;
 		}
 	}
 	case WHITE_BEAR: {
-		if (perc <= 25) {
+		if (rand_percent <= 25) {
 			return YASUO;
-		} else if (perc <= 38) {
+		} else if (rand_percent <= 38) {
 			return MIHO;
-		} else if (perc <= 50) {
+		} else if (rand_percent <= 50) {
 			return MIKA;
-		} else if (perc <= 56) {
-			return LAIN;
-		} else if (perc <= 69) {
+		} else if (rand_percent <= 56) {
+			return SCHOOL_LAIN;
+		} else if (rand_percent <= 69) {
 			// todo check if holding screwdriver
-			return LAIN_WITH_SCREWDRIVER;
+			return DEFAULT_LAIN;
 		} else {
 			return NO_CHARACTER;
 		}
@@ -92,7 +91,6 @@ static void create_character(Texture *textures, GameState *game_state,
 		character->score_value = -1;
 		break;
 	}
-
 	case MIKA: {
 		sprite->texture = &textures[KUMA_SHOOT_MIKA];
 		sprite->max_frame = 2;
@@ -100,15 +98,22 @@ static void create_character(Texture *textures, GameState *game_state,
 		character->score_value = -10;
 		break;
 	}
-	// todo lain here is placeholder
-	case LAIN:
-	case LAIN_WITH_SCREWDRIVER: {
-		sprite->texture = &textures[KUMA_SHOOT_SCREWDRIVER_LAIN];
-		sprite->max_frame = 13;
+	case SCHOOL_LAIN:
+		sprite->texture = &textures[KUMA_SHOOT_SCHOOL_LAIN];
+		sprite->max_frame = 12;
+
+		character->score_value = 0;
+		break;
+	case DEFAULT_LAIN: {
+		sprite->texture = &textures[KUMA_SHOOT_DEFAULT_LAIN];
+		sprite->max_frame = 7;
+		sprite->size = (Vector2D){64.0f, 120.0f};
 
 		character->score_value = 0;
 		break;
 	}
+	default:
+		break;
 	}
 
 	if (character->type != NO_CHARACTER) {
@@ -145,13 +150,13 @@ static void set_sprite_to_smoke(Texture *textures, Sprite *sprite)
 {
 	Sprite smoke = (Sprite){.pos = sprite->pos,
 				.size = {96.0f, 128.0f},
-				.texture = &textures[SMOKE],
+				.texture = &textures[KUMA_SHOOT_SMOKE],
 				.visible = true,
 				.pivot_centered = true,
 				.is_spritesheet = true,
 				.max_frame = 3,
 				.current_frame = 0,
-				.z_index = 1};
+				.z_index = 3};
 
 	initialize_sprite(&smoke);
 
@@ -204,17 +209,37 @@ static void update_bear_position(Bear *bear)
 	bear->sprite.pos.y = next_y;
 }
 
-static void update_character(Texture *textures, Bear *bear)
+static void explode_scene(Texture *textures, Bear bears[3])
+{
+
+	for (int i = 0; i < 3; i++) {
+		Bear *bear = &bears[i];
+		if (!bear->revealed) {
+			bear->hidden_character.score_value *= 10;
+
+			set_sprite_to_smoke(textures, &bear->sprite);
+
+			bear->is_smoke = true;
+		}
+	}
+}
+
+static void update_character(KumaShoot *kumashoot, Texture *textures,
+			     Bear *bear)
 {
 	Sprite *sprite = &bear->sprite;
 	Character *character = &bear->hidden_character;
 
 	if (character->scored) {
 		double delta = glfwGetTime() - character->time_scored;
-		if (delta > 2.0) {
+		if (delta > 0.5) {
 			bear->needs_reset = true;
 		}
-	} else if (character->is_smoke) {
+
+		return;
+	}
+
+	if (character->is_smoke) {
 		if (sprite->current_frame == sprite->max_frame) {
 			character->scored = true;
 			character->time_scored = glfwGetTime();
@@ -222,7 +247,96 @@ static void update_character(Texture *textures, Bear *bear)
 		} else {
 			sprite->current_frame++;
 		}
-	} else {
+		return;
+	}
+
+	if (character->exploding) {
+		if (sprite->current_frame == sprite->max_frame) {
+			bear->needs_reset = true;
+		} else {
+			sprite->current_frame++;
+		}
+		return;
+	}
+
+	switch (character->type) {
+	case SCREWDRIVER_LAIN: {
+		if (sprite->current_frame == sprite->max_frame) {
+			sprite->size = (Vector2D){128.0f, 128.0f};
+			sprite->mirrored = false;
+			sprite->current_frame = 0;
+			sprite->max_frame = 4;
+			sprite->texture = &textures[KUMA_SHOOT_EXPLOSION];
+
+			initialize_sprite(sprite);
+
+			character->exploding = true;
+
+			explode_scene(textures, kumashoot->bears);
+		} else {
+			sprite->current_frame++;
+		}
+		break;
+	}
+	case DEFAULT_LAIN: {
+		double delta = glfwGetTime() - character->time_revealed;
+		if (delta > 2.0) {
+			sprite->size = (Vector2D){96.0f, 128.0f};
+			// 0th frame doesnt seem to be used in the
+			// original
+			sprite->mirrored = false;
+			sprite->current_frame = 1;
+			sprite->max_frame = 8;
+			sprite->texture =
+			    &textures[KUMA_SHOOT_SCREWDRIVER_LAIN];
+			// for some reason this spritesheet is offset
+			// by about a quarter of its width to the right
+			// we adjust for that here.
+			sprite->pos.x -= 20.0f;
+
+			initialize_sprite(sprite);
+
+			character->type = SCREWDRIVER_LAIN;
+			return;
+		}
+
+		update_bear_position(bear);
+
+		bear->sprite.mirrored = bear->vel_x < 0;
+
+		if ((random_int() & 0x3f) == 0) {
+			set_random_velocity(bear);
+		}
+
+		if (sprite->current_frame == sprite->max_frame) {
+			sprite->current_frame = 0;
+		} else {
+			sprite->current_frame++;
+		}
+
+		break;
+	}
+	case SCHOOL_LAIN:
+		if ((sprite->pos.x < HW) ||
+		    (KUMASHOOT_WIDTH - HW < sprite->pos.x)) {
+			// walked off screen
+			bear->needs_reset = true;
+			return;
+		}
+
+		if (sprite->current_frame == sprite->max_frame) {
+			// last frame would continue at frame 5
+			sprite->current_frame = 5;
+		} else {
+			sprite->current_frame++;
+		}
+
+		if (sprite->current_frame > 3) {
+			sprite->pos.x += bear->vel_x;
+		}
+
+		break;
+	default:
 		if (sprite->current_frame == sprite->max_frame) {
 			double delta = glfwGetTime() - character->time_revealed;
 
@@ -238,30 +352,48 @@ static void update_character(Texture *textures, Bear *bear)
 	}
 }
 
+static void reveal_bear(Bear *bear)
+{
+	Character *hidden_character = &bear->hidden_character;
+	if (hidden_character->type == NO_CHARACTER) {
+		hidden_character->time_scored = glfwGetTime();
+		hidden_character->scored = true;
+		hidden_character->sprite.visible = false;
+
+		bear->sprite.visible = false;
+		bear->revealed = true;
+	} else {
+		hidden_character->time_revealed = glfwGetTime();
+		hidden_character->sprite.pos = bear->sprite.pos;
+		hidden_character->sprite.visible = true;
+
+		bear->sprite = hidden_character->sprite;
+		bear->revealed = true;
+	}
+
+	switch (hidden_character->type) {
+	case SCHOOL_LAIN: {
+		unsigned int uVar3 = random_int();
+		bear->vel_x = (-(unsigned int)((uVar3 & 1) != 0) & 10) - 5;
+		bear->sprite.mirrored = bear->vel_x < 0;
+		break;
+	}
+	case DEFAULT_LAIN: {
+		set_random_velocity(bear);
+		break;
+	}
+	default:
+		break;
+	}
+}
+
 static void update_bear(Scene *scene, Bear *bear)
 {
 	if (bear->is_smoke) {
 		if (bear->sprite.current_frame == bear->sprite.max_frame) {
-			Character *hidden_character = &bear->hidden_character;
-			if (hidden_character->type == NO_CHARACTER) {
-				bear->revealed = true;
-				bear->sprite.visible = false;
-
-				hidden_character->scored = true;
-				hidden_character->time_scored = glfwGetTime();
-				hidden_character->sprite.visible = false;
-			} else {
-				hidden_character->time_revealed = glfwGetTime();
-				hidden_character->sprite.pos = bear->sprite.pos;
-				hidden_character->sprite.visible = true;
-
-				bear->sprite = hidden_character->sprite;
-
-				bear->revealed = true;
-
-				depth_sort(scene->sprites,
-					   cvector_size(scene->sprites));
-			}
+			reveal_bear(bear);
+			depth_sort(scene->sprites,
+				   cvector_size(scene->sprites));
 		} else {
 			bear->sprite.current_frame++;
 		}
@@ -275,6 +407,7 @@ static void update_bear(Scene *scene, Bear *bear)
 		} else {
 			bear->sprite.current_frame++;
 		}
+
 		if ((random_int() & 0x3f) == 0) {
 			set_random_velocity(bear);
 		}
@@ -289,7 +422,6 @@ static void update_kumashoot(Texture *textures, void *minigame_struct,
 
 	for (int i = 0; i < 3; i++) {
 		Bear *bear = &kumashoot->bears[i];
-		Character *character = &bear->hidden_character;
 		Text *score_text = &kumashoot->score_displays[i];
 
 		if (bear->needs_reset) {
@@ -299,6 +431,8 @@ static void update_kumashoot(Texture *textures, void *minigame_struct,
 
 			score_text->visible = false;
 		} else if (bear->revealed) {
+			Character *character = &bear->hidden_character;
+
 			if (character->scored) {
 				sprintf(score_text->current_text, "%d",
 					character->score_value);
@@ -307,7 +441,7 @@ static void update_kumashoot(Texture *textures, void *minigame_struct,
 				score_text->visible = true;
 			}
 
-			update_character(textures, bear);
+			update_character(kumashoot, textures, bear);
 		} else {
 			update_bear(scene, bear);
 		}
@@ -427,8 +561,12 @@ void start_kumashoot(Resources *resources, GameState *game_state,
 void handle_kumashoot_event(KumaShootEvent event, Bear *bear, Engine *engine)
 {
 	if (event == CHARACTER_CLICK && !bear->revealed && !bear->is_smoke) {
-		set_sprite_to_smoke(engine->resources.textures, &bear->sprite);
+		KumaShoot *kumashoot = (KumaShoot *)engine->minigame.current;
 
+		set_sprite_to_smoke(engine->resources.textures, &bear->sprite);
 		bear->is_smoke = true;
+
+		depth_sort(kumashoot->scene.sprites,
+			   cvector_size(kumashoot->scene.sprites));
 	}
 }

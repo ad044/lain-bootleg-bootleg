@@ -14,12 +14,14 @@ typedef enum {
 	YASUO,
 	MIHO,
 	MIKA,
-	LAIN,
-	LAIN_WITH_SCREWDRIVER,
+	SCHOOL_LAIN,
+	DEFAULT_LAIN,
+	SCREWDRIVER_LAIN,
 } CharacterType;
 
 typedef struct {
 	_Bool scored;
+	_Bool exploding;
 	_Bool is_smoke;
 
 	CharacterType type;
@@ -30,8 +32,6 @@ typedef struct {
 	double time_scored;
 
 	int score_value;
-
-	int vel_x, vel_y;
 } Character;
 
 typedef struct {

@@ -103,10 +103,6 @@ void textures_init(Texture *textures)
 		     bush_overlay_png,
 		     bush_overlay_png_size);
 
-	init_texture(&textures[BROWN_BEAR_MOVE_LEFT],
-		     brown_bear_move_left_png,
-		     brown_bear_move_left_png_size);
-
 	init_texture(&textures[BROWN_BEAR_MOVE_RIGHT],
 		     brown_bear_move_right_png,
 		     brown_bear_move_right_png_size);
@@ -115,13 +111,9 @@ void textures_init(Texture *textures)
 		     white_bear_move_right_png,
 		     white_bear_move_right_png_size);
 
-	init_texture(&textures[WHITE_BEAR_MOVE_LEFT],
-		     white_bear_move_left_png,
-		     white_bear_move_left_png_size);
-
-	init_texture(&textures[SMOKE],
-		     smoke_png,
-		     smoke_png_size);
+	init_texture(&textures[KUMA_SHOOT_SMOKE],
+		     kuma_shoot_smoke_png,
+		     kuma_shoot_smoke_png_size);
 
 	init_texture(&textures[KUMA_SHOOT_MIHO],
 		     kuma_shoot_miho_png,
@@ -138,6 +130,20 @@ void textures_init(Texture *textures)
 	init_texture(&textures[KUMA_SHOOT_SCREWDRIVER_LAIN],
 		     kuma_shoot_screwdriver_lain_png,
 		     kuma_shoot_screwdriver_lain_png_size);
+
+	init_texture(&textures[KUMA_SHOOT_SCHOOL_LAIN],
+		     kuma_shoot_school_lain_png,
+		     kuma_shoot_school_lain_png_size);
+
+	init_texture(&textures[KUMA_SHOOT_DEFAULT_LAIN],
+		     kuma_shoot_default_lain_png,
+		     kuma_shoot_default_lain_png_size);
+
+	init_texture(&textures[KUMA_SHOOT_EXPLOSION],
+		     kuma_shoot_explosion_png,
+		     kuma_shoot_explosion_png_size);
+
+
 
 }
 // clang-format on
