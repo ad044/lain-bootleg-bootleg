@@ -1,8 +1,10 @@
 #pragma once
 
+#include "resources.h"
 #include "scene.h"
 #include "state.h"
-#include "resources.h"
+
+typedef enum { EXPANDED, SHRINKED, EXPANDING, SHRINKING } MenuState;
 
 typedef enum {
 	CLASSROOM,
@@ -34,8 +36,7 @@ typedef enum {
 typedef struct {
 	struct tm *current_time;
 
-	_Bool expanded;
-	_Bool animating;
+	MenuState state;
 
 	BlinkState lain_blink_state;
 
@@ -57,7 +58,7 @@ typedef struct {
 } Menu;
 
 void init_menu(Menu *menu, GameState *game_state, Resources *resources);
-void update_menu(Menu *menu, const GameState *game_state, GLFWwindow *window,
+void update_menu(Menu *menu, GameState *game_state, GLFWwindow *window,
 		 Texture *textures);
 
 // void * game here is Engine but because header files are cancer

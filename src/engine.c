@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <time.h>
 
+#include "animations.h"
 #include "engine.h"
 #include "menu.h"
 #include "scene.h"
@@ -12,8 +13,6 @@
 
 // todo
 static void engine_stop(Engine *engine);
-
-#define FRAMERATE_CAP 15
 
 int engine_init(Engine *engine)
 {
@@ -34,6 +33,8 @@ int engine_init(Engine *engine)
 
 	init_menu(&engine->menu, &engine->game_state, &engine->resources);
 
+	init_animations(engine->resources.animations);
+
 	engine->minigame_window = NULL;
 	engine->minigame.type = NONE;
 
@@ -45,12 +46,14 @@ int engine_init(Engine *engine)
 	return 1;
 }
 
-static void engine_render(Engine *engine)
+static void engine_render(Engine *engine, double now)
 {
 	glfwMakeContextCurrent(engine->main_window);
 
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
+
+	engine->game_state.time = now;
 
 	update_menu(&engine->menu, &engine->game_state, engine->main_window,
 		    engine->resources.textures);
@@ -87,20 +90,15 @@ static void engine_render(Engine *engine)
 	glfwPollEvents();
 }
 
-static void engine_renderloop(Engine *engine, float framerate)
+static void engine_renderloop(Engine *engine)
 {
-	double last_frame_time = glfwGetTime();
-
 	while (!glfwWindowShouldClose(engine->main_window)) {
-		engine_render(engine);
-		while (glfwGetTime() < last_frame_time + 1.0 / framerate)
-			;
-		last_frame_time += 1.0 / framerate;
+		engine_render(engine, glfwGetTime());
 	}
 }
 
 void engine_run(Engine *engine)
 {
-	engine_renderloop(engine, FRAMERATE_CAP);
+	engine_renderloop(engine);
 	glfwTerminate();
 }

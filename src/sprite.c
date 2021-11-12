@@ -161,3 +161,22 @@ Sprite make_click_barrier(GLfloat left, GLfloat top, GLfloat right,
 {
 	return make_transparent_sprite(left, top, right, bottom, 127);
 }
+
+_Bool sprite_is_max_frame(Sprite *sprite)
+{
+	return sprite->current_frame == sprite->max_frame;
+}
+
+void sprite_try_next_frame(double now, Sprite *sprite)
+{
+	if (sprite->animation_frame->next == NULL) {
+		return;
+	}
+
+	if (now - sprite->last_updated >
+	    sprite->animation_frame->timing / 60.0) {
+		sprite->animation_frame = sprite->animation_frame->next;
+		sprite->current_frame = sprite->animation_frame->index;
+		sprite->last_updated = now;
+	}
+}

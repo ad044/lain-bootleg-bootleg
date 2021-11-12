@@ -4,6 +4,7 @@
 #include <string.h>
 #include <time.h>
 
+#include "animations.h"
 #include "kumashoot.h"
 #include "menu.h"
 #include "scene.h"
@@ -134,13 +135,12 @@ static void init_menu_text_objects(Menu *menu, Font *fonts,
 	sprintf(menu->score_text.current_text, "%d", game_state->score);
 }
 
-static void animate_menu_expand(Menu *menu, GLFWwindow *window,
-				Texture *textures)
+static void animate_menu_expand(GameState *game_state, Texture *textures,
+				Menu *menu, GLFWwindow *window)
 {
 	Sprite *main_ui = &menu->main_ui;
 
-	if (main_ui->current_frame < main_ui->max_frame) {
-		main_ui->current_frame++;
+	if (!sprite_is_max_frame(main_ui)) {
 		if (main_ui->current_frame == 1) {
 			expand_main_window(window);
 
@@ -154,10 +154,10 @@ static void animate_menu_expand(Menu *menu, GLFWwindow *window,
 			menu->screwdriver_icon.visible = true;
 			menu->paw_icon.visible = true;
 		}
+		sprite_try_next_frame(game_state->time, main_ui);
 	} else {
 		// completed expanding
-		menu->animating = false;
-		menu->expanded = true;
+		menu->state = EXPANDED;
 		menu->dressup_button.visible = true;
 		menu->theater_button.visible = true;
 
@@ -165,13 +165,13 @@ static void animate_menu_expand(Menu *menu, GLFWwindow *window,
 	}
 }
 
-static void animate_menu_shrink(Menu *menu, GLFWwindow *window,
-				Texture *textures)
+static void animate_menu_shrink(GameState *game_state, Texture *textures,
+				Menu *menu, GLFWwindow *window)
 {
 	Sprite *main_ui = &menu->main_ui;
 
 	if (main_ui->current_frame > 0) {
-		main_ui->current_frame--;
+		sprite_try_next_frame(game_state->time, main_ui);
 		if (main_ui->current_frame == main_ui->max_frame - 1) {
 			menu->dressup_button.visible = false;
 			menu->theater_button.visible = false;
@@ -180,24 +180,20 @@ static void animate_menu_shrink(Menu *menu, GLFWwindow *window,
 		}
 		if (main_ui->current_frame == 1) {
 			shrink_main_window(window);
-
-			main_ui->pos = main_ui->origin_pos;
-			menu->ui_lain.pos = menu->ui_lain.origin_pos;
-			menu->main_ui_bar.pos = menu->main_ui_bar.origin_pos;
-
-			menu->clock.pos = (Vector2D){70.0f, 22.0f};
-
-			menu->bear_icon.visible = false;
-			menu->screwdriver_icon.visible = false;
-			menu->paw_icon.visible = false;
-
-			menu->main_ui_bar.texture =
-			    &textures[MAIN_UI_BAR_INACTIVE];
 		}
 	} else {
-		// completed shrinking
-		menu->animating = false;
-		menu->expanded = false;
+		menu->state = SHRINKED;
+		main_ui->pos = main_ui->origin_pos;
+		menu->ui_lain.pos = menu->ui_lain.origin_pos;
+		menu->main_ui_bar.pos = menu->main_ui_bar.origin_pos;
+
+		menu->clock.pos = (Vector2D){70.0f, 22.0f};
+
+		menu->bear_icon.visible = false;
+		menu->screwdriver_icon.visible = false;
+		menu->paw_icon.visible = false;
+
+		menu->main_ui_bar.texture = &textures[MAIN_UI_BAR_INACTIVE];
 	}
 }
 
@@ -266,7 +262,7 @@ static void animate_lain_blink(Sprite *ui_lain, BlinkState *blink_state)
 	}
 }
 
-void update_menu(Menu *menu, const GameState *game_state, GLFWwindow *window,
+void update_menu(Menu *menu, GameState *game_state, GLFWwindow *window,
 		 Texture *textures)
 {
 	update_menu_time(menu);
@@ -294,12 +290,15 @@ void update_menu(Menu *menu, const GameState *game_state, GLFWwindow *window,
 		*lain_blink_state = NOT_BLINKING;
 	}
 
-	if (menu->animating) {
-		if (menu->expanded) {
-			animate_menu_shrink(menu, window, textures);
-		} else {
-			animate_menu_expand(menu, window, textures);
-		}
+	switch (menu->state) {
+	case EXPANDING:
+		animate_menu_expand(game_state, textures, menu, window);
+		break;
+	case SHRINKING:
+		animate_menu_shrink(game_state, textures, menu, window);
+		break;
+	default:
+		break;
 	}
 
 	update_menu_icons(menu);
@@ -312,8 +311,7 @@ void init_menu(Menu *menu, GameState *game_state, Resources *resources)
 	update_menu_time(menu);
 
 	menu->lain_blink_state = NOT_BLINKING;
-	menu->expanded = false;
-	menu->animating = false;
+	menu->state = SHRINKED;
 
 	init_menu_sprites(menu, resources->textures);
 
@@ -361,8 +359,7 @@ void init_menu(Menu *menu, GameState *game_state, Resources *resources)
 	/*     sizeof(click_barriers) / sizeof(click_barriers[0]); */
 
 	init_scene(&menu->scene, sprites, sprite_count, sprite_behaviors,
-		   sprite_behavior_count, text_objs, text_obj_count,
-		   NULL, 0);
+		   sprite_behavior_count, text_objs, text_obj_count, NULL, 0);
 
 	/* menu->scene.draw_barriers = true; */
 }
@@ -376,14 +373,25 @@ void handle_menu_event(MenuEvent event, void *game)
 		Sprite *theater_preview = &engine->menu.theater_preview;
 
 		if (theater_preview->visible) {
-			if (theater_preview->current_frame <
-			    theater_preview->max_frame) {
+			if (!sprite_is_max_frame(theater_preview)) {
 				theater_preview->current_frame++;
 			} else {
 				theater_preview->current_frame = 0;
 			}
 		} else {
-			engine->menu.animating = true;
+			if (engine->menu.state == SHRINKED) {
+				engine->menu.state = EXPANDING;
+				engine->menu.main_ui.animation_frame =
+				    engine->resources
+					.animations[MAIN_UI_EXPAND_ANIMATION]
+					.first;
+			} else {
+				engine->menu.state = SHRINKING;
+				engine->menu.main_ui.animation_frame =
+				    engine->resources
+					.animations[MAIN_UI_SHRINK_ANIMATION]
+					.first;
+			}
 		}
 		break;
 	}
@@ -401,7 +409,7 @@ void handle_menu_event(MenuEvent event, void *game)
 		Sprite *score_preview = &engine->menu.score_preview;
 		Text *score = &engine->menu.score_text;
 
-		if (engine->menu.expanded) {
+		if (engine->menu.state == EXPANDED) {
 			score_preview->visible = !score_preview->visible;
 			score->visible = !score->visible;
 		}

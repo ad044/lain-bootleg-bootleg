@@ -1,5 +1,7 @@
 #pragma once
 
+#include "animations.h"
+#include "sprite.h"
 #include "texture.h"
 
 #include <stdbool.h>
@@ -29,6 +31,8 @@ typedef struct {
 	Vector2D texture_size;
 	unsigned int current_frame; // 0 if non-spritesheet texture
 	unsigned int max_frame;	    // 0 if non-spritesheet texture
+	AnimationFrame *animation_frame;
+	double last_updated;
 } Sprite;
 
 void depth_sort(Sprite **sprites, unsigned int sprite_count);
@@ -39,3 +43,5 @@ GLfloat *get_sprite_vertices(GLfloat *buffer, Sprite *sprite);
 GLfloat *get_pivoted_centered_sprite_vertices(GLfloat *buffer, Sprite *sprite);
 Sprite make_click_barrier(GLfloat left, GLfloat top, GLfloat right,
 			  GLfloat bottom);
+_Bool sprite_is_max_frame(Sprite *sprite);
+void sprite_try_next_frame(double now, Sprite *sprite);
