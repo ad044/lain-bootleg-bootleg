@@ -14,14 +14,15 @@ typedef enum {
 	CYBERIA,
 	STREET,
 	BRIDGE
-} TheaterScenes;
+} TheaterScene;
 
-typedef enum {
-	NOT_BLINKING,
-	HAS_BLINKED,
-	BLINK_OPENING,
-	BLINK_CLOSING
-} BlinkState;
+typedef struct {
+	_Bool recently_changed_laugh;
+	_Bool laughing;
+	_Bool blinking;
+	int laugh_quarter;
+	Sprite sprite;
+} MenuLain;
 
 // i think ideally youd have a separate contextual processor
 // for _CLICK events and then dispatch actions accordingly
@@ -38,11 +39,10 @@ typedef struct {
 
 	MenuState state;
 
-	BlinkState lain_blink_state;
-
 	Scene scene;
 
-	Sprite ui_lain;
+	MenuLain ui_lain;
+
 	Sprite main_ui;
 	Sprite main_ui_bar;
 	Sprite dressup_button;
@@ -59,8 +59,7 @@ typedef struct {
 
 void init_menu(Menu *menu, GameState *game_state, Resources *resources);
 void update_menu(Menu *menu, GameState *game_state, GLFWwindow *window,
-		 Texture *textures);
-
+		 Resources *resources);
 // void * game here is Engine but because header files are cancer
 // i cant pass it directly without creating circular dependencies
 // and forward declaring would likely be messy, perhaps ill take a look

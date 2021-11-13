@@ -56,7 +56,7 @@ static void engine_render(Engine *engine, double now)
 	engine->game_state.time = now;
 
 	update_menu(&engine->menu, &engine->game_state, engine->main_window,
-		    engine->resources.textures);
+		    &engine->resources);
 
 	draw_scene(&engine->menu.scene, engine->main_window,
 		   engine->resources.shaders[SPRITE_SHADER]);

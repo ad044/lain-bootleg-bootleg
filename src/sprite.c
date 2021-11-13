@@ -49,7 +49,7 @@ void initialize_sprite(Sprite *sprite)
 	if (sprite->is_spritesheet) {
 		float size_x = 1.0f / ((float)sprite->max_frame + 1.0f);
 		sprite->texture_size = (Vector2D){size_x, 1.0f};
-		sprite->current_frame = 0;
+		sprite->frame_index = 0;
 	} else {
 		sprite->texture_size = (Vector2D){1.0f, 1.0f};
 	}
@@ -71,7 +71,7 @@ GLfloat *get_sprite_vertices(GLfloat *buffer, Sprite *sprite)
 	    // top right
 	    sprite->pos.x + sprite->size.x,
 	    sprite->pos.y,
-	    sprite->current_frame * sprite->texture_size.x +
+	    sprite->frame_index * sprite->texture_size.x +
 		sprite->texture_size.x * (sprite->mirrored ? -1.0f : 1.0f),
 	    sprite->texture_size.y,
 	    sprite->texture_index,
@@ -79,7 +79,7 @@ GLfloat *get_sprite_vertices(GLfloat *buffer, Sprite *sprite)
 	    // bottom right
 	    sprite->pos.x + sprite->size.x,
 	    sprite->pos.y + sprite->size.y,
-	    sprite->current_frame * sprite->texture_size.x +
+	    sprite->frame_index * sprite->texture_size.x +
 		sprite->texture_size.x * (sprite->mirrored ? -1.0f : 1.0f),
 	    0.0f,
 	    sprite->texture_index,
@@ -87,14 +87,14 @@ GLfloat *get_sprite_vertices(GLfloat *buffer, Sprite *sprite)
 	    // bottom left
 	    sprite->pos.x,
 	    sprite->pos.y + sprite->size.y,
-	    sprite->current_frame * sprite->texture_size.x,
+	    sprite->frame_index * sprite->texture_size.x,
 	    0.0f,
 	    sprite->texture_index,
 
 	    // top left
 	    sprite->pos.x,
 	    sprite->pos.y,
-	    sprite->current_frame * sprite->texture_size.x,
+	    sprite->frame_index * sprite->texture_size.x,
 	    sprite->texture_size.y,
 	    sprite->texture_index,
 	};
@@ -110,7 +110,7 @@ GLfloat *get_pivoted_centered_sprite_vertices(GLfloat *buffer, Sprite *sprite)
 	    // top right
 	    sprite->pos.x + (sprite->size.x / 2),
 	    sprite->pos.y - (sprite->size.y / 2),
-	    sprite->current_frame * sprite->texture_size.x +
+	    sprite->frame_index * sprite->texture_size.x +
 		sprite->texture_size.x * (sprite->mirrored ? -1.0f : 1.0f),
 	    sprite->texture_size.y,
 	    sprite->texture_index,
@@ -118,7 +118,7 @@ GLfloat *get_pivoted_centered_sprite_vertices(GLfloat *buffer, Sprite *sprite)
 	    // bottom right
 	    sprite->pos.x + (sprite->size.x / 2),
 	    sprite->pos.y + (sprite->size.y / 2),
-	    sprite->current_frame * sprite->texture_size.x +
+	    sprite->frame_index * sprite->texture_size.x +
 		sprite->texture_size.x * (sprite->mirrored ? -1.0f : 1.0f),
 	    0.0f,
 	    sprite->texture_index,
@@ -126,14 +126,14 @@ GLfloat *get_pivoted_centered_sprite_vertices(GLfloat *buffer, Sprite *sprite)
 	    // bottom left
 	    sprite->pos.x - (sprite->size.x / 2),
 	    sprite->pos.y + (sprite->size.y / 2),
-	    sprite->current_frame * sprite->texture_size.x,
+	    sprite->frame_index * sprite->texture_size.x,
 	    0.0f,
 	    sprite->texture_index,
 
 	    // top left
 	    sprite->pos.x - (sprite->size.x / 2),
 	    sprite->pos.y - (sprite->size.y / 2),
-	    sprite->current_frame * sprite->texture_size.x,
+	    sprite->frame_index * sprite->texture_size.x,
 	    sprite->texture_size.y,
 	    sprite->texture_index,
 	};
@@ -164,7 +164,7 @@ Sprite make_click_barrier(GLfloat left, GLfloat top, GLfloat right,
 
 _Bool sprite_is_max_frame(Sprite *sprite)
 {
-	return sprite->current_frame == sprite->max_frame;
+	return sprite->frame_index == sprite->max_frame;
 }
 
 void sprite_try_next_frame(double now, Sprite *sprite)
@@ -176,7 +176,14 @@ void sprite_try_next_frame(double now, Sprite *sprite)
 	if (now - sprite->last_updated >
 	    sprite->animation_frame->timing / 60.0) {
 		sprite->animation_frame = sprite->animation_frame->next;
-		sprite->current_frame = sprite->animation_frame->index;
+		sprite->frame_index = sprite->animation_frame->frame_index;
 		sprite->last_updated = now;
 	}
+}
+
+void sprite_set_animation(Animation *animations, Sprite *sprite,
+			  int animation_id)
+{
+	sprite->animation_frame = animations[animation_id].first;
+	sprite->animation_id = animation_id;
 }

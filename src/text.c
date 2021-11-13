@@ -58,7 +58,7 @@ Sprite get_glyph(Text *text_obj, char letter, unsigned int nth)
 	    .pos = {text_obj->pos.x + nth * text_obj->font->letter_spacing,
 		    text_obj->pos.y},
 	    .texture_size = text_obj->font->glyph_texture_size,
-	    .current_frame = text_obj->font->glyph_order[letter],
+	    .frame_index = text_obj->font->glyph_order[(int)letter],
 	    .texture_index = text_obj->texture_index};
 
 	return glyph;

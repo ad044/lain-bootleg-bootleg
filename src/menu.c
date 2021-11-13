@@ -33,13 +33,13 @@ static void get_menu_timestring(char *target, Menu *menu)
 
 static void init_menu_sprites(Menu *menu, Texture *textures)
 {
-	menu->ui_lain = (Sprite){.pos = {6.0f, 6.0f},
-				 .size = {64.0f, 64.0f},
-				 .texture = &textures[UI_LAIN_BEAR],
-				 .is_spritesheet = true,
-				 .max_frame = 8,
-				 .visible = true,
-				 .z_index = 4};
+	menu->ui_lain.sprite = (Sprite){.pos = {6.0f, 6.0f},
+					.size = {64.0f, 64.0f},
+					.texture = &textures[UI_LAIN_BEAR],
+					.is_spritesheet = true,
+					.max_frame = 8,
+					.visible = true,
+					.z_index = 4};
 
 	menu->main_ui = (Sprite){
 	    .pos = {-34.0f, -70.0f},
@@ -141,11 +141,11 @@ static void animate_menu_expand(GameState *game_state, Texture *textures,
 	Sprite *main_ui = &menu->main_ui;
 
 	if (!sprite_is_max_frame(main_ui)) {
-		if (main_ui->current_frame == 1) {
+		if (main_ui->frame_index == 1) {
 			expand_main_window(window);
 
 			main_ui->pos = (Vector2D){0.0f, 0.0f};
-			menu->ui_lain.pos = (Vector2D){40.0f, 40.0f};
+			menu->ui_lain.sprite.pos = (Vector2D){40.0f, 40.0f};
 			menu->main_ui_bar.pos = (Vector2D){136.0f, 72.0f};
 
 			menu->clock.pos = (Vector2D){104.0f, 56.0f};
@@ -170,21 +170,21 @@ static void animate_menu_shrink(GameState *game_state, Texture *textures,
 {
 	Sprite *main_ui = &menu->main_ui;
 
-	if (main_ui->current_frame > 0) {
+	if (main_ui->frame_index > 0) {
 		sprite_try_next_frame(game_state->time, main_ui);
-		if (main_ui->current_frame == main_ui->max_frame - 1) {
+		if (main_ui->frame_index == main_ui->max_frame - 1) {
 			menu->dressup_button.visible = false;
 			menu->theater_button.visible = false;
 			menu->score_preview.visible = false;
 			menu->score_text.visible = false;
 		}
-		if (main_ui->current_frame == 1) {
+		if (main_ui->frame_index == 1) {
 			shrink_main_window(window);
 		}
 	} else {
 		menu->state = SHRINKED;
 		main_ui->pos = main_ui->origin_pos;
-		menu->ui_lain.pos = menu->ui_lain.origin_pos;
+		menu->ui_lain.sprite.pos = menu->ui_lain.sprite.origin_pos;
 		menu->main_ui_bar.pos = menu->main_ui_bar.origin_pos;
 
 		menu->clock.pos = (Vector2D){70.0f, 22.0f};
@@ -231,94 +231,110 @@ static void update_menu_icons(Menu *menu)
 		       paw_icon->origin_pos.y + sin(hrs_angle) * radius};
 }
 
-static void animate_lain_blink(Sprite *ui_lain, BlinkState *blink_state)
+void update_menu_lain(Resources *resources, GameState *game_state,
+		      struct tm *current_time, MenuLain *lain)
 {
-	if (*blink_state == BLINK_CLOSING) {
-		switch (ui_lain->current_frame) {
-		case 0:
-		case 1:
-		case 4:
-		case 5:
-			ui_lain->current_frame++;
-			break;
-		case 2:
-		case 6:
-			*blink_state = BLINK_OPENING;
-			break;
+
+	if ((17 < current_time->tm_hour) || (current_time->tm_hour < 6)) {
+		lain->sprite.texture = &resources->textures[UI_LAIN_BEAR];
+	} else {
+		lain->sprite.texture = &resources->textures[UI_LAIN];
+	}
+
+	if (current_time->tm_sec % 15 == 0) {
+		if (!lain->recently_changed_laugh) {
+			unsigned int quarter = current_time->tm_sec / 15;
+			if (quarter == lain->laugh_quarter) {
+				if (!lain->laughing) {
+					lain->laughing = true;
+					sprite_set_animation(
+					    resources->animations,
+					    &lain->sprite,
+					    UI_LAIN_LAUGH_ANIMATION);
+				} else {
+					lain->laughing = false;
+					sprite_set_animation(
+					    resources->animations,
+					    &lain->sprite,
+					    UI_LAIN_STOP_LAUGH_ANIMATION);
+				}
+				lain->recently_changed_laugh = true;
+			} else if (!lain->blinking) {
+				lain->blinking = true;
+				if (!lain->laughing) {
+					sprite_set_animation(
+					    resources->animations,
+					    &lain->sprite,
+					    UI_LAIN_BLINK_ANIMATION);
+				} else {
+					sprite_set_animation(
+					    resources->animations,
+					    &lain->sprite,
+					    UI_LAIN_LAUGH_BLINK_ANIMATION);
+				}
+			}
 		}
-	} else if (*blink_state == BLINK_OPENING) {
-		switch (ui_lain->current_frame) {
-		case 0:
-		case 4:
-			*blink_state = HAS_BLINKED;
-			break;
-		case 1:
-		case 5:
-		case 2:
-		case 6:
-			ui_lain->current_frame--;
-			break;
-		}
+	} else {
+		lain->recently_changed_laugh = false;
+		lain->blinking = false;
+	}
+
+	if (lain->sprite.animation_id != NO_ANIMATION) {
+		sprite_try_next_frame(game_state->time, &lain->sprite);
 	}
 }
 
 void update_menu(Menu *menu, GameState *game_state, GLFWwindow *window,
-		 Texture *textures)
+		 Resources *resources)
 {
 	update_menu_time(menu);
 
 	char timestring[11];
 	get_menu_timestring(timestring, menu);
+	update_text(&menu->clock, timestring);
 
 	char score[16];
 	sprintf(score, "%d", game_state->score);
-
-	update_text(&menu->clock, timestring);
 	update_text(&menu->score_text, score);
 
-	Sprite *ui_lain = &menu->ui_lain;
-	BlinkState *lain_blink_state = &menu->lain_blink_state;
-
-	if (menu->current_time->tm_sec % 15 == 0) {
-		if (*lain_blink_state != HAS_BLINKED) {
-			if (*lain_blink_state == NOT_BLINKING) {
-				*lain_blink_state = BLINK_CLOSING;
-			}
-			animate_lain_blink(ui_lain, lain_blink_state);
-		}
-	} else {
-		*lain_blink_state = NOT_BLINKING;
-	}
-
-	switch (menu->state) {
-	case EXPANDING:
-		animate_menu_expand(game_state, textures, menu, window);
-		break;
-	case SHRINKING:
-		animate_menu_shrink(game_state, textures, menu, window);
-		break;
-	default:
-		break;
-	}
+	update_menu_lain(resources, game_state, menu->current_time,
+			 &menu->ui_lain);
 
 	update_menu_icons(menu);
 
 	update_scene(&menu->scene);
+
+	switch (menu->state) {
+	case EXPANDING:
+		animate_menu_expand(game_state, resources->textures, menu,
+				    window);
+		break;
+	case SHRINKING:
+		animate_menu_shrink(game_state, resources->textures, menu,
+				    window);
+		break;
+	default:
+		break;
+	}
 }
 
 void init_menu(Menu *menu, GameState *game_state, Resources *resources)
 {
 	update_menu_time(menu);
 
-	menu->lain_blink_state = NOT_BLINKING;
 	menu->state = SHRINKED;
+
+	menu->ui_lain.recently_changed_laugh = false;
+	menu->ui_lain.laughing = false;
+	menu->ui_lain.blinking = false;
+	menu->ui_lain.laugh_quarter = menu->current_time->tm_sec / 15;
 
 	init_menu_sprites(menu, resources->textures);
 
 	init_menu_text_objects(menu, resources->fonts, game_state);
 
 	Sprite *sprites[] = {
-	    &menu->ui_lain,	     &menu->main_ui,
+	    &menu->ui_lain.sprite,   &menu->main_ui,
 	    &menu->main_ui_bar,	     &menu->dressup_button,
 	    &menu->theater_button,   &menu->bear_icon,
 	    &menu->screwdriver_icon, &menu->paw_icon,
@@ -337,7 +353,7 @@ void init_menu(Menu *menu, GameState *game_state, Resources *resources)
 	    (SpriteBehavior){.sprite = &menu->theater_button,
 			     .click_event = TOGGLE_THEATER_PREVIEW},
 
-	    (SpriteBehavior){.sprite = &menu->ui_lain,
+	    (SpriteBehavior){.sprite = &menu->ui_lain.sprite,
 			     .click_event = TOGGLE_SCORE_PREVIEW},
 
 	    (SpriteBehavior){.sprite = &menu->bear_icon,
@@ -367,49 +383,49 @@ void init_menu(Menu *menu, GameState *game_state, Resources *resources)
 void handle_menu_event(MenuEvent event, void *game)
 {
 	Engine *engine = (Engine *)game;
+	Menu *menu = &engine->menu;
+	Resources *resources = &engine->resources;
 
 	switch (event) {
 	case MAIN_UI_BAR_CLICK: {
-		Sprite *theater_preview = &engine->menu.theater_preview;
+		Sprite *theater_preview = &menu->theater_preview;
+		Sprite *main_ui = &menu->main_ui;
+		Animation *animations = resources->animations;
 
 		if (theater_preview->visible) {
 			if (!sprite_is_max_frame(theater_preview)) {
-				theater_preview->current_frame++;
+				theater_preview->frame_index++;
 			} else {
-				theater_preview->current_frame = 0;
+				theater_preview->frame_index = 0;
 			}
 		} else {
 			if (engine->menu.state == SHRINKED) {
-				engine->menu.state = EXPANDING;
-				engine->menu.main_ui.animation_frame =
-				    engine->resources
-					.animations[MAIN_UI_EXPAND_ANIMATION]
-					.first;
+				menu->state = EXPANDING;
+				sprite_set_animation(animations, main_ui,
+						     MAIN_UI_EXPAND_ANIMATION);
 			} else {
-				engine->menu.state = SHRINKING;
-				engine->menu.main_ui.animation_frame =
-				    engine->resources
-					.animations[MAIN_UI_SHRINK_ANIMATION]
-					.first;
+				menu->state = SHRINKING;
+				sprite_set_animation(animations, main_ui,
+						     MAIN_UI_SHRINK_ANIMATION);
 			}
 		}
 		break;
 	}
 	case TOGGLE_THEATER_PREVIEW: {
-		Sprite *theater_preview = &engine->menu.theater_preview;
+		Sprite *theater_preview = &menu->theater_preview;
 		theater_preview->visible = !theater_preview->visible;
 
-		engine->menu.theater_button.texture =
-		    &engine->resources.textures[theater_preview->visible
-						    ? THEATER_BUTTON_ACTIVE
-						    : THEATER_BUTTON_INACTIVE];
+		menu->theater_button.texture =
+		    &resources->textures[theater_preview->visible
+					     ? THEATER_BUTTON_ACTIVE
+					     : THEATER_BUTTON_INACTIVE];
 		break;
 	}
 	case TOGGLE_SCORE_PREVIEW: {
-		Sprite *score_preview = &engine->menu.score_preview;
-		Text *score = &engine->menu.score_text;
+		Sprite *score_preview = &menu->score_preview;
+		Text *score = &menu->score_text;
 
-		if (engine->menu.state == EXPANDED) {
+		if (menu->state == EXPANDED) {
 			score_preview->visible = !score_preview->visible;
 			score->visible = !score->visible;
 		}

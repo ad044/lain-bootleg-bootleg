@@ -5,13 +5,18 @@
 // the same spritesheet.
 // this is my way of porting that here, without that external file.
 
-enum {
+typedef enum {
+	NO_ANIMATION,
 	MAIN_UI_EXPAND_ANIMATION,
 	MAIN_UI_SHRINK_ANIMATION,
-};
+	UI_LAIN_BLINK_ANIMATION,
+	UI_LAIN_LAUGH_BLINK_ANIMATION,
+	UI_LAIN_LAUGH_ANIMATION,
+	UI_LAIN_STOP_LAUGH_ANIMATION
+} AnimationID;
 
 typedef struct AnimationFrame {
-	unsigned int index;
+	unsigned int frame_index;
 	double timing;
 	struct AnimationFrame *next;
 } AnimationFrame;

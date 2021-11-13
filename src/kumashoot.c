@@ -155,7 +155,6 @@ static void set_sprite_to_smoke(Texture *textures, Sprite *sprite)
 				.pivot_centered = true,
 				.is_spritesheet = true,
 				.max_frame = 3,
-				.current_frame = 0,
 				.z_index = 3};
 
 	initialize_sprite(&smoke);
@@ -173,7 +172,6 @@ static void spawn_bear(Texture *textures, GameState *game_state, Bear *bear)
 			   .visible = true,
 			   .pivot_centered = true,
 			   .is_spritesheet = true,
-			   .current_frame = 0,
 			   .max_frame = 7,
 			   .texture = type == WHITE_BEAR
 					  ? &textures[WHITE_BEAR_MOVE_RIGHT]
@@ -240,31 +238,31 @@ static void update_character(KumaShoot *kumashoot, Texture *textures,
 	}
 
 	if (character->is_smoke) {
-		if (sprite->current_frame == sprite->max_frame) {
+		if (sprite->frame_index == sprite->max_frame) {
 			character->scored = true;
 			character->time_scored = glfwGetTime();
 			sprite->visible = false;
 		} else {
-			sprite->current_frame++;
+			sprite->frame_index++;
 		}
 		return;
 	}
 
 	if (character->exploding) {
-		if (sprite->current_frame == sprite->max_frame) {
+		if (sprite->frame_index == sprite->max_frame) {
 			bear->needs_reset = true;
 		} else {
-			sprite->current_frame++;
+			sprite->frame_index++;
 		}
 		return;
 	}
 
 	switch (character->type) {
 	case SCREWDRIVER_LAIN: {
-		if (sprite->current_frame == sprite->max_frame) {
+		if (sprite->frame_index == sprite->max_frame) {
 			sprite->size = (Vector2D){128.0f, 128.0f};
 			sprite->mirrored = false;
-			sprite->current_frame = 0;
+			sprite->frame_index = 0;
 			sprite->max_frame = 4;
 			sprite->texture = &textures[KUMA_SHOOT_EXPLOSION];
 
@@ -274,7 +272,7 @@ static void update_character(KumaShoot *kumashoot, Texture *textures,
 
 			explode_scene(textures, kumashoot->bears);
 		} else {
-			sprite->current_frame++;
+			sprite->frame_index++;
 		}
 		break;
 	}
@@ -285,7 +283,7 @@ static void update_character(KumaShoot *kumashoot, Texture *textures,
 			// 0th frame doesnt seem to be used in the
 			// original
 			sprite->mirrored = false;
-			sprite->current_frame = 1;
+			sprite->frame_index = 1;
 			sprite->max_frame = 8;
 			sprite->texture =
 			    &textures[KUMA_SHOOT_SCREWDRIVER_LAIN];
@@ -308,10 +306,10 @@ static void update_character(KumaShoot *kumashoot, Texture *textures,
 			set_random_velocity(bear);
 		}
 
-		if (sprite->current_frame == sprite->max_frame) {
-			sprite->current_frame = 0;
+		if (sprite->frame_index == sprite->max_frame) {
+			sprite->frame_index = 0;
 		} else {
-			sprite->current_frame++;
+			sprite->frame_index++;
 		}
 
 		break;
@@ -324,30 +322,30 @@ static void update_character(KumaShoot *kumashoot, Texture *textures,
 			return;
 		}
 
-		if (sprite->current_frame == sprite->max_frame) {
+		if (sprite->frame_index == sprite->max_frame) {
 			// last frame would continue at frame 5
-			sprite->current_frame = 5;
+			sprite->frame_index = 5;
 		} else {
-			sprite->current_frame++;
+			sprite->frame_index++;
 		}
 
-		if (sprite->current_frame > 3) {
+		if (sprite->frame_index > 3) {
 			sprite->pos.x += bear->vel_x;
 		}
 
 		break;
 	default:
-		if (sprite->current_frame == sprite->max_frame) {
+		if (sprite->frame_index == sprite->max_frame) {
 			double delta = glfwGetTime() - character->time_revealed;
 
 			if (delta < 2.0) {
-				sprite->current_frame = 0;
+				sprite->frame_index = 0;
 			} else {
 				set_sprite_to_smoke(textures, sprite);
 				character->is_smoke = true;
 			}
 		} else {
-			sprite->current_frame++;
+			sprite->frame_index++;
 		}
 	}
 }
@@ -390,22 +388,22 @@ static void reveal_bear(Bear *bear)
 static void update_bear(Scene *scene, Bear *bear)
 {
 	if (bear->is_smoke) {
-		if (bear->sprite.current_frame == bear->sprite.max_frame) {
+		if (bear->sprite.frame_index == bear->sprite.max_frame) {
 			reveal_bear(bear);
 			depth_sort(scene->sprites,
 				   cvector_size(scene->sprites));
 		} else {
-			bear->sprite.current_frame++;
+			bear->sprite.frame_index++;
 		}
 	} else {
 		update_bear_position(bear);
 
 		bear->sprite.mirrored = bear->vel_x < 0;
 
-		if (bear->sprite.current_frame == bear->sprite.max_frame) {
-			bear->sprite.current_frame = 0;
+		if (bear->sprite.frame_index == bear->sprite.max_frame) {
+			bear->sprite.frame_index = 0;
 		} else {
-			bear->sprite.current_frame++;
+			bear->sprite.frame_index++;
 		}
 
 		if ((random_int() & 0x3f) == 0) {

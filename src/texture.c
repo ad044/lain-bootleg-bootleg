@@ -47,6 +47,10 @@ void textures_init(Texture *textures)
 		     ui_lain_bear_png,
 		     ui_lain_bear_png_size);
 
+	init_texture(&textures[UI_LAIN],
+		     ui_lain_png,
+		     ui_lain_png_size);
+
 	init_texture(&textures[MAIN_UI],
 		     main_ui_png,
 		     main_ui_png_size);
