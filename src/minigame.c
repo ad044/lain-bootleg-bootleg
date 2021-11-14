@@ -11,3 +11,8 @@ void kill_minigame(Menu *menu, Minigame *minigame, GLFWwindow **minigame_window,
 
 	free(minigame->current);
 }
+
+_Bool can_refresh(double time, Minigame *minigame)
+{
+	return time - minigame->last_updated > 1.0 / minigame->refresh_rate;
+}

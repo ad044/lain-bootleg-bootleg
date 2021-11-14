@@ -248,29 +248,29 @@ void update_menu_lain(Resources *resources, GameState *game_state,
 				if (!lain->laughing) {
 					lain->laughing = true;
 					sprite_set_animation(
-					    resources->animations,
 					    &lain->sprite,
-					    UI_LAIN_LAUGH_ANIMATION);
+					    &resources->animations
+						 [UI_LAIN_LAUGH_ANIMATION]);
 				} else {
 					lain->laughing = false;
 					sprite_set_animation(
-					    resources->animations,
 					    &lain->sprite,
-					    UI_LAIN_STOP_LAUGH_ANIMATION);
+					    &resources->animations
+						 [UI_LAIN_STOP_LAUGH_ANIMATION]);
 				}
 				lain->recently_changed_laugh = true;
 			} else if (!lain->blinking) {
 				lain->blinking = true;
 				if (!lain->laughing) {
 					sprite_set_animation(
-					    resources->animations,
 					    &lain->sprite,
-					    UI_LAIN_BLINK_ANIMATION);
+					    &resources->animations
+						 [UI_LAIN_BLINK_ANIMATION]);
 				} else {
 					sprite_set_animation(
-					    resources->animations,
 					    &lain->sprite,
-					    UI_LAIN_LAUGH_BLINK_ANIMATION);
+					    &resources->animations
+						 [UI_LAIN_LAUGH_BLINK_ANIMATION]);
 				}
 			}
 		}
@@ -279,7 +279,7 @@ void update_menu_lain(Resources *resources, GameState *game_state,
 		lain->blinking = false;
 	}
 
-	if (lain->sprite.animation_id != NO_ANIMATION) {
+	if (lain->sprite.animation != NULL) {
 		sprite_try_next_frame(game_state->time, &lain->sprite);
 	}
 }
@@ -401,12 +401,14 @@ void handle_menu_event(MenuEvent event, void *game)
 		} else {
 			if (engine->menu.state == SHRINKED) {
 				menu->state = EXPANDING;
-				sprite_set_animation(animations, main_ui,
-						     MAIN_UI_EXPAND_ANIMATION);
+				sprite_set_animation(
+				    main_ui,
+				    &animations[MAIN_UI_EXPAND_ANIMATION]);
 			} else {
 				menu->state = SHRINKING;
-				sprite_set_animation(animations, main_ui,
-						     MAIN_UI_SHRINK_ANIMATION);
+				sprite_set_animation(
+				    main_ui,
+				    &animations[MAIN_UI_SHRINK_ANIMATION]);
 			}
 		}
 		break;

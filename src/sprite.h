@@ -29,10 +29,10 @@ typedef struct {
 	// in case of a spritesheet, texture_size denotes size of a single
 	// sprite from the atlas.
 	Vector2D texture_size;
-	unsigned int frame_index;   // always 0 if non-spritesheet texture
-	unsigned int max_frame;	    // always 0 if non-spritesheet texture
+	unsigned int frame_index; // always 0 if non-spritesheet texture
+	unsigned int max_frame;	  // always 0 if non-spritesheet texture
 	AnimationFrame *animation_frame;
-	AnimationID animation_id;
+	Animation *animation;
 	double last_updated;
 } Sprite;
 
@@ -46,5 +46,4 @@ Sprite make_click_barrier(GLfloat left, GLfloat top, GLfloat right,
 			  GLfloat bottom);
 _Bool sprite_is_max_frame(Sprite *sprite);
 void sprite_try_next_frame(double now, Sprite *sprite);
-void sprite_set_animation(Animation *animations, Sprite *sprite,
-			  int animation_id);
+void sprite_set_animation(Sprite *sprite, Animation *animation);

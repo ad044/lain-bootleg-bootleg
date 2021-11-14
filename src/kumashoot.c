@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "animations.h"
 #include "cvector.h"
 #include "kumashoot.h"
 #include "random.h"
@@ -61,10 +62,13 @@ static CharacterType get_random_character_type(GameState *game_state,
 	}
 }
 
-static void create_character(Texture *textures, GameState *game_state,
+static void create_character(Resources *resources, GameState *game_state,
 			     BearType bear_type, Character *character)
 {
 	character->type = get_random_character_type(game_state, bear_type);
+
+	Texture *textures = resources->textures;
+	Animation *animations = resources->animations;
 
 	Sprite *sprite = &character->sprite;
 	*sprite = (Sprite){.size = {96.0f, 128.0f},
@@ -80,6 +84,8 @@ static void create_character(Texture *textures, GameState *game_state,
 	case MIHO: {
 		sprite->texture = &textures[KUMA_SHOOT_MIHO];
 		sprite->max_frame = 6;
+		sprite_set_animation(sprite,
+				     &animations[KUMA_SHOOT_MIHO_ANIMATION]);
 
 		character->score_value = -5;
 		break;
@@ -87,6 +93,8 @@ static void create_character(Texture *textures, GameState *game_state,
 	case YASUO: {
 		sprite->texture = &textures[KUMA_SHOOT_YASUO];
 		sprite->max_frame = 2;
+		sprite_set_animation(sprite,
+				     &animations[KUMA_SHOOT_YASUO_ANIMATION]);
 
 		character->score_value = -1;
 		break;
@@ -94,6 +102,8 @@ static void create_character(Texture *textures, GameState *game_state,
 	case MIKA: {
 		sprite->texture = &textures[KUMA_SHOOT_MIKA];
 		sprite->max_frame = 2;
+		sprite_set_animation(sprite,
+				     &animations[KUMA_SHOOT_MIKA_ANIMATION]);
 
 		character->score_value = -10;
 		break;
@@ -101,6 +111,8 @@ static void create_character(Texture *textures, GameState *game_state,
 	case SCHOOL_LAIN:
 		sprite->texture = &textures[KUMA_SHOOT_SCHOOL_LAIN];
 		sprite->max_frame = 12;
+		sprite_set_animation(
+		    sprite, &animations[KUMA_SHOOT_SCHOOL_LAIN_ANIMATION]);
 
 		character->score_value = 0;
 		break;
@@ -108,6 +120,8 @@ static void create_character(Texture *textures, GameState *game_state,
 		sprite->texture = &textures[KUMA_SHOOT_DEFAULT_LAIN];
 		sprite->max_frame = 7;
 		sprite->size = (Vector2D){64.0f, 120.0f};
+		sprite_set_animation(
+		    sprite, &animations[KUMA_SHOOT_DEFAULT_LAIN_ANIMATION]);
 
 		character->score_value = 0;
 		break;
@@ -146,45 +160,52 @@ static void set_random_velocity(Bear *bear)
 	bear->vel_y = (((uVar1 ^ uVar2) - uVar2 & 7) ^ uVar2) - uVar2;
 }
 
-static void set_sprite_to_smoke(Texture *textures, Sprite *sprite)
+static void set_sprite_to_smoke(Resources *resources, Sprite *sprite)
 {
-	Sprite smoke = (Sprite){.pos = sprite->pos,
-				.size = {96.0f, 128.0f},
-				.texture = &textures[KUMA_SHOOT_SMOKE],
-				.visible = true,
-				.pivot_centered = true,
-				.is_spritesheet = true,
-				.max_frame = 3,
-				.z_index = 3};
+	Sprite smoke =
+	    (Sprite){.pos = sprite->pos,
+		     .size = {96.0f, 128.0f},
+		     .texture = &resources->textures[KUMA_SHOOT_SMOKE],
+		     .visible = true,
+		     .pivot_centered = true,
+		     .is_spritesheet = true,
+		     .max_frame = 4,
+		     .z_index = 3};
+
+	sprite_set_animation(
+	    &smoke, &resources->animations[KUMA_SHOOT_SMOKE_ANIMATION]);
 
 	initialize_sprite(&smoke);
 
 	*sprite = smoke;
 }
 
-static void spawn_bear(Texture *textures, GameState *game_state, Bear *bear)
+static void spawn_bear(Resources *resources, GameState *game_state, Bear *bear)
 {
 	BearType type = get_random_bear_type();
 
-	*bear = (Bear){.type = type,
-		       .sprite = (Sprite){
-			   .size = {96.0f, 128.0f},
-			   .visible = true,
-			   .pivot_centered = true,
-			   .is_spritesheet = true,
-			   .max_frame = 7,
-			   .texture = type == WHITE_BEAR
-					  ? &textures[WHITE_BEAR_MOVE_RIGHT]
-					  : &textures[BROWN_BEAR_MOVE_RIGHT],
-			   .z_index = 1}};
+	*bear = (Bear){
+	    .type = type,
+	    .sprite = (Sprite){
+		.size = {96.0f, 128.0f},
+		.visible = true,
+		.pivot_centered = true,
+		.is_spritesheet = true,
+		.max_frame = 7,
+		.texture = type == WHITE_BEAR
+			       ? &resources->textures[WHITE_BEAR_MOVE_RIGHT]
+			       : &resources->textures[BROWN_BEAR_MOVE_RIGHT],
+		.z_index = 1}};
 
+	sprite_set_animation(&bear->sprite,
+			     &resources->animations[BEAR_ANIMATION]);
 	bear->sprite.mirrored = bear->vel_x < 0;
 	initialize_sprite(&bear->sprite);
 
 	set_random_pos(bear);
 	set_random_velocity(bear);
 
-	create_character(textures, game_state, bear->type,
+	create_character(resources, game_state, bear->type,
 			 &bear->hidden_character);
 }
 
@@ -207,29 +228,29 @@ static void update_bear_position(Bear *bear)
 	bear->sprite.pos.y = next_y;
 }
 
-static void explode_scene(Texture *textures, Bear bears[3])
+static void explode_scene(Resources *resources, Bear bears[3])
 {
 
 	for (int i = 0; i < 3; i++) {
 		Bear *bear = &bears[i];
-		if (!bear->revealed) {
+		if (!bear->revealed && !bear->is_smoke) {
 			bear->hidden_character.score_value *= 10;
 
-			set_sprite_to_smoke(textures, &bear->sprite);
-
+			set_sprite_to_smoke(resources, &bear->sprite);
 			bear->is_smoke = true;
 		}
 	}
 }
 
-static void update_character(KumaShoot *kumashoot, Texture *textures,
-			     Bear *bear)
+static void update_character(GameState *game_state, Resources *resources,
+			     KumaShoot *kumashoot, Bear *bear)
 {
 	Sprite *sprite = &bear->sprite;
 	Character *character = &bear->hidden_character;
+	double now = game_state->time;
 
 	if (character->scored) {
-		double delta = glfwGetTime() - character->time_scored;
+		double delta = now - character->time_scored;
 		if (delta > 0.5) {
 			bear->needs_reset = true;
 		}
@@ -238,46 +259,53 @@ static void update_character(KumaShoot *kumashoot, Texture *textures,
 	}
 
 	if (character->is_smoke) {
-		if (sprite->frame_index == sprite->max_frame) {
+		if (sprite_is_max_frame(sprite)) {
 			character->scored = true;
-			character->time_scored = glfwGetTime();
-			sprite->visible = false;
+			character->time_scored = now;
 		} else {
-			sprite->frame_index++;
+			sprite_try_next_frame(now, sprite);
 		}
+
 		return;
 	}
 
 	if (character->exploding) {
-		if (sprite->frame_index == sprite->max_frame) {
+		if (sprite_is_max_frame(sprite)) {
 			bear->needs_reset = true;
 		} else {
-			sprite->frame_index++;
+			sprite_try_next_frame(now, sprite);
 		}
+
 		return;
 	}
 
 	switch (character->type) {
 	case SCREWDRIVER_LAIN: {
-		if (sprite->frame_index == sprite->max_frame) {
+		if (sprite_is_max_frame(sprite)) {
 			sprite->size = (Vector2D){128.0f, 128.0f};
 			sprite->mirrored = false;
 			sprite->frame_index = 0;
 			sprite->max_frame = 4;
-			sprite->texture = &textures[KUMA_SHOOT_EXPLOSION];
+			sprite->texture =
+			    &resources->textures[KUMA_SHOOT_EXPLOSION];
 
 			initialize_sprite(sprite);
 
 			character->exploding = true;
 
-			explode_scene(textures, kumashoot->bears);
+			sprite_set_animation(
+			    sprite,
+			    &resources
+				 ->animations[KUMA_SHOOT_EXPLOSION_ANIMATION]);
+
+			explode_scene(resources, kumashoot->bears);
 		} else {
-			sprite->frame_index++;
+			sprite_try_next_frame(now, sprite);
 		}
 		break;
 	}
 	case DEFAULT_LAIN: {
-		double delta = glfwGetTime() - character->time_revealed;
+		double delta = now - character->time_revealed;
 		if (delta > 2.0) {
 			sprite->size = (Vector2D){96.0f, 128.0f};
 			// 0th frame doesnt seem to be used in the
@@ -286,13 +314,18 @@ static void update_character(KumaShoot *kumashoot, Texture *textures,
 			sprite->frame_index = 1;
 			sprite->max_frame = 8;
 			sprite->texture =
-			    &textures[KUMA_SHOOT_SCREWDRIVER_LAIN];
+			    &resources->textures[KUMA_SHOOT_SCREWDRIVER_LAIN];
 			// for some reason this spritesheet is offset
 			// by about a quarter of its width to the right
 			// we adjust for that here.
 			sprite->pos.x -= 20.0f;
 
 			initialize_sprite(sprite);
+
+			sprite_set_animation(
+			    sprite,
+			    &resources->animations
+				 [KUMA_SHOOT_SCREWDRIVER_LAIN_ANIMATION]);
 
 			character->type = SCREWDRIVER_LAIN;
 			return;
@@ -306,11 +339,7 @@ static void update_character(KumaShoot *kumashoot, Texture *textures,
 			set_random_velocity(bear);
 		}
 
-		if (sprite->frame_index == sprite->max_frame) {
-			sprite->frame_index = 0;
-		} else {
-			sprite->frame_index++;
-		}
+		sprite_try_next_frame(now, sprite);
 
 		break;
 	}
@@ -322,12 +351,7 @@ static void update_character(KumaShoot *kumashoot, Texture *textures,
 			return;
 		}
 
-		if (sprite->frame_index == sprite->max_frame) {
-			// last frame would continue at frame 5
-			sprite->frame_index = 5;
-		} else {
-			sprite->frame_index++;
-		}
+		sprite_try_next_frame(now, sprite);
 
 		if (sprite->frame_index > 3) {
 			sprite->pos.x += bear->vel_x;
@@ -335,33 +359,28 @@ static void update_character(KumaShoot *kumashoot, Texture *textures,
 
 		break;
 	default:
-		if (sprite->frame_index == sprite->max_frame) {
-			double delta = glfwGetTime() - character->time_revealed;
-
-			if (delta < 2.0) {
-				sprite->frame_index = 0;
-			} else {
-				set_sprite_to_smoke(textures, sprite);
-				character->is_smoke = true;
-			}
+		double delta = now - character->time_revealed;
+		if (sprite_is_max_frame(sprite) && delta > 2.0) {
+			set_sprite_to_smoke(resources, sprite);
+			character->is_smoke = true;
 		} else {
-			sprite->frame_index++;
+			sprite_try_next_frame(now, sprite);
 		}
 	}
 }
 
-static void reveal_bear(Bear *bear)
+static void reveal_bear(GameState *game_state, Bear *bear)
 {
 	Character *hidden_character = &bear->hidden_character;
 	if (hidden_character->type == NO_CHARACTER) {
-		hidden_character->time_scored = glfwGetTime();
+		hidden_character->time_scored = game_state->time;
 		hidden_character->scored = true;
 		hidden_character->sprite.visible = false;
 
 		bear->sprite.visible = false;
 		bear->revealed = true;
 	} else {
-		hidden_character->time_revealed = glfwGetTime();
+		hidden_character->time_revealed = game_state->time;
 		hidden_character->sprite.pos = bear->sprite.pos;
 		hidden_character->sprite.visible = true;
 
@@ -385,26 +404,22 @@ static void reveal_bear(Bear *bear)
 	}
 }
 
-static void update_bear(Scene *scene, Bear *bear)
+static void update_bear(GameState *game_state, Scene *scene, Bear *bear)
 {
 	if (bear->is_smoke) {
-		if (bear->sprite.frame_index == bear->sprite.max_frame) {
-			reveal_bear(bear);
+		if (sprite_is_max_frame(&bear->sprite)) {
+			reveal_bear(game_state, bear);
 			depth_sort(scene->sprites,
 				   cvector_size(scene->sprites));
 		} else {
-			bear->sprite.frame_index++;
+			sprite_try_next_frame(game_state->time, &bear->sprite);
 		}
 	} else {
 		update_bear_position(bear);
 
 		bear->sprite.mirrored = bear->vel_x < 0;
 
-		if (bear->sprite.frame_index == bear->sprite.max_frame) {
-			bear->sprite.frame_index = 0;
-		} else {
-			bear->sprite.frame_index++;
-		}
+		sprite_try_next_frame(game_state->time, &bear->sprite);
 
 		if ((random_int() & 0x3f) == 0) {
 			set_random_velocity(bear);
@@ -412,7 +427,7 @@ static void update_bear(Scene *scene, Bear *bear)
 	}
 }
 
-static void update_kumashoot(Texture *textures, void *minigame_struct,
+static void update_kumashoot(Resources *resources, void *minigame_struct,
 			     GameState *game_state)
 {
 	KumaShoot *kumashoot = (KumaShoot *)minigame_struct;
@@ -423,7 +438,7 @@ static void update_kumashoot(Texture *textures, void *minigame_struct,
 		Text *score_text = &kumashoot->score_displays[i];
 
 		if (bear->needs_reset) {
-			spawn_bear(textures, game_state, &kumashoot->bears[i]);
+			spawn_bear(resources, game_state, &kumashoot->bears[i]);
 			depth_sort(scene->sprites,
 				   cvector_size(scene->sprites));
 
@@ -439,42 +454,43 @@ static void update_kumashoot(Texture *textures, void *minigame_struct,
 				score_text->visible = true;
 			}
 
-			update_character(kumashoot, textures, bear);
+			update_character(game_state, resources, kumashoot,
+					 bear);
 		} else {
-			update_bear(scene, bear);
+			update_bear(game_state, scene, bear);
 		}
 	}
 
 	update_scene(scene);
 }
 
-static void init_kumashoot_sprites(Texture *textures, GameState *game_state,
+static void init_kumashoot_sprites(Resources *resources, GameState *game_state,
 				   KumaShoot *kumashoot)
 {
 	kumashoot->background =
 	    (Sprite){.pos = {0.0f, 0.0f},
 		     .size = {KUMASHOOT_WIDTH, KUMASHOOT_HEIGHT},
-		     .texture = &textures[KUMA_SHOOT_BG],
+		     .texture = &resources->textures[KUMA_SHOOT_BG],
 		     .visible = true,
 		     .z_index = 0};
 
 	kumashoot->bush_overlay = (Sprite){
 	    .pos = {0.0f, 0.0f},
 	    .size = {KUMASHOOT_WIDTH, KUMASHOOT_HEIGHT},
-	    .texture = &textures[KUMA_SHOOT_BUSH_OVERLAY],
+	    .texture = &resources->textures[KUMA_SHOOT_BUSH_OVERLAY],
 	    .visible = true,
 	    .z_index = 2,
 	};
 
 	for (int i = 0; i < 3; i++) {
-		spawn_bear(textures, game_state, &kumashoot->bears[i]);
+		spawn_bear(resources, game_state, &kumashoot->bears[i]);
 	}
 }
 
 static void init_kumashoot_scene(Resources *resources, GameState *game_state,
 				 Scene *scene, KumaShoot *kumashoot)
 {
-	init_kumashoot_sprites(resources->textures, game_state, kumashoot);
+	init_kumashoot_sprites(resources, game_state, kumashoot);
 
 	Sprite *sprites[] = {&kumashoot->background, &kumashoot->bush_overlay,
 			     &kumashoot->bears[0].sprite,
@@ -554,6 +570,8 @@ void start_kumashoot(Resources *resources, GameState *game_state,
 	minigame->update = update_kumashoot;
 	minigame->scene = &kumashoot->scene;
 	minigame->type = KUMASHOOT;
+	minigame->refresh_rate = 30.0;
+	minigame->last_updated = game_state->time;
 }
 
 void handle_kumashoot_event(KumaShootEvent event, Bear *bear, Engine *engine)
@@ -561,7 +579,7 @@ void handle_kumashoot_event(KumaShootEvent event, Bear *bear, Engine *engine)
 	if (event == CHARACTER_CLICK && !bear->revealed && !bear->is_smoke) {
 		KumaShoot *kumashoot = (KumaShoot *)engine->minigame.current;
 
-		set_sprite_to_smoke(engine->resources.textures, &bear->sprite);
+		set_sprite_to_smoke(&engine->resources, &bear->sprite);
 		bear->is_smoke = true;
 
 		depth_sort(kumashoot->scene.sprites,

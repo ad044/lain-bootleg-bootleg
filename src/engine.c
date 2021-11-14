@@ -53,8 +53,6 @@ static void engine_render(Engine *engine, double now)
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	engine->game_state.time = now;
-
 	update_menu(&engine->menu, &engine->game_state, engine->main_window,
 		    &engine->resources);
 
@@ -66,7 +64,8 @@ static void engine_render(Engine *engine, double now)
 	GLFWwindow *minigame_window = engine->minigame_window;
 	Minigame *minigame = &engine->minigame;
 
-	if (minigame->type != NONE) {
+	if (minigame->type != NONE && can_refresh(now, minigame)) {
+		minigame->last_updated = now;
 		if (glfwWindowShouldClose(minigame_window)) {
 			kill_minigame(&engine->menu, minigame, &minigame_window,
 				      engine->resources.textures);
@@ -76,8 +75,7 @@ static void engine_render(Engine *engine, double now)
 			glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 			glClear(GL_COLOR_BUFFER_BIT);
 
-			minigame->update(engine->resources.textures,
-					 minigame->current,
+			minigame->update(&engine->resources, minigame->current,
 					 &engine->game_state);
 
 			draw_scene(minigame->scene, minigame_window,
@@ -88,6 +86,8 @@ static void engine_render(Engine *engine, double now)
 	}
 
 	glfwPollEvents();
+
+	engine->game_state.time = now;
 }
 
 static void engine_renderloop(Engine *engine)

@@ -176,14 +176,14 @@ void sprite_try_next_frame(double now, Sprite *sprite)
 	if (now - sprite->last_updated >
 	    sprite->animation_frame->timing / 60.0) {
 		sprite->animation_frame = sprite->animation_frame->next;
+
 		sprite->frame_index = sprite->animation_frame->frame_index;
 		sprite->last_updated = now;
 	}
 }
 
-void sprite_set_animation(Animation *animations, Sprite *sprite,
-			  int animation_id)
+void sprite_set_animation(Sprite *sprite, Animation *animation)
 {
-	sprite->animation_frame = animations[animation_id].first;
-	sprite->animation_id = animation_id;
+	sprite->animation = animation;
+	sprite->animation_frame = animation->first;
 }
