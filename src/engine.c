@@ -75,8 +75,9 @@ static void engine_render(Engine *engine, double now)
 			glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 			glClear(GL_COLOR_BUFFER_BIT);
 
-			minigame->update(&engine->resources, minigame->current,
-					 &engine->game_state);
+			minigame->update(&engine->resources,
+					 &engine->game_state, minigame_window,
+					 minigame->current);
 
 			draw_scene(minigame->scene, minigame_window,
 				   engine->resources.shaders[SPRITE_SHADER]);

@@ -6,6 +6,7 @@
 
 #include "animations.h"
 #include "kumashoot.h"
+#include "dressup.h"
 #include "menu.h"
 #include "scene.h"
 #include "shader.h"
@@ -357,7 +358,10 @@ void init_menu(Menu *menu, GameState *game_state, Resources *resources)
 			     .click_event = TOGGLE_SCORE_PREVIEW},
 
 	    (SpriteBehavior){.sprite = &menu->bear_icon,
-			     .click_event = BEAR_ICON_CLICK}
+			     .click_event = BEAR_ICON_CLICK},
+
+	    (SpriteBehavior){.sprite = &menu->dressup_button,
+			     .click_event = DRESSUP_TOGGLE}
 
 	};
 	uint8_t sprite_behavior_count =
@@ -451,6 +455,26 @@ void handle_menu_event(MenuEvent event, void *game)
 			engine->menu.bear_icon.texture =
 			    &engine->resources.textures[BEAR_ICON_ACTIVE];
 		}
+		break;
+	}
+	case DRESSUP_TOGGLE: {
+		MinigameType minigame_type = engine->minigame.type;
+		if (minigame_type != NONE) {
+			kill_minigame(&engine->menu, &engine->minigame,
+				      &engine->minigame_window,
+				      engine->resources.textures);
+		}
+
+		if (minigame_type != DRESSUP) {
+			start_dressup(&engine->resources, &engine->game_state,
+				      &engine->minigame,
+				      &engine->minigame_window,
+				      engine->main_window);
+
+			engine->menu.dressup_button.texture =
+			    &engine->resources.textures[DRESSUP_BUTTON_ACTIVE];
+		}
+
 		break;
 	}
 	}

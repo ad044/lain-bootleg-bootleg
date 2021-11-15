@@ -32,6 +32,7 @@ typedef enum {
 	TOGGLE_THEATER_PREVIEW,
 	TOGGLE_SCORE_PREVIEW,
 	BEAR_ICON_CLICK,
+	DRESSUP_TOGGLE
 } MenuEvent;
 
 typedef struct {

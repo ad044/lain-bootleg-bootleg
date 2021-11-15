@@ -1,3 +1,4 @@
+#include "dressup.h"
 #include "engine.h"
 #include "kumashoot.h"
 #include "sprite.h"
@@ -57,11 +58,12 @@ void handle_menu_click(GLFWwindow *window, int button, int action, int mods)
 	}
 }
 
-void handle_minigame_click(GLFWwindow *window, int button, int action, int mods)
+void handle_minigame_event(GLFWwindow *window, int button, int action, int mods)
 {
 	Engine *engine = (Engine *)glfwGetWindowUserPointer(window);
 
-	if (!(button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)) {
+	if (!(button == GLFW_MOUSE_BUTTON_LEFT) ||
+	    (action == GLFW_RELEASE && engine->minigame.type != DRESSUP)) {
 		return;
 	}
 
@@ -84,6 +86,7 @@ void handle_minigame_click(GLFWwindow *window, int button, int action, int mods)
 
 	if (behavior_found) {
 		int event = behavior.click_event;
+		Sprite *sprite = behavior.sprite;
 		void *obj = behavior.object;
 
 		switch (engine->minigame.type) {
@@ -91,6 +94,15 @@ void handle_minigame_click(GLFWwindow *window, int button, int action, int mods)
 			handle_kumashoot_event(event, obj, engine);
 			return;
 		} break;
+		case DRESSUP: {
+			if (action == GLFW_RELEASE) {
+				handle_dressup_event(ITEM_RELEASE, NULL,
+						     engine);
+			} else {
+				handle_dressup_event(event, sprite, engine);
+			}
+			return;
+		}
 		case NONE:
 			return;
 		}

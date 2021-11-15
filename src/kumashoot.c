@@ -131,15 +131,15 @@ static void create_character(Resources *resources, GameState *game_state,
 	}
 
 	if (character->type != NO_CHARACTER) {
-		initialize_sprite(sprite);
+		init_sprite(sprite);
 	}
 }
 
 static void set_random_pos(Bear *bear)
 {
 	int top = HH - 10;
-	int bottom = KUMASHOOT_HEIGHT - (HH + 10);
-	int right = KUMASHOOT_WIDTH - HW;
+	int bottom = MINIGAME_HEIGHT - (HH + 10);
+	int right = MINIGAME_WIDTH - HW;
 	int left = HW;
 
 	bear->sprite.pos.x = random_int_in_range(left, right);
@@ -175,7 +175,7 @@ static void set_sprite_to_smoke(Resources *resources, Sprite *sprite)
 	sprite_set_animation(
 	    &smoke, &resources->animations[KUMA_SHOOT_SMOKE_ANIMATION]);
 
-	initialize_sprite(&smoke);
+	init_sprite(&smoke);
 
 	*sprite = smoke;
 }
@@ -200,7 +200,7 @@ static void spawn_bear(Resources *resources, GameState *game_state, Bear *bear)
 	sprite_set_animation(&bear->sprite,
 			     &resources->animations[BEAR_ANIMATION]);
 	bear->sprite.mirrored = bear->vel_x < 0;
-	initialize_sprite(&bear->sprite);
+	init_sprite(&bear->sprite);
 
 	set_random_pos(bear);
 	set_random_velocity(bear);
@@ -214,12 +214,12 @@ static void update_bear_position(Bear *bear)
 	int next_x = bear->vel_x + bear->sprite.pos.x;
 	int next_y = bear->vel_y + bear->sprite.pos.y;
 
-	if ((next_x < HW) || (KUMASHOOT_WIDTH - HW < next_x)) {
+	if ((next_x < HW) || (MINIGAME_WIDTH - HW < next_x)) {
 		next_x = bear->sprite.pos.x;
 		bear->vel_x *= -1.0f;
 	}
 
-	if ((next_y < (HH - 10)) || (KUMASHOOT_HEIGHT - (HH + 10) < next_y)) {
+	if ((next_y < (HH - 10)) || (MINIGAME_HEIGHT - (HH + 10) < next_y)) {
 		next_y = bear->sprite.pos.y;
 		bear->vel_y *= -1.0f;
 	}
@@ -289,7 +289,7 @@ static void update_character(GameState *game_state, Resources *resources,
 			sprite->texture =
 			    &resources->textures[KUMA_SHOOT_EXPLOSION];
 
-			initialize_sprite(sprite);
+			init_sprite(sprite);
 
 			character->exploding = true;
 
@@ -320,7 +320,7 @@ static void update_character(GameState *game_state, Resources *resources,
 			// we adjust for that here.
 			sprite->pos.x -= 20.0f;
 
-			initialize_sprite(sprite);
+			init_sprite(sprite);
 
 			sprite_set_animation(
 			    sprite,
@@ -345,7 +345,7 @@ static void update_character(GameState *game_state, Resources *resources,
 	}
 	case SCHOOL_LAIN:
 		if ((sprite->pos.x < HW) ||
-		    (KUMASHOOT_WIDTH - HW < sprite->pos.x)) {
+		    (MINIGAME_WIDTH - HW < sprite->pos.x)) {
 			// walked off screen
 			bear->needs_reset = true;
 			return;
@@ -427,8 +427,8 @@ static void update_bear(GameState *game_state, Scene *scene, Bear *bear)
 	}
 }
 
-static void update_kumashoot(Resources *resources, void *minigame_struct,
-			     GameState *game_state)
+static void update_kumashoot(Resources *resources, GameState *game_state,
+			     GLFWwindow *window, void *minigame_struct)
 {
 	KumaShoot *kumashoot = (KumaShoot *)minigame_struct;
 	Scene *scene = &kumashoot->scene;
@@ -469,14 +469,14 @@ static void init_kumashoot_sprites(Resources *resources, GameState *game_state,
 {
 	kumashoot->background =
 	    (Sprite){.pos = {0.0f, 0.0f},
-		     .size = {KUMASHOOT_WIDTH, KUMASHOOT_HEIGHT},
+		     .size = {MINIGAME_WIDTH, MINIGAME_HEIGHT},
 		     .texture = &resources->textures[KUMA_SHOOT_BG],
 		     .visible = true,
 		     .z_index = 0};
 
 	kumashoot->bush_overlay = (Sprite){
 	    .pos = {0.0f, 0.0f},
-	    .size = {KUMASHOOT_WIDTH, KUMASHOOT_HEIGHT},
+	    .size = {MINIGAME_WIDTH, MINIGAME_HEIGHT},
 	    .texture = &resources->textures[KUMA_SHOOT_BUSH_OVERLAY],
 	    .visible = true,
 	    .z_index = 2,
@@ -551,7 +551,7 @@ void start_kumashoot(Resources *resources, GameState *game_state,
 		     Minigame *minigame, GLFWwindow **minigame_window,
 		     GLFWwindow *main_window)
 {
-	if (!(make_window(minigame_window, KUMASHOOT_WIDTH, KUMASHOOT_HEIGHT,
+	if (!(make_window(minigame_window, MINIGAME_WIDTH, MINIGAME_HEIGHT,
 			  "lain kuma shoot", main_window, true))) {
 		printf("Failed to create kuma shoot window.\n");
 		exit(1);

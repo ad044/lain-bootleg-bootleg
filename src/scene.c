@@ -74,7 +74,7 @@ void init_scene(Scene *scene, Sprite **sprites, uint8_t sprite_count,
 	for (int i = 0; i < sprite_count; i++) {
 		Sprite *sprite = sprites[i];
 
-		initialize_sprite(sprite);
+		init_sprite(sprite);
 
 		cvector_push_back(scene->sprites, sprite);
 	}

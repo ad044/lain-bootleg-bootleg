@@ -67,6 +67,10 @@ void textures_init(Texture *textures)
 		     dressup_button_inactive_png,
 		     dressup_button_inactive_png_size);
 
+	init_texture(&textures[DRESSUP_BUTTON_ACTIVE],
+		     dressup_button_active_png,
+		     dressup_button_active_png_size);
+
 	init_texture(&textures[THEATER_PREVIEWS],
 		     theater_previews_png,
 		     theater_previews_png_size);
@@ -147,6 +151,97 @@ void textures_init(Texture *textures)
 		     kuma_shoot_explosion_png,
 		     kuma_shoot_explosion_png_size);
 
+	init_texture(&textures[DRESSUP_BEAR_OUTFIT],
+		     bear_outfit_png,
+		     bear_outfit_png_size);
+
+	init_texture(&textures[DRESSUP_SCHOOL_OUTFIT],
+		     school_outfit_png,
+		     school_outfit_png_size);
+
+	init_texture(&textures[DRESSUP_PAJAMA_OUTFIT],
+		     pajama_outfit_png,
+		     pajama_outfit_png_size);
+
+	init_texture(&textures[DRESSUP_CYBERIA_OUTFIT],
+		     cyberia_outfit_png,
+		     cyberia_outfit_png_size);
+
+	init_texture(&textures[DRESSUP_UFO],
+		     dressup_ufo_png,
+		     dressup_ufo_png_size);
+
+	init_texture(&textures[DRESSUP_NAVI],
+		     dressup_navi_png,
+		     dressup_navi_png_size);
+
+	init_texture(&textures[DRESSUP_SCREWDRIVER],
+		     dressup_screwdriver_png,
+		     dressup_screwdriver_png_size);
+
+	init_texture(&textures[LAIN_ROOM],
+		     lain_room_png,
+		     lain_room_png_size);
+
+	init_texture(&textures[LAIN_CYBERIA_STANDING],
+		     lain_cyberia_standing_png,
+		     lain_cyberia_standing_png_size);
+
+	init_texture(&textures[LAIN_CYBERIA_LEAVE],
+		     lain_cyberia_leave_png,
+		     lain_cyberia_leave_png_size);
+
+	init_texture(&textures[LAIN_CYBERIA_MOVE_LEFT],
+		     lain_cyberia_walk_left_png,
+		     lain_cyberia_walk_left_png_size);
+
+	init_texture(&textures[LAIN_ALIEN_STANDING],
+		     lain_alien_standing_png,
+		     lain_alien_standing_png_size);
+
+	init_texture(&textures[LAIN_ALIEN_LEAVE],
+		     lain_alien_leave_png,
+		     lain_alien_leave_png_size);
+
+	init_texture(&textures[LAIN_ALIEN_MOVE_LEFT],
+		     lain_alien_walk_left_png,
+		     lain_alien_walk_left_png_size);
+
+	init_texture(&textures[LAIN_SCHOOL_STANDING],
+		     lain_school_standing_png,
+		     lain_school_standing_png_size);
+
+	init_texture(&textures[LAIN_SCHOOL_LEAVE],
+		     lain_school_leave_png,
+		     lain_school_leave_png_size);
+
+	init_texture(&textures[LAIN_SCHOOL_MOVE_LEFT],
+		     lain_school_walk_left_png,
+		     lain_school_walk_left_png_size);
+
+	init_texture(&textures[LAIN_PAJAMA_STANDING],
+		     lain_pajama_standing_png,
+		     lain_pajama_standing_png_size);
+
+	init_texture(&textures[LAIN_PAJAMA_LEAVE],
+		     lain_pajama_leave_png,
+		     lain_pajama_leave_png_size);
+
+	init_texture(&textures[LAIN_PAJAMA_MOVE_LEFT],
+		     lain_pajama_leave_png,
+		     lain_pajama_leave_png_size);
+
+	init_texture(&textures[LAIN_BEAR_STANDING],
+		     lain_bear_standing_png,
+		     lain_bear_standing_png_size);
+
+	init_texture(&textures[LAIN_BEAR_LEAVE],
+		     lain_bear_leave_png,
+		     lain_bear_leave_png_size);
+
+	init_texture(&textures[LAIN_BEAR_MOVE_LEFT],
+		     lain_bear_walk_left_png,
+		     lain_bear_walk_left_png_size);
 
 
 }

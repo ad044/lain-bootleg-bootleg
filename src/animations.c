@@ -218,11 +218,51 @@ void init_animations(Animation *animations)
 
 	AnimationFrame kuma_shoot_explosion_animation[] = {
 	    (AnimationFrame){.frame_index = 0, .timing = 1},
-	    (AnimationFrame){.frame_index = 1, .timing = 5},
+	    (AnimationFrame){.frame_index = 1, .timing = 4},
 	    (AnimationFrame){.frame_index = 2, .timing = 5},
 	    (AnimationFrame){.frame_index = 3, .timing = 5},
 	    (AnimationFrame){.frame_index = 4, .timing = 5},
 	};
 	create_animation(&animations[KUMA_SHOOT_EXPLOSION_ANIMATION],
 			 kuma_shoot_explosion_animation, 5, -1);
+
+	AnimationFrame lain_leave_animation[] = {
+	    (AnimationFrame){.frame_index = 0, .timing = 1},
+	    (AnimationFrame){.frame_index = 1, .timing = 4},
+	    (AnimationFrame){.frame_index = 2, .timing = 5},
+	    (AnimationFrame){.frame_index = 3, .timing = 5},
+	    (AnimationFrame){.frame_index = 4, .timing = 5},
+	    (AnimationFrame){.frame_index = 5, .timing = 5},
+	    (AnimationFrame){.frame_index = 6, .timing = 5},
+	    (AnimationFrame){.frame_index = 7, .timing = 5},
+	    (AnimationFrame){.frame_index = 8, .timing = 5},
+	    (AnimationFrame){.frame_index = 9, .timing = 5},
+	    (AnimationFrame){.frame_index = 10, .timing = 5},
+	    (AnimationFrame){.frame_index = 3, .timing = 5},
+	    (AnimationFrame){.frame_index = 4, .timing = 5},
+	    (AnimationFrame){.frame_index = 5, .timing = 5},
+	};
+	create_animation(&animations[LAIN_LEAVE_ANIMATION],
+			 lain_leave_animation, 14, -1);
+
+	AnimationFrame lain_move_left_animation[] = {
+	    (AnimationFrame){.frame_index = 2, .timing = 1},
+	    (AnimationFrame){.frame_index = 3, .timing = 4},
+	    (AnimationFrame){.frame_index = 4, .timing = 5},
+	    (AnimationFrame){.frame_index = 5, .timing = 5},
+	    (AnimationFrame){.frame_index = 6, .timing = 5},
+	    (AnimationFrame){.frame_index = 7, .timing = 5},
+	    (AnimationFrame){.frame_index = 0, .timing = 5},
+	    (AnimationFrame){.frame_index = 1, .timing = 5},
+	    (AnimationFrame){.frame_index = 2, .timing = 5},
+	    (AnimationFrame){.frame_index = 3, .timing = 5},
+	    (AnimationFrame){.frame_index = 5, .timing = 5},
+	    (AnimationFrame){.frame_index = 6, .timing = 5},
+	    (AnimationFrame){.frame_index = 7, .timing = 5},
+	    (AnimationFrame){.frame_index = 0, .timing = 5},
+	    (AnimationFrame){.frame_index = 1, .timing = 5},
+	    (AnimationFrame){.frame_index = 2, .timing = 5},
+	};
+	create_animation(&animations[LAIN_MOVE_LEFT_ANIMATION],
+			 lain_move_left_animation, 16, -1);
 }

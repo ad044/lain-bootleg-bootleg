@@ -40,7 +40,7 @@ _Bool is_sprite_within_bounds(const Sprite *sprite, const Vector2D point)
 	       (top_y <= point.y && point.y <= bottom_y);
 }
 
-void initialize_sprite(Sprite *sprite)
+void init_sprite(Sprite *sprite)
 {
 	sprite->origin_pos = sprite->pos;
 

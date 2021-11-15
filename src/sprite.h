@@ -37,7 +37,7 @@ typedef struct {
 } Sprite;
 
 void depth_sort(Sprite **sprites, unsigned int sprite_count);
-void initialize_sprite(Sprite *sprite);
+void init_sprite(Sprite *sprite);
 _Bool is_sprite_within_bounds(const Sprite *sprite, const Vector2D point);
 Vector2D get_sprite_center_coords(const Sprite *sprite);
 GLfloat *get_sprite_vertices(GLfloat *buffer, Sprite *sprite);

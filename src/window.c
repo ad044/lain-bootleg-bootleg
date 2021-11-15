@@ -120,7 +120,7 @@ int make_window(GLFWwindow **window, int width, int height, char *name,
 	if (shared_ctx != NULL) {
 		Engine *engine = (Engine *)glfwGetWindowUserPointer(shared_ctx);
 		glfwSetWindowUserPointer(*window, engine);
-		glfwSetMouseButtonCallback(*window, handle_minigame_click);
+		glfwSetMouseButtonCallback(*window, handle_minigame_event);
 	}
 	return 1;
 }

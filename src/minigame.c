@@ -6,6 +6,7 @@ void kill_minigame(Menu *menu, Minigame *minigame, GLFWwindow **minigame_window,
 	minigame->type = NONE;
 
 	menu->bear_icon.texture = &textures[BEAR_ICON_INACTIVE];
+	menu->dressup_button.texture = &textures[DRESSUP_BUTTON_INACTIVE];
 
 	glfwDestroyWindow(*minigame_window);
 

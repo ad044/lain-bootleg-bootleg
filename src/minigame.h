@@ -4,13 +4,10 @@
 #include "scene.h"
 #include "state.h"
 
-typedef enum {
-	NONE,
-	KUMASHOOT,
-} MinigameType;
+typedef enum { NONE, KUMASHOOT, DRESSUP } MinigameType;
 
-typedef void (*UpdateMinigameFunc)(Resources *resources, void *minigame_struct,
-				   GameState *game_state);
+typedef void (*UpdateMinigameFunc)(Resources *resources, GameState *game_state,
+				   GLFWwindow *window, void *minigame_struct);
 
 typedef struct {
 	MinigameType type;

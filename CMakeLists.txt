@@ -32,6 +32,7 @@ set(SOURCES
    src/vector2d.c
    src/random.c
    src/animations.c
+   src/dressup.c
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})
