@@ -1,3 +1,4 @@
+#include "cvector.h"
 #include "sprite.h"
 #include "texture.h"
 #include "window.h"
@@ -6,8 +7,8 @@
 
 #include <stdio.h>
 
-static Texture *get_texture_for_outfit(Texture *textures, LainOutfit outfit,
-				       DressupLain *lain)
+static void get_texture_for_outfit(Texture *textures, LainOutfit outfit,
+				   DressUpLain *lain)
 {
 	switch (outfit) {
 	case DEFAULT_OUTFIT: {
@@ -57,13 +58,11 @@ static Texture *get_texture_for_outfit(Texture *textures, LainOutfit outfit,
 };
 
 static void init_dressup_sprites(Resources *resources, GameState *game_state,
-				 DressUp *dressup
-
-)
+				 DressUp *dressup)
 {
 	Texture *textures = resources->textures;
 
-	dressup->bear_outfit = (Sprite){
+	dressup->bear_outfit.sprite = (Sprite){
 	    .pos = {440.0f, 64.0f},
 	    .size = {160.0f, 262.0f},
 	    .texture = &textures[DRESSUP_BEAR_OUTFIT],
@@ -71,7 +70,7 @@ static void init_dressup_sprites(Resources *resources, GameState *game_state,
 	    .z_index = 1,
 	};
 
-	dressup->school_outfit = (Sprite){
+	dressup->school_outfit.sprite = (Sprite){
 	    .pos = {32.0f, 64.0f},
 	    .size = {160.0f, 262.0f},
 	    .texture = &textures[DRESSUP_SCHOOL_OUTFIT],
@@ -79,7 +78,7 @@ static void init_dressup_sprites(Resources *resources, GameState *game_state,
 	    .z_index = 1,
 	};
 
-	dressup->pajama_outfit = (Sprite){
+	dressup->pajama_outfit.sprite = (Sprite){
 	    .pos = {112.0f, 64.0f},
 	    .size = {160.0f, 262.0f},
 	    .texture = &textures[DRESSUP_PAJAMA_OUTFIT],
@@ -87,7 +86,7 @@ static void init_dressup_sprites(Resources *resources, GameState *game_state,
 	    .z_index = 1,
 	};
 
-	dressup->cyberia_outfit = (Sprite){
+	dressup->cyberia_outfit.sprite = (Sprite){
 	    .pos = {336.0f, 64.0f},
 	    .size = {160.0f, 262.0f},
 	    .texture = &textures[DRESSUP_CYBERIA_OUTFIT],
@@ -95,7 +94,7 @@ static void init_dressup_sprites(Resources *resources, GameState *game_state,
 	    .z_index = 1,
 	};
 
-	dressup->ufo = (Sprite){
+	dressup->ufo.sprite = (Sprite){
 	    .pos = {216.0f, 8.0f},
 	    .size = {48.0f, 40.0f},
 	    .texture = &textures[DRESSUP_UFO],
@@ -103,7 +102,7 @@ static void init_dressup_sprites(Resources *resources, GameState *game_state,
 	    .z_index = 1,
 	};
 
-	dressup->navi = (Sprite){
+	dressup->navi.sprite = (Sprite){
 	    .pos = {32.0f, 112.0f},
 	    .size = {24.0f, 42.0f},
 	    .texture = &textures[DRESSUP_NAVI],
@@ -111,7 +110,7 @@ static void init_dressup_sprites(Resources *resources, GameState *game_state,
 	    .z_index = 1,
 	};
 
-	dressup->screwdriver = (Sprite){
+	dressup->screwdriver.sprite = (Sprite){
 	    .pos = {32.0f, 192.0f},
 	    .size = {24.0f, 42.0f},
 	    .texture = &textures[DRESSUP_SCREWDRIVER],
@@ -146,28 +145,43 @@ static void init_dressup_scene(Resources *resources, GameState *game_state,
 {
 	init_dressup_sprites(resources, game_state, dressup);
 
-	Sprite *sprites[] = {&dressup->school_outfit, &dressup->bear_outfit,
-			     &dressup->pajama_outfit, &dressup->cyberia_outfit,
-			     &dressup->ufo,	      &dressup->navi,
-			     &dressup->screwdriver,   &dressup->background,
-			     &dressup->lain.sprite};
+	Sprite *sprites[] = {
+	    &dressup->school_outfit.sprite, &dressup->bear_outfit.sprite,
+	    &dressup->pajama_outfit.sprite, &dressup->cyberia_outfit.sprite,
+	    &dressup->ufo.sprite,	    &dressup->navi.sprite,
+	    &dressup->screwdriver.sprite,   &dressup->background,
+	    &dressup->lain.sprite};
 	uint8_t sprite_count = sizeof(sprites) / sizeof(sprites[0]);
 
-	SpriteBehavior sprite_behaviors[] = {
-	    (SpriteBehavior){.sprite = &dressup->school_outfit,
-			     .click_event = ITEM_GRAB},
-	    (SpriteBehavior){.sprite = &dressup->pajama_outfit,
-			     .click_event = ITEM_GRAB},
-	    (SpriteBehavior){.sprite = &dressup->bear_outfit,
-			     .click_event = ITEM_GRAB},
-	    (SpriteBehavior){.sprite = &dressup->cyberia_outfit,
-			     .click_event = ITEM_GRAB},
-	    (SpriteBehavior){.sprite = &dressup->ufo, .click_event = ITEM_GRAB},
-	    (SpriteBehavior){.sprite = &dressup->navi,
-			     .click_event = ITEM_GRAB},
-	    (SpriteBehavior){.sprite = &dressup->screwdriver,
-			     .click_event = ITEM_GRAB},
+	dressup->school_outfit.outfit = SCHOOL_OUTFIT;
+	dressup->pajama_outfit.outfit = PAJAMA_OUTFIT;
+	dressup->bear_outfit.outfit = BEAR_OUTFIT;
+	dressup->cyberia_outfit.outfit = CYBERIA_OUTFIT;
+	dressup->bear_outfit.outfit = BEAR_OUTFIT;
+	dressup->ufo.outfit = ALIEN_OUTFIT;
 
+	SpriteBehavior sprite_behaviors[] = {
+	    (SpriteBehavior){.sprite = &dressup->school_outfit.sprite,
+			     .click_event = ITEM_GRAB,
+			     .object = &dressup->school_outfit},
+	    (SpriteBehavior){.sprite = &dressup->pajama_outfit.sprite,
+			     .click_event = ITEM_GRAB,
+			     .object = &dressup->pajama_outfit},
+	    (SpriteBehavior){.sprite = &dressup->bear_outfit.sprite,
+			     .click_event = ITEM_GRAB,
+			     .object = &dressup->bear_outfit},
+	    (SpriteBehavior){.sprite = &dressup->cyberia_outfit.sprite,
+			     .click_event = ITEM_GRAB,
+			     .object = &dressup->cyberia_outfit},
+	    (SpriteBehavior){.sprite = &dressup->ufo.sprite,
+			     .click_event = ITEM_GRAB,
+			     .object = &dressup->ufo},
+	    (SpriteBehavior){.sprite = &dressup->navi.sprite,
+			     .click_event = ITEM_GRAB,
+			     .object = &dressup->navi},
+	    (SpriteBehavior){.sprite = &dressup->screwdriver.sprite,
+			     .click_event = ITEM_GRAB,
+			     .object = &dressup->screwdriver},
 	};
 	uint8_t sprite_behavior_count =
 	    sizeof(sprite_behaviors) / sizeof(sprite_behaviors[0]);
@@ -181,11 +195,10 @@ static void update_dressup(Resources *resources, GameState *game_state,
 {
 	DressUp *dressup = (DressUp *)minigame_struct;
 
-	DressupLain *lain = &dressup->lain;
+	DressUpLain *lain = &dressup->lain;
 	switch (lain->move_state) {
 	case STANDING: {
-
-		Sprite *currently_grabbed = dressup->currently_grabbed;
+		Sprite *currently_grabbed = &dressup->currently_grabbed->sprite;
 		if (currently_grabbed != NULL) {
 			double x, y;
 			glfwGetCursorPos(window, &x, &y);
@@ -254,19 +267,26 @@ void start_dressup(Resources *resources, GameState *game_state,
 	minigame->last_updated = game_state->time;
 }
 
-void handle_dressup_event(DressUpEvent event, Sprite *sprite, Engine *engine)
+void handle_dressup_event(DressUpEvent event, DressUpObject *object,
+			  Engine *engine)
 {
 	DressUp *dressup = (DressUp *)engine->minigame.current;
+
 	switch (event) {
 	case ITEM_GRAB: {
-		dressup->currently_grabbed = sprite;
+		dressup->currently_grabbed = object;
+		dressup->currently_grabbed->sprite.z_index = 3;
+
+		depth_sort(dressup->scene.sprites,
+			   cvector_size(dressup->scene.sprites));
 
 		break;
 	}
 	case ITEM_RELEASE: {
 		if (dressup->currently_grabbed != NULL) {
-			dressup->currently_grabbed->pos =
-			    dressup->currently_grabbed->origin_pos;
+			dressup->currently_grabbed->sprite.pos =
+			    dressup->currently_grabbed->sprite.origin_pos;
+			dressup->currently_grabbed->sprite.z_index = 1;
 			dressup->currently_grabbed = NULL;
 		}
 

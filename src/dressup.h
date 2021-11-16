@@ -13,26 +13,33 @@ typedef struct {
 	Texture *walking_texture;
 	Texture *leave_texture;
 	Sprite sprite;
-} DressupLain;
+} DressUpLain;
+
+typedef struct {
+	Sprite sprite;
+	LainOutfit outfit;
+} DressUpObject;
 
 typedef struct {
 	Scene scene;
 
-	DressupLain lain;
+	DressUpLain lain;
 
-	Sprite *currently_grabbed;
+	DressUpObject *currently_grabbed;
 
-	Sprite school_outfit;
-	Sprite bear_outfit;
-	Sprite pajama_outfit;
-	Sprite cyberia_outfit;
-	Sprite ufo;
-	Sprite navi;
-	Sprite screwdriver;
+	DressUpObject school_outfit;
+	DressUpObject bear_outfit;
+	DressUpObject pajama_outfit;
+	DressUpObject cyberia_outfit;
+	DressUpObject ufo;
+	DressUpObject navi;
+	DressUpObject screwdriver;
+
 	Sprite background;
 } DressUp;
 
 void start_dressup(Resources *resources, GameState *game_state,
 		   Minigame *minigame, GLFWwindow **minigame_window,
 		   GLFWwindow *main_window);
-void handle_dressup_event(DressUpEvent event, Sprite *sprite, Engine *engine);
+void handle_dressup_event(DressUpEvent event, DressUpObject *object,
+			  Engine *engine);
