@@ -23,6 +23,7 @@ typedef struct {
 	_Bool visible;
 	_Bool is_spritesheet;
 	_Bool mirrored;
+	Vector2D hitbox_size;
 	// if true, sprite's position determines the location of its center.
 	// else, it points to the top left corner of the sprite.
 	_Bool pivot_centered;
@@ -41,7 +42,7 @@ void init_sprite(Sprite *sprite);
 _Bool is_sprite_within_bounds(const Sprite *sprite, const Vector2D point);
 Vector2D get_sprite_center_coords(const Sprite *sprite);
 GLfloat *get_sprite_vertices(GLfloat *buffer, Sprite *sprite);
-GLfloat *get_pivoted_centered_sprite_vertices(GLfloat *buffer, Sprite *sprite);
+GLfloat *get_pivot_centered_sprite_vertices(GLfloat *buffer, Sprite *sprite);
 Sprite make_click_barrier(GLfloat left, GLfloat top, GLfloat right,
 			  GLfloat bottom);
 _Bool sprite_is_max_frame(Sprite *sprite);

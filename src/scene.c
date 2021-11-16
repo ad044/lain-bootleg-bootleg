@@ -122,7 +122,7 @@ void update_scene(Scene *scene)
 		}
 
 		if (sprite->pivot_centered) {
-			buffer_ptr = get_pivoted_centered_sprite_vertices(
+			buffer_ptr = get_pivot_centered_sprite_vertices(
 			    buffer_ptr, sprite);
 		} else {
 			buffer_ptr = get_sprite_vertices(buffer_ptr, sprite);

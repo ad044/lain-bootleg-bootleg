@@ -18,26 +18,35 @@ void depth_sort(Sprite **sprites, unsigned int sprite_count)
 	qsort(sprites, sprite_count, sizeof(Sprite *), depth_sort_cmp);
 }
 
+static void get_hitbox_range(Vector2D pos, Vector2D hitbox_size, float *top,
+			     float *left, float *right, float *bottom)
+{
+	*left = pos.x - hitbox_size.x / 2.0f;
+	*right = pos.x + hitbox_size.x / 2.0f;
+
+	*top = pos.y - hitbox_size.y / 2.0f;
+	*bottom = pos.y + hitbox_size.y / 2.0f;
+}
+
 _Bool is_sprite_within_bounds(const Sprite *sprite, const Vector2D point)
 {
-	float left_x, right_x, top_y, bottom_y;
+	float top, left, right, bottom;
 
-	if (sprite->pivot_centered) {
-		left_x = sprite->pos.x - sprite->size.x / 2.0f;
-		right_x = sprite->pos.x + sprite->size.x / 2.0f;
-
-		top_y = sprite->pos.y - sprite->size.y / 2.0f;
-		bottom_y = sprite->pos.y + sprite->size.y / 2.0f;
-	} else {
-		left_x = sprite->pos.x;
-		right_x = sprite->pos.x + sprite->size.x;
-
-		top_y = sprite->pos.y;
-		bottom_y = sprite->pos.y + sprite->size.y;
+	if (sprite->hitbox_size.x == 0 || sprite->hitbox_size.y == 0) {
+		return false;
 	}
 
-	return (left_x <= point.x && point.x <= right_x) &&
-	       (top_y <= point.y && point.y <= bottom_y);
+	if (sprite->pivot_centered) {
+		get_hitbox_range(sprite->pos, sprite->hitbox_size, &top, &left,
+				 &right, &bottom);
+	} else {
+		Vector2D center_coords = get_sprite_center_coords(sprite);
+		get_hitbox_range(center_coords, sprite->hitbox_size, &top,
+				 &left, &right, &bottom);
+	}
+
+	return (left <= point.x && point.x <= right) &&
+	       (top <= point.y && point.y <= bottom);
 }
 
 void init_sprite(Sprite *sprite)
@@ -104,7 +113,7 @@ GLfloat *get_sprite_vertices(GLfloat *buffer, Sprite *sprite)
 	return buffer;
 }
 
-GLfloat *get_pivoted_centered_sprite_vertices(GLfloat *buffer, Sprite *sprite)
+GLfloat *get_pivot_centered_sprite_vertices(GLfloat *buffer, Sprite *sprite)
 {
 	GLfloat vertices[] = {
 	    // top right

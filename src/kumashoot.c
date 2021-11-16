@@ -11,14 +11,19 @@
 #include "vector2d.h"
 #include "window.h"
 
-// TOOD macros for now
-// should be sprite hitbox/2
-#define HW 24
-#define HH 40
-
 inline static BearType get_random_bear_type()
 {
 	return random_int_in_range(0, 2) == 1;
+}
+
+inline static float half_width(Bear *bear)
+{
+	return bear->sprite.hitbox_size.x / 2.0f;
+}
+
+inline static float half_height(Bear *bear)
+{
+	return bear->sprite.hitbox_size.y / 2.0f;
 }
 
 static CharacterType get_random_character_type(GameState *game_state,
@@ -137,10 +142,10 @@ static void create_character(Resources *resources, GameState *game_state,
 
 static void set_random_pos(Bear *bear)
 {
-	int top = HH - 10;
-	int bottom = MINIGAME_HEIGHT - (HH + 10);
-	int right = MINIGAME_WIDTH - HW;
-	int left = HW;
+	int top = half_height(bear) - 10;
+	int bottom = MINIGAME_HEIGHT - (half_height(bear) + 10);
+	int right = MINIGAME_WIDTH - half_width(bear);
+	int left = half_width(bear);
 
 	bear->sprite.pos.x = random_int_in_range(left, right);
 	bear->sprite.pos.y = random_int_in_range(top, bottom);
@@ -188,6 +193,7 @@ static void spawn_bear(Resources *resources, GameState *game_state, Bear *bear)
 	    .type = type,
 	    .sprite = (Sprite){
 		.size = {96.0f, 128.0f},
+		.hitbox_size = {48.0f, 80.0f},
 		.visible = true,
 		.pivot_centered = true,
 		.is_spritesheet = true,
@@ -214,12 +220,14 @@ static void update_bear_position(Bear *bear)
 	int next_x = bear->vel_x + bear->sprite.pos.x;
 	int next_y = bear->vel_y + bear->sprite.pos.y;
 
-	if ((next_x < HW) || (MINIGAME_WIDTH - HW < next_x)) {
+	if ((next_x < half_width(bear)) ||
+	    (MINIGAME_WIDTH - half_width(bear) < next_x)) {
 		next_x = bear->sprite.pos.x;
 		bear->vel_x *= -1.0f;
 	}
 
-	if ((next_y < (HH - 10)) || (MINIGAME_HEIGHT - (HH + 10) < next_y)) {
+	if ((next_y < (half_height(bear) - 10)) ||
+	    (MINIGAME_HEIGHT - (half_height(bear) + 10) < next_y)) {
 		next_y = bear->sprite.pos.y;
 		bear->vel_y *= -1.0f;
 	}
@@ -344,8 +352,8 @@ static void update_character(GameState *game_state, Resources *resources,
 		break;
 	}
 	case SCHOOL_LAIN:
-		if ((sprite->pos.x < HW) ||
-		    (MINIGAME_WIDTH - HW < sprite->pos.x)) {
+		if ((sprite->pos.x < half_width(bear)) ||
+		    (MINIGAME_WIDTH - half_width(bear) < sprite->pos.x)) {
 			// walked off screen
 			bear->needs_reset = true;
 			return;

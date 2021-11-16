@@ -36,7 +36,7 @@ static void init_menu_sprites(Menu *menu, Texture *textures)
 {
 	menu->ui_lain.sprite = (Sprite){.pos = {6.0f, 6.0f},
 					.size = {64.0f, 64.0f},
-					.texture = &textures[UI_LAIN_BEAR],
+					.hitbox_size = {32.0f, 32.0f},
 					.is_spritesheet = true,
 					.max_frame = 8,
 					.visible = true,
@@ -55,6 +55,7 @@ static void init_menu_sprites(Menu *menu, Texture *textures)
 	menu->main_ui_bar = (Sprite){
 	    .pos = {102.0f, 38.0f},
 	    .size = {64.0f, 8.0f},
+	    .hitbox_size = {64.0f, 8.0f},
 	    .texture = &textures[MAIN_UI_BAR_INACTIVE],
 	    .visible = true,
 	    .z_index = 4,
@@ -63,6 +64,7 @@ static void init_menu_sprites(Menu *menu, Texture *textures)
 	menu->dressup_button = (Sprite){
 	    .pos = {112.0f, 96.0f},
 	    .size = {72.0f, 72.0f},
+	    .hitbox_size = {36.0f, 36.0f},
 	    .texture = &textures[DRESSUP_BUTTON_INACTIVE],
 	    .visible = false,
 	    .z_index = 4,
@@ -81,6 +83,7 @@ static void init_menu_sprites(Menu *menu, Texture *textures)
 	menu->theater_button = (Sprite){
 	    .pos = {0.0f, 128.0f},
 	    .size = {128.0f, 64.0f},
+	    .hitbox_size = {64.0f, 32.0f},
 	    .texture = &textures[THEATER_BUTTON_INACTIVE],
 	    .visible = false,
 	    .z_index = 4,
@@ -89,6 +92,7 @@ static void init_menu_sprites(Menu *menu, Texture *textures)
 	menu->bear_icon = (Sprite){
 	    .pos = {56.0f, 56.0f},
 	    .size = {32.0f, 32.0f},
+	    .hitbox_size = {32.0f, 32.0f},
 	    .texture_index = 4,
 	    .texture = &textures[BEAR_ICON_INACTIVE],
 	    .visible = false,

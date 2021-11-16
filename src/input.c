@@ -16,6 +16,10 @@ static _Bool get_behavior(SpriteBehavior *behavior,
 	for (int i = 0; i < cvector_size(sprite_behaviors); i++) {
 		Sprite *sprite = sprite_behaviors[i].sprite;
 
+		if (!sprite->visible) {
+			continue;
+		}
+
 		if (is_sprite_within_bounds(sprite, click_pos)) {
 
 			Vector2D sprite_center =
@@ -86,7 +90,6 @@ void handle_minigame_event(GLFWwindow *window, int button, int action, int mods)
 
 	if (behavior_found) {
 		int event = behavior.click_event;
-		Sprite *sprite = behavior.sprite;
 		void *obj = behavior.object;
 
 		switch (engine->minigame.type) {
@@ -99,7 +102,7 @@ void handle_minigame_event(GLFWwindow *window, int button, int action, int mods)
 				handle_dressup_event(ITEM_RELEASE, NULL,
 						     engine);
 			} else {
-				handle_dressup_event(event, sprite, engine);
+				handle_dressup_event(event, obj, engine);
 			}
 			return;
 		}
