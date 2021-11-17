@@ -5,12 +5,13 @@
 #include <time.h>
 
 #include "animations.h"
-#include "kumashoot.h"
 #include "dressup.h"
+#include "kumashoot.h"
 #include "menu.h"
 #include "scene.h"
 #include "shader.h"
 #include "sprite.h"
+#include "state.h"
 #include "text.h"
 #include "texture.h"
 #include "vector2d.h"
@@ -188,9 +189,9 @@ static void animate_menu_shrink(GameState *game_state, Texture *textures,
 		}
 	} else {
 		menu->state = SHRINKED;
-		main_ui->pos = main_ui->origin_pos;
-		menu->ui_lain.sprite.pos = menu->ui_lain.sprite.origin_pos;
-		menu->main_ui_bar.pos = menu->main_ui_bar.origin_pos;
+		sprite_set_to_origin_pos(main_ui);
+		sprite_set_to_origin_pos(&menu->ui_lain.sprite);
+		sprite_set_to_origin_pos(&menu->main_ui_bar);
 
 		menu->clock.pos = (Vector2D){70.0f, 22.0f};
 

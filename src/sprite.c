@@ -18,8 +18,8 @@ void depth_sort(Sprite **sprites, unsigned int sprite_count)
 	qsort(sprites, sprite_count, sizeof(Sprite *), depth_sort_cmp);
 }
 
-static void get_hitbox_range(Vector2D pos, Vector2D hitbox_size, float *top,
-			     float *left, float *right, float *bottom)
+void get_hitbox_range(Vector2D pos, Vector2D hitbox_size, float *top,
+		      float *left, float *right, float *bottom)
 {
 	*left = pos.x - hitbox_size.x / 2.0f;
 	*right = pos.x + hitbox_size.x / 2.0f;
@@ -195,4 +195,9 @@ void sprite_set_animation(Sprite *sprite, Animation *animation)
 {
 	sprite->animation = animation;
 	sprite->animation_frame = animation->first;
+}
+
+void sprite_set_to_origin_pos(Sprite *sprite)
+{
+	sprite->pos = sprite->origin_pos;
 }

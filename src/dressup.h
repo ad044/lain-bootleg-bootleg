@@ -1,11 +1,14 @@
 #pragma once
 
+#include "dressup.h"
 #include "engine.h"
 #include "minigame.h"
 
-typedef enum { ITEM_GRAB, ITEM_RELEASE } DressUpEvent;
+typedef enum { ITEM_GRAB, ITEM_RELEASE, LAIN_SWAP_CLOTHING } DressUpEvent;
 
 typedef enum { STANDING, ENTERING, LEAVING } LainMoveState;
+
+typedef enum { SCREWDRIVER, NAVI, CLOTHING } DressUpObjectType;
 
 typedef struct {
 	LainMoveState move_state;
@@ -17,6 +20,7 @@ typedef struct {
 
 typedef struct {
 	Sprite sprite;
+	DressUpObjectType type;
 	LainOutfit outfit;
 } DressUpObject;
 
@@ -41,5 +45,4 @@ typedef struct {
 void start_dressup(Resources *resources, GameState *game_state,
 		   Minigame *minigame, GLFWwindow **minigame_window,
 		   GLFWwindow *main_window);
-void handle_dressup_event(DressUpEvent event, DressUpObject *object,
-			  Engine *engine);
+void handle_dressup_event(DressUpEvent event, void *object, Engine *engine);

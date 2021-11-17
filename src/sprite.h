@@ -48,3 +48,6 @@ Sprite make_click_barrier(GLfloat left, GLfloat top, GLfloat right,
 _Bool sprite_is_max_frame(Sprite *sprite);
 void sprite_try_next_frame(double now, Sprite *sprite);
 void sprite_set_animation(Sprite *sprite, Animation *animation);
+void get_hitbox_range(Vector2D pos, Vector2D hitbox_size, float *top,
+		      float *left, float *right, float *bottom);
+void sprite_set_to_origin_pos(Sprite *sprite);

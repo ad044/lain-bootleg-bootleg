@@ -87,6 +87,10 @@ void textures_init(Texture *textures)
 		     screwdriver_icon_inactive_png,
 		     screwdriver_icon_inactive_png_size);
 
+	init_texture(&textures[SCREWDRIVER_ICON_ACTIVE],
+		     screwdriver_icon_active_png,
+		     screwdriver_icon_active_png_size);
+
 	init_texture(&textures[PAW_ICON],
 		     paw_icon_png,
 		     paw_icon_png_size);
@@ -228,8 +232,8 @@ void textures_init(Texture *textures)
 		     lain_pajama_leave_png_size);
 
 	init_texture(&textures[LAIN_PAJAMA_MOVE_LEFT],
-		     lain_pajama_leave_png,
-		     lain_pajama_leave_png_size);
+		     lain_pajama_walk_left_png,
+		     lain_pajama_walk_left_png_size);
 
 	init_texture(&textures[LAIN_BEAR_STANDING],
 		     lain_bear_standing_png,
@@ -243,6 +247,16 @@ void textures_init(Texture *textures)
 		     lain_bear_walk_left_png,
 		     lain_bear_walk_left_png_size);
 
+	init_texture(&textures[LAIN_DEFAULT_STANDING],
+		     lain_default_standing_png,
+		     lain_default_standing_png_size);
 
+	init_texture(&textures[LAIN_DEFAULT_LEAVE],
+		     lain_default_leave_png,
+		     lain_default_leave_png_size);
+
+	init_texture(&textures[LAIN_DEFAULT_MOVE_LEFT],
+		     lain_default_walk_left_png,
+		     lain_default_walk_left_png_size);
 }
 // clang-format on
