@@ -439,6 +439,10 @@ void handle_dressup_event(DressUpEvent event, void *object, Engine *engine)
 	GameState *game_state = &engine->game_state;
 	Texture *textures = engine->resources.textures;
 
+	if (lain->move_state != STANDING) {
+		return;
+	}
+
 	switch (event) {
 	case ITEM_GRAB: {
 		dressup->currently_grabbed = object;
