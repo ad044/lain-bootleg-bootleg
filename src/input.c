@@ -1,6 +1,7 @@
 #include "dressup.h"
 #include "engine.h"
 #include "kumashoot.h"
+#include "minigame.h"
 #include "sprite.h"
 #include "vector2d.h"
 
@@ -95,8 +96,8 @@ void handle_minigame_event(GLFWwindow *window, int button, int action, int mods)
 		switch (engine->minigame.type) {
 		case KUMASHOOT: {
 			handle_kumashoot_event(event, obj, engine);
-			return;
-		} break;
+			break;
+		}
 		case DRESSUP: {
 			if (action == GLFW_RELEASE) {
 				handle_dressup_event(ITEM_RELEASE, NULL,
@@ -104,10 +105,10 @@ void handle_minigame_event(GLFWwindow *window, int button, int action, int mods)
 			} else {
 				handle_dressup_event(event, obj, engine);
 			}
-			return;
+			break;
 		}
-		case NONE:
-			return;
+		case NO_MINIGAME:
+			break;
 		}
 	}
 }

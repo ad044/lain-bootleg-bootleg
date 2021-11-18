@@ -57,7 +57,7 @@ typedef struct {
 	Sprite bush_overlay;
 } KumaShoot;
 
-void start_kumashoot(Resources *resources, GameState *game_state,
+void start_kumashoot(Menu *menu, Resources *resources, GameState *game_state,
 		     Minigame *minigame, GLFWwindow **minigame_window,
 		     GLFWwindow *main_window);
 void handle_kumashoot_event(KumaShootEvent event, Bear *bear, Engine *engine);

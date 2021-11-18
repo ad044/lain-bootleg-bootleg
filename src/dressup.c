@@ -1,5 +1,7 @@
+#include "animations.h"
 #include "cvector.h"
 #include "kumashoot.h"
+#include "minigame.h"
 #include "sprite.h"
 #include "state.h"
 #include "texture.h"
@@ -262,12 +264,42 @@ static void init_dressup_scene(Resources *resources, GameState *game_state,
 		   sprite_behavior_count, NULL, 0, NULL, 0);
 }
 
-static void update_dressup(Resources *resources, GameState *game_state,
-			   GLFWwindow *window, void *minigame_struct)
+static void update_dressup(Resources *resources, Menu *menu,
+			   GameState *game_state, GLFWwindow *window,
+			   Minigame *minigame)
 {
-	DressUp *dressup = (DressUp *)minigame_struct;
-
+	DressUp *dressup = (DressUp *)minigame->current;
 	DressUpLain *lain = &dressup->lain;
+
+	if (glfwWindowShouldClose(window) && lain->move_state != LEAVING) {
+		lain->move_state = LEAVING;
+		lain->sprite.texture = lain->leave_texture;
+		lain->sprite.is_spritesheet = true;
+		lain->sprite.max_frame =
+		    game_state->lain_outfit == ALIEN_OUTFIT ? 8 : 10;
+		lain->sprite.z_index = 6;
+
+		sprite_set_animation(
+		    &dressup->lain.sprite,
+		    &resources
+			 ->animations[game_state->lain_outfit == ALIEN_OUTFIT
+					  ? LAIN_ALIEN_LEAVE_ANIMATION
+					  : LAIN_LEAVE_ANIMATION]);
+
+		init_sprite(&lain->sprite);
+
+		depth_sort(dressup->scene.sprites,
+			   cvector_size(dressup->scene.sprites));
+
+		if (game_state->lain_tool_state == HOLDING_SCREWDRIVER) {
+			dressup->screwdriver.sprite.visible = false;
+		}
+
+		if (game_state->lain_tool_state == HOLDING_NAVI) {
+			dressup->navi.sprite.visible = false;
+		}
+	}
+
 	switch (lain->move_state) {
 	case STANDING: {
 		Sprite *currently_grabbed = &dressup->currently_grabbed->sprite;
@@ -319,6 +351,14 @@ static void update_dressup(Resources *resources, GameState *game_state,
 		break;
 	}
 	case LEAVING: {
+		if (lain->sprite.pos.x > 600.0f) {
+			kill_minigame(resources->textures, menu, minigame,
+				      window);
+			return;
+		} else {
+			lain->sprite.pos.x += 24.0f;
+			sprite_try_next_frame(game_state->time, &lain->sprite);
+		}
 
 		break;
 	}
@@ -326,7 +366,7 @@ static void update_dressup(Resources *resources, GameState *game_state,
 
 	update_scene(&dressup->scene);
 }
-void start_dressup(Resources *resources, GameState *game_state,
+void start_dressup(Menu *menu, Resources *resources, GameState *game_state,
 		   Minigame *minigame, GLFWwindow **minigame_window,
 		   GLFWwindow *main_window)
 {
@@ -355,6 +395,9 @@ void start_dressup(Resources *resources, GameState *game_state,
 	minigame->type = DRESSUP;
 	minigame->refresh_rate = 30.0;
 	minigame->last_updated = game_state->time;
+
+	menu->dressup_button.texture =
+	    &resources->textures[DRESSUP_BUTTON_ACTIVE];
 }
 
 static _Bool can_wear(GameState *game_state, DressUpObject *item, Vector2D pos)

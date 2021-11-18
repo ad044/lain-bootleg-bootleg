@@ -8,6 +8,7 @@
 #include "dressup.h"
 #include "kumashoot.h"
 #include "menu.h"
+#include "minigame.h"
 #include "scene.h"
 #include "shader.h"
 #include "sprite.h"
@@ -445,39 +446,41 @@ void handle_menu_event(MenuEvent event, void *game)
 	case BEAR_ICON_CLICK: {
 		MinigameType minigame_type = engine->minigame.type;
 
-		if (minigame_type != NONE) {
-			kill_minigame(&engine->menu, &engine->minigame,
-				      &engine->minigame_window,
-				      engine->resources.textures);
+		switch (minigame_type) {
+		case DRESSUP: {
+			glfwSetWindowShouldClose(engine->minigame_window, 1);
+			engine->minigame.queued_start = start_kumashoot;
+			break;
+		}
+		case KUMASHOOT: {
+			glfwSetWindowShouldClose(engine->minigame_window, 1);
+			break;
+		}
+		case NO_MINIGAME: {
+			engine->minigame.queued_start = start_kumashoot;
+			break;
+		}
 		}
 
-		if (minigame_type != KUMASHOOT) {
-			start_kumashoot(&engine->resources, &engine->game_state,
-					&engine->minigame,
-					&engine->minigame_window,
-					engine->main_window);
-
-			engine->menu.bear_icon.texture =
-			    &engine->resources.textures[BEAR_ICON_ACTIVE];
-		}
 		break;
 	}
 	case DRESSUP_TOGGLE: {
 		MinigameType minigame_type = engine->minigame.type;
-		if (minigame_type != NONE) {
-			kill_minigame(&engine->menu, &engine->minigame,
-				      &engine->minigame_window,
-				      engine->resources.textures);
+
+		switch (minigame_type) {
+		case DRESSUP: {
+			glfwSetWindowShouldClose(engine->minigame_window, 1);
+			break;
 		}
-
-		if (minigame_type != DRESSUP) {
-			start_dressup(&engine->resources, &engine->game_state,
-				      &engine->minigame,
-				      &engine->minigame_window,
-				      engine->main_window);
-
-			engine->menu.dressup_button.texture =
-			    &engine->resources.textures[DRESSUP_BUTTON_ACTIVE];
+		case KUMASHOOT: {
+			glfwSetWindowShouldClose(engine->minigame_window, 1);
+			engine->minigame.queued_start = start_dressup;
+			break;
+		}
+		case NO_MINIGAME: {
+			engine->minigame.queued_start = start_dressup;
+			break;
+		}
 		}
 
 		break;

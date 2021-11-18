@@ -42,7 +42,7 @@ typedef struct {
 	Sprite background;
 } DressUp;
 
-void start_dressup(Resources *resources, GameState *game_state,
+void start_dressup(Menu *menu, Resources *resources, GameState *game_state,
 		   Minigame *minigame, GLFWwindow **minigame_window,
 		   GLFWwindow *main_window);
 void handle_dressup_event(DressUpEvent event, void *object, Engine *engine);

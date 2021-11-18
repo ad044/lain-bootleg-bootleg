@@ -5,6 +5,7 @@
 #include "animations.h"
 #include "cvector.h"
 #include "kumashoot.h"
+#include "minigame.h"
 #include "random.h"
 #include "sprite.h"
 #include "texture.h"
@@ -435,11 +436,17 @@ static void update_bear(GameState *game_state, Scene *scene, Bear *bear)
 	}
 }
 
-static void update_kumashoot(Resources *resources, GameState *game_state,
-			     GLFWwindow *window, void *minigame_struct)
+static void update_kumashoot(Resources *resources, Menu *menu,
+			     GameState *game_state, GLFWwindow *window,
+			     Minigame *minigame)
 {
-	KumaShoot *kumashoot = (KumaShoot *)minigame_struct;
+	KumaShoot *kumashoot = (KumaShoot *)minigame->current;
 	Scene *scene = &kumashoot->scene;
+
+	if (glfwWindowShouldClose(window)) {
+		kill_minigame(resources->textures, menu, minigame, window);
+		return;
+	}
 
 	for (int i = 0; i < 3; i++) {
 		Bear *bear = &kumashoot->bears[i];
@@ -555,7 +562,7 @@ static void init_kumashoot_scene(Resources *resources, GameState *game_state,
 		   click_barriers, click_barrier_count);
 }
 
-void start_kumashoot(Resources *resources, GameState *game_state,
+void start_kumashoot(Menu *menu, Resources *resources, GameState *game_state,
 		     Minigame *minigame, GLFWwindow **minigame_window,
 		     GLFWwindow *main_window)
 {
@@ -578,8 +585,10 @@ void start_kumashoot(Resources *resources, GameState *game_state,
 	minigame->update = update_kumashoot;
 	minigame->scene = &kumashoot->scene;
 	minigame->type = KUMASHOOT;
-	minigame->refresh_rate = 30.0;
+	minigame->refresh_rate = 20.0;
 	minigame->last_updated = game_state->time;
+
+	menu->bear_icon.texture = &resources->textures[BEAR_ICON_ACTIVE];
 }
 
 void handle_kumashoot_event(KumaShootEvent event, Bear *bear, Engine *engine)

@@ -4,22 +4,33 @@
 #include "scene.h"
 #include "state.h"
 
-typedef enum { NONE, KUMASHOOT, DRESSUP } MinigameType;
+typedef enum { NO_MINIGAME, KUMASHOOT, DRESSUP } MinigameType;
 
-typedef void (*UpdateMinigameFunc)(Resources *resources, GameState *game_state,
-				   GLFWwindow *window, void *minigame_struct);
+struct minigame;
 
-typedef struct {
+typedef void (*UpdateMinigameFunc)(Resources *resources, Menu *menu,
+				   GameState *game_state, GLFWwindow *window,
+				   struct minigame *minigame);
+typedef void (*StartMinigameFunc)(Menu *menu, Resources *resources,
+				  GameState *game_state,
+				  struct minigame *minigame,
+				  GLFWwindow **minigame_window,
+				  GLFWwindow *main_window);
+
+struct minigame {
 	MinigameType type;
-	_Bool running;
 	UpdateMinigameFunc update;
 	Scene *scene;
 	void *current;
 
 	double last_updated;
 	double refresh_rate;
-} Minigame;
 
-void kill_minigame(Menu *menu, Minigame *minigame, GLFWwindow **minigame_window,
-		   Texture *textures);
+	StartMinigameFunc queued_start;
+};
+
+typedef struct minigame Minigame;
+
+void kill_minigame(Texture *textures, Menu *menu, Minigame *minigame,
+		   GLFWwindow *minigame_window);
 _Bool can_refresh(double time, Minigame *minigame);

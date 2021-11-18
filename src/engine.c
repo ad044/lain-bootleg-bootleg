@@ -4,8 +4,11 @@
 #include "animations.h"
 #include "engine.h"
 #include "menu.h"
+#include "minigame.h"
+#include "resources.h"
 #include "scene.h"
 #include "shader.h"
+#include "state.h"
 #include "texture.h"
 #include "window.h"
 
@@ -36,7 +39,8 @@ int engine_init(Engine *engine)
 	init_animations(engine->resources.animations);
 
 	engine->minigame_window = NULL;
-	engine->minigame.type = NONE;
+	engine->minigame.queued_start = NULL;
+	engine->minigame.type = NO_MINIGAME;
 
 	// set user pointer to access engine inside callback function
 	glfwSetWindowUserPointer(engine->main_window, engine);
@@ -48,47 +52,54 @@ int engine_init(Engine *engine)
 
 static void engine_render(Engine *engine, double now)
 {
-	glfwMakeContextCurrent(engine->main_window);
-
-	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-	glClear(GL_COLOR_BUFFER_BIT);
-
-	update_menu(&engine->menu, &engine->game_state, engine->main_window,
-		    &engine->resources);
-
-	draw_scene(&engine->menu.scene, engine->main_window,
-		   engine->resources.shaders[SPRITE_SHADER]);
-
-	glfwSwapBuffers(engine->main_window);
+	GLFWwindow *main_window = engine->main_window;
+	Resources *resources = &engine->resources;
+	Menu *menu = &engine->menu;
+	GameState *game_state = &engine->game_state;
 
 	GLFWwindow *minigame_window = engine->minigame_window;
 	Minigame *minigame = &engine->minigame;
 
-	if (minigame->type != NONE && can_refresh(now, minigame)) {
-		minigame->last_updated = now;
-		if (glfwWindowShouldClose(minigame_window)) {
-			kill_minigame(&engine->menu, minigame, &minigame_window,
-				      engine->resources.textures);
-		} else {
-			glfwMakeContextCurrent(minigame_window);
+	glfwMakeContextCurrent(main_window);
 
-			glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-			glClear(GL_COLOR_BUFFER_BIT);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
 
-			minigame->update(&engine->resources,
-					 &engine->game_state, minigame_window,
-					 minigame->current);
+	update_menu(menu, game_state, main_window, resources);
 
+	draw_scene(&menu->scene, main_window,
+		   resources->shaders[SPRITE_SHADER]);
+
+	glfwSwapBuffers(main_window);
+
+	if (minigame->type == NO_MINIGAME && minigame->queued_start != NULL) {
+		minigame->queued_start(menu, resources, game_state, minigame,
+				       &engine->minigame_window, main_window);
+		minigame->queued_start = NULL;
+	}
+
+	if (minigame->type != NO_MINIGAME && can_refresh(now, minigame)) {
+		glfwMakeContextCurrent(minigame_window);
+
+		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
+
+		minigame->update(resources, menu, game_state, minigame_window,
+				 minigame);
+
+		if (minigame->type != NO_MINIGAME) {
 			draw_scene(minigame->scene, minigame_window,
-				   engine->resources.shaders[SPRITE_SHADER]);
+				   resources->shaders[SPRITE_SHADER]);
 
 			glfwSwapBuffers(minigame_window);
+
+			minigame->last_updated = now;
 		}
 	}
 
 	glfwPollEvents();
 
-	engine->game_state.time = now;
+	game_state->time = now;
 }
 
 static void engine_renderloop(Engine *engine)
