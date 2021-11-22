@@ -5,6 +5,8 @@
 // the same spritesheet.
 // this is my way of porting that here, without that external file.
 
+#define MAX_ANIMATION_COUNT 30
+
 enum {
 	NO_ANIMATION,
 
