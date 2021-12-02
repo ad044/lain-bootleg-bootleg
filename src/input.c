@@ -2,10 +2,12 @@
 #include "engine.h"
 #include "kumashoot.h"
 #include "minigame.h"
+#include "scene.h"
 #include "sprite.h"
 #include "vector2d.h"
 
 #include <float.h>
+#include <stdint.h>
 #include <stdio.h>
 
 static _Bool get_behavior(SpriteBehavior *behavior,
@@ -13,8 +15,10 @@ static _Bool get_behavior(SpriteBehavior *behavior,
 {
 	_Bool found = false;
 	float lowest_dist = FLT_MAX;
+	uint8_t curr_z_index = 0;
 
 	for (int i = 0; i < cvector_size(sprite_behaviors); i++) {
+		SpriteBehavior curr_behavior = sprite_behaviors[i];
 		Sprite *sprite = sprite_behaviors[i].sprite;
 
 		if (!sprite->visible) {
@@ -22,16 +26,16 @@ static _Bool get_behavior(SpriteBehavior *behavior,
 		}
 
 		if (is_sprite_within_bounds(sprite, click_pos)) {
-
 			Vector2D sprite_center =
 			    get_sprite_center_coords(sprite);
 
 			float curr_dist =
 			    dist_between(sprite_center, click_pos);
 
-			if (curr_dist < lowest_dist) {
+			if (curr_dist < lowest_dist ||
+			    sprite->z_index > curr_z_index) {
 				found = true;
-				*behavior = sprite_behaviors[i];
+				*behavior = curr_behavior;
 				lowest_dist = curr_dist;
 			}
 		}
@@ -79,8 +83,12 @@ void handle_minigame_event(GLFWwindow *window, int button, int action, int mods)
 	Scene scene = *engine->minigame.scene;
 
 	for (int i = 0; i < cvector_size(scene.click_barriers); i++) {
-		if (is_sprite_within_bounds(&scene.click_barriers[i],
-					    click_pos)) {
+		ClickBarrier barrier = scene.click_barriers[i];
+		_Bool is_blocked = (barrier.left <= click_pos.x &&
+				    click_pos.x <= barrier.right) &&
+				   (barrier.top <= click_pos.y &&
+				    click_pos.y <= barrier.bottom);
+		if (is_blocked) {
 			return;
 		}
 	}
@@ -107,7 +115,7 @@ void handle_minigame_event(GLFWwindow *window, int button, int action, int mods)
 			}
 			break;
 		}
-		case NO_MINIGAME:
+		default:
 			break;
 		}
 	}

@@ -7,13 +7,14 @@
 
 typedef enum { CHARACTER_CLICK } KumaShootEvent;
 
-typedef enum { WHITE_BEAR, BROWN_BEAR } BearType;
+typedef enum { BEAR_WHITE, BEAR_BROWN } BearType;
 
 typedef enum {
 	NO_CHARACTER,
 	YASUO,
 	MIHO,
 	MIKA,
+	SCHOOL_LAIN_STANDING,
 	SCHOOL_LAIN,
 	DEFAULT_LAIN,
 	SCREWDRIVER_LAIN,
@@ -21,12 +22,13 @@ typedef enum {
 
 typedef struct {
 	_Bool scored;
-	_Bool exploding;
 	_Bool is_smoke;
+	_Bool has_additional_sprite;
 
 	CharacterType type;
 
 	Sprite sprite;
+	Sprite additional_sprite;
 
 	double time_revealed;
 	double time_scored;

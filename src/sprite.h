@@ -14,40 +14,36 @@
 #define SPRITE_VBO_SIZE SPRITE_VERTEX_COUNT *ROWS_PER_SPRITE_VERTEX
 
 typedef struct {
+	_Bool visible;
+	_Bool mirrored;
+
 	Vector2D pos;
 	Vector2D origin_pos; // keeps track of initially passed position.
-	Vector2D size;
 	unsigned int z_index;
 	Texture *texture;
 	int texture_index;
-	_Bool visible;
-	_Bool is_spritesheet;
-	_Bool mirrored;
 	Vector2D hitbox_size;
-	// if true, sprite's position determines the location of its center.
-	// else, it points to the top left corner of the sprite.
-	_Bool pivot_centered;
-	// in case of a spritesheet, texture_size denotes size of a single
-	// sprite from the atlas.
-	Vector2D texture_size;
-	unsigned int frame_index; // always 0 if non-spritesheet texture
-	unsigned int max_frame;	  // always 0 if non-spritesheet texture
-	AnimationFrame *animation_frame;
+	_Bool pivot_centered; // if true, sprite's position points to its
+			      // center. else, it points to the top left corner.
 	Animation *animation;
-	double last_updated;
+	AnimationFrame *animation_frame;
+	double animation_start_time;
 } Sprite;
 
+struct resources;
+
 void depth_sort(Sprite **sprites, unsigned int sprite_count);
-void init_sprite(Sprite *sprite);
 _Bool is_sprite_within_bounds(const Sprite *sprite, const Vector2D point);
 Vector2D get_sprite_center_coords(const Sprite *sprite);
 GLfloat *get_sprite_vertices(GLfloat *buffer, Sprite *sprite);
 GLfloat *get_pivot_centered_sprite_vertices(GLfloat *buffer, Sprite *sprite);
-Sprite make_click_barrier(GLfloat left, GLfloat top, GLfloat right,
-			  GLfloat bottom);
-_Bool sprite_is_max_frame(Sprite *sprite);
 void sprite_try_next_frame(double now, Sprite *sprite);
-void sprite_set_animation(Sprite *sprite, Animation *animation);
+void sprite_set_animation(struct resources *resources, double now,
+			  Sprite *sprite, AnimationID animation_id);
+void sprite_set_animation_direct(struct resources *resources, double now,
+				 Sprite *sprite, Animation *animation);
 void get_hitbox_range(Vector2D pos, Vector2D hitbox_size, float *top,
 		      float *left, float *right, float *bottom);
 void sprite_set_to_origin_pos(Sprite *sprite);
+void make_sprite(Sprite *target, Sprite sprite);
+_Bool sprite_animation_is_last_frame(Sprite *sprite);

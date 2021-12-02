@@ -15,6 +15,44 @@
 #define MAX_SCENE_VBO_SIZE MAX_SCENE_SPRITES *SPRITE_VBO_SIZE
 #define MAX_SCENE_IBO_SIZE MAX_SCENE_SPRITES *SPRITE_INDEX_COUNT
 
+static GLfloat *get_click_barrier_vertices_vertices(GLfloat *buffer,
+						    ClickBarrier *barrier)
+{
+	GLfloat vertices[] = {
+	    // top right
+	    barrier->right,
+	    barrier->top,
+	    0.0f,
+	    0.0f,
+	    -1.0f,
+
+	    // bottom right
+	    barrier->right,
+	    barrier->bottom,
+	    0.0f,
+	    0.0f,
+	    -1.0f,
+
+	    // bottom left
+	    barrier->left,
+	    barrier->bottom,
+	    0.0f,
+	    0.0f,
+	    -1.0f,
+
+	    // top left
+	    barrier->left,
+	    barrier->top,
+	    0.0f,
+	    0.0f,
+	    -1.0f,
+	};
+
+	memcpy(buffer, vertices, sizeof(vertices));
+	buffer += sizeof(vertices) / sizeof(vertices[0]);
+	return buffer;
+}
+
 static void init_scene_buffers(Scene *scene)
 {
 	glGenVertexArrays(1, &scene->VAO);
@@ -64,7 +102,7 @@ static void init_scene_buffers(Scene *scene)
 void init_scene(Scene *scene, Sprite **sprites, uint8_t sprite_count,
 		SpriteBehavior *sprite_behaviors, uint8_t sprite_behavior_count,
 		Text **text_objs, uint8_t text_obj_count,
-		Sprite *click_barriers, uint8_t click_barrier_count)
+		ClickBarrier *click_barriers, uint8_t click_barrier_count)
 {
 	// initialize vao, vbo, ibo
 	init_scene_buffers(scene);
@@ -73,8 +111,6 @@ void init_scene(Scene *scene, Sprite **sprites, uint8_t sprite_count,
 	depth_sort(sprites, sprite_count);
 	for (int i = 0; i < sprite_count; i++) {
 		Sprite *sprite = sprites[i];
-
-		init_sprite(sprite);
 
 		cvector_push_back(scene->sprites, sprite);
 	}
@@ -110,7 +146,7 @@ void update_scene(Scene *scene)
 	GLfloat vertices[MAX_SCENE_VBO_SIZE];
 	GLfloat *buffer_ptr = vertices;
 
-	unsigned int quad_count = 0;
+	uint8_t quad_count = 0;
 
 	for (int i = 0; i < cvector_size(scene->sprites); i++) {
 		Sprite *sprite = scene->sprites[i];
@@ -141,14 +177,11 @@ void update_scene(Scene *scene)
 		}
 
 		char *text = text_obj->current_text;
-		int text_len = strlen(text);
+		uint8_t text_len = strlen(text);
 
 		for (int j = 0; j < text_len; j++) {
-			Sprite glyph = get_glyph(text_obj, text[j], j);
-
-			glyph.texture_index = text_obj->texture_index;
-
-			buffer_ptr = get_sprite_vertices(buffer_ptr, &glyph);
+			buffer_ptr = get_glyph_vertices(buffer_ptr, text_obj,
+							text[j], j);
 			quad_count++;
 
 			if (text[j] == 'A' || text[j] == 'P') {
@@ -159,7 +192,7 @@ void update_scene(Scene *scene)
 
 	if (scene->draw_barriers) {
 		for (int i = 0; i < cvector_size(scene->click_barriers); i++) {
-			buffer_ptr = get_sprite_vertices(
+			buffer_ptr = get_click_barrier_vertices_vertices(
 			    buffer_ptr, &scene->click_barriers[i]);
 
 			quad_count++;
@@ -183,14 +216,16 @@ void draw_scene(Scene *scene, GLFWwindow *window, ShaderProgram shader)
 	// bind appropriate textures
 	for (int i = 0; i < cvector_size(scene->sprites); i++) {
 		Sprite *curr = scene->sprites[i];
-		glActiveTexture(GL_TEXTURE0 + curr->texture_index);
-		glBindTexture(GL_TEXTURE_2D, curr->texture->id);
+		if (curr->visible) {
+			glActiveTexture(GL_TEXTURE0 + curr->texture_index);
+			glBindTexture(GL_TEXTURE_2D, curr->texture->gl_id);
+		}
 	}
 
 	for (int i = 0; i < cvector_size(scene->text_objects); i++) {
 		Text *curr = scene->text_objects[i];
 		glActiveTexture(GL_TEXTURE0 + curr->texture_index);
-		glBindTexture(GL_TEXTURE_2D, curr->font->texture->id);
+		glBindTexture(GL_TEXTURE_2D, curr->font->texture->gl_id);
 	}
 
 	// bind shader and set texture samplers

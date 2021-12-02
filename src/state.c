@@ -1,9 +1,12 @@
 #include "state.h"
+#include "dressup.h"
 
-int init_game_state(GameState *game_state)
+int init_game_state(Resources *resources, GameState *game_state)
 {
-	game_state->score = 5000;
-	game_state->lain_outfit = DEFAULT_OUTFIT;
-	game_state->lain_tool_state = NO_TOOLS;
+	game_state->score = 0;
+
+	game_state->lain = (Lain){0};
+	lain_set_outfit(resources, OUTFIT_DEFAULT, &game_state->lain);
+
 	return 1;
 }

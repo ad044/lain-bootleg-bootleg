@@ -20,23 +20,17 @@ static void engine_stop(Engine *engine);
 int engine_init(Engine *engine)
 {
 	// init main (menu) window
-	if (!(make_window(&engine->main_window, SHRINKED_MENU_WIDTH,
-			  SHRINKED_MENU_HEIGHT, "lain", NULL, false))) {
+	if (!(make_window(&engine->main_window, COLLAPSED_MENU_WIDTH,
+			  COLLAPSED_MENU_HEIGHT, "lain", NULL, false))) {
 		printf("Failed to create main window.\n");
 		return 0;
 	}
 
-	shaders_init(engine->resources.shaders);
+	init_game_state(&engine->resources, &engine->game_state);
 
-	textures_init(engine->resources.textures);
-
-	fonts_init(engine->resources.fonts, engine->resources.textures);
-
-	init_game_state(&engine->game_state);
+	init_resources(&engine->resources);
 
 	init_menu(&engine->menu, &engine->game_state, &engine->resources);
-
-	init_animations(engine->resources.animations);
 
 	engine->minigame_window = NULL;
 	engine->minigame.queued_start = NULL;

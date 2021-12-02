@@ -4,3 +4,4 @@ build/
 .cache/
 .dir-locals.el
 embedded.*
+*animations.json*

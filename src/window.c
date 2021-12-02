@@ -15,16 +15,6 @@ static void GLAPIENTRY gl_debug_message_callback(GLenum source, GLenum type,
 		severity, message);
 }
 
-void shrink_main_window(GLFWwindow *window)
-{
-	glfwSetWindowSize(window, SHRINKED_MENU_WIDTH, SHRINKED_MENU_HEIGHT);
-}
-
-void expand_main_window(GLFWwindow *window)
-{
-	glfwSetWindowSize(window, EXPANDED_MENU_WIDTH, EXPANDED_MENU_HEIGHT);
-}
-
 static GLFWmonitor *get_current_monitor(GLFWwindow *window)
 {
 	int nmonitors, i;

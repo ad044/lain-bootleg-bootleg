@@ -33,6 +33,9 @@ set(SOURCES
    src/random.c
    src/animations.c
    src/dressup.c
+   src/theater.c
+   src/cJSON.c
+   src/resources.c
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})

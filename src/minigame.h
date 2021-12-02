@@ -4,7 +4,7 @@
 #include "scene.h"
 #include "state.h"
 
-typedef enum { NO_MINIGAME, KUMASHOOT, DRESSUP } MinigameType;
+typedef enum { NO_MINIGAME, KUMASHOOT, DRESSUP, THEATER } MinigameType;
 
 struct minigame;
 
@@ -24,7 +24,6 @@ struct minigame {
 	void *current;
 
 	double last_updated;
-	double refresh_rate;
 
 	StartMinigameFunc queued_start;
 };

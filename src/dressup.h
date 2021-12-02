@@ -6,21 +6,14 @@
 
 typedef enum { ITEM_GRAB, ITEM_RELEASE, LAIN_SWAP_CLOTHING } DressUpEvent;
 
-typedef enum { STANDING, ENTERING, LEAVING } LainMoveState;
-
-typedef enum { SCREWDRIVER, NAVI, CLOTHING } DressUpObjectType;
-
 typedef struct {
-	LainMoveState move_state;
-	Texture *standing_texture;
-	Texture *walking_texture;
-	Texture *leave_texture;
+	enum { STANDING, ENTERING, LEAVING } move_state;
 	Sprite sprite;
 } DressUpLain;
 
 typedef struct {
+	enum { SCREWDRIVER, NAVI, CLOTHING } type;
 	Sprite sprite;
-	DressUpObjectType type;
 	LainOutfit outfit;
 } DressUpObject;
 
@@ -33,7 +26,7 @@ typedef struct {
 
 	DressUpObject school_outfit;
 	DressUpObject bear_outfit;
-	DressUpObject pajama_outfit;
+	DressUpObject sweater_outfit;
 	DressUpObject cyberia_outfit;
 	DressUpObject ufo;
 	DressUpObject navi;
@@ -42,6 +35,7 @@ typedef struct {
 	Sprite background;
 } DressUp;
 
+void lain_set_outfit(Resources *resources, LainOutfit outfit, Lain *lain);
 void start_dressup(Menu *menu, Resources *resources, GameState *game_state,
 		   Minigame *minigame, GLFWwindow **minigame_window,
 		   GLFWwindow *main_window);

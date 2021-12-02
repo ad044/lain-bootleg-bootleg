@@ -5,8 +5,8 @@ void kill_minigame(Texture *textures, Menu *menu, Minigame *minigame,
 {
 	minigame->type = NO_MINIGAME;
 
-	menu->bear_icon.texture = &textures[BEAR_ICON_INACTIVE];
-	menu->dressup_button.texture = &textures[DRESSUP_BUTTON_INACTIVE];
+	menu->bear_icon.texture = &textures[BEAR_ICON];
+	menu->dressup_button.texture = &textures[DRESSUP_BUTTON];
 
 	glfwDestroyWindow(minigame_window);
 
@@ -15,5 +15,5 @@ void kill_minigame(Texture *textures, Menu *menu, Minigame *minigame,
 
 _Bool can_refresh(double time, Minigame *minigame)
 {
-	return time - minigame->last_updated > 1.0 / minigame->refresh_rate;
+	return time - minigame->last_updated > 1.0 / 25.0;
 }

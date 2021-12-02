@@ -4,17 +4,7 @@
 #include "scene.h"
 #include "state.h"
 
-typedef enum { EXPANDED, SHRINKED, EXPANDING, SHRINKING } MenuState;
-
-typedef enum {
-	CLASSROOM,
-	SCHOOL,
-	LAIN_ROOM_NIGHT,
-	ALICE_ROOM,
-	CYBERIA,
-	STREET,
-	BRIDGE
-} TheaterScene;
+typedef enum { LAUGH, BLINK, LAUGH_BLINK } MenuLainAnimation;
 
 typedef struct {
 	_Bool recently_changed_laugh;
@@ -32,13 +22,14 @@ typedef enum {
 	TOGGLE_THEATER_PREVIEW,
 	TOGGLE_SCORE_PREVIEW,
 	BEAR_ICON_CLICK,
-	DRESSUP_TOGGLE
+	DRESSUP_TOGGLE,
+	THEATER_TOGGLE
 } MenuEvent;
 
 typedef struct {
 	struct tm *current_time;
 
-	MenuState state;
+	_Bool collapsed;
 
 	Scene scene;
 
@@ -53,6 +44,7 @@ typedef struct {
 	Sprite paw_icon;
 	Sprite theater_preview;
 	Sprite score_preview;
+	Sprite background;
 
 	Text clock;
 	Text score_text;

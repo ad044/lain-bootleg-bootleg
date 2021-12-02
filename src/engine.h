@@ -2,7 +2,6 @@
 
 #include "menu.h"
 #include "minigame.h"
-#include "resources.h"
 #include "scene.h"
 #include "state.h"
 

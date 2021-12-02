@@ -9,16 +9,23 @@
 #include "kumashoot.h"
 #include "menu.h"
 #include "minigame.h"
+#include "resources.h"
 #include "scene.h"
 #include "shader.h"
 #include "sprite.h"
 #include "state.h"
 #include "text.h"
 #include "texture.h"
+#include "theater.h"
 #include "vector2d.h"
 #include "window.h"
 
 #define PI 3.14159265359
+
+static inline _Bool is_bear(struct tm *current_time)
+{
+	return (17 < current_time->tm_hour) || (current_time->tm_hour < 6);
+}
 
 static void update_menu_time(Menu *menu)
 {
@@ -31,125 +38,134 @@ static void update_menu_time(Menu *menu)
 
 static void get_menu_timestring(char *target, Menu *menu)
 {
-	strftime(target, sizeof(char) * 11, "%p%I:%M:%S", menu->current_time);
+	strftime(target, sizeof(char) * 16, "%p%I:%M:%S", menu->current_time);
 }
 
-static void init_menu_sprites(Menu *menu, Texture *textures)
+static void init_menu_sprites(struct tm *current_time, Resources *resources,
+			      Menu *menu)
 {
-	menu->ui_lain.sprite = (Sprite){.pos = {6.0f, 6.0f},
-					.size = {64.0f, 64.0f},
-					.hitbox_size = {32.0f, 32.0f},
-					.is_spritesheet = true,
-					.max_frame = 8,
-					.visible = true,
-					.z_index = 4};
+	// texture for this gets set later on
+	make_sprite(
+	    &menu->ui_lain.sprite,
+	    (Sprite){.pos = {6.0f, 6.0f},
+		     .hitbox_size = {32.0f, 32.0f},
+		     .texture = is_bear(current_time)
+				    ? texture_get(resources, UI_BEAR_LAIN_1)
+				    : texture_get(resources, UI_DEFAULT_LAIN_1),
+		     .z_index = 4,
+		     .visible = true});
 
-	menu->main_ui = (Sprite){
-	    .pos = {-34.0f, -70.0f},
-	    .size = {200.0f, 200.0f},
-	    .texture = &textures[MAIN_UI],
-	    .is_spritesheet = true,
-	    .max_frame = 6,
-	    .visible = true,
-	    .z_index = 3,
-	};
+	make_sprite(&menu->main_ui,
+		    (Sprite){.pos = {-34.0f, -34.0f},
+			     .texture = texture_get(resources, MAIN_UI_1),
+			     .z_index = 3,
+			     .visible = true});
 
-	menu->main_ui_bar = (Sprite){
-	    .pos = {102.0f, 38.0f},
-	    .size = {64.0f, 8.0f},
-	    .hitbox_size = {64.0f, 8.0f},
-	    .texture = &textures[MAIN_UI_BAR_INACTIVE],
-	    .visible = true,
-	    .z_index = 4,
-	};
+	make_sprite(&menu->main_ui_bar,
+		    (Sprite){
+			.pos = {102.0f, 38.0f},
+			.hitbox_size = {64.0f, 8.0f},
+			.texture = texture_get(resources, MAIN_UI_BAR),
+			.z_index = 4,
+			.visible = true,
+		    });
 
-	menu->dressup_button = (Sprite){
-	    .pos = {112.0f, 96.0f},
-	    .size = {72.0f, 72.0f},
-	    .hitbox_size = {36.0f, 36.0f},
-	    .texture = &textures[DRESSUP_BUTTON_INACTIVE],
-	    .visible = false,
-	    .z_index = 4,
-	};
+	make_sprite(&menu->dressup_button,
+		    (Sprite){
+			.pos = {112.0f, 96.0f},
+			.hitbox_size = {36.0f, 36.0f},
+			.texture = texture_get(resources, DRESSUP_BUTTON),
+			.z_index = 4,
+			.visible = false,
+		    });
 
-	menu->theater_preview = (Sprite){
-	    .pos = {104.0f, 80.0f},
-	    .size = {96.0f, 64.0f},
-	    .texture = &textures[THEATER_PREVIEWS],
-	    .visible = false,
-	    .z_index = 7,
-	    .is_spritesheet = true,
-	    .max_frame = 6,
-	};
+	make_sprite(&menu->theater_preview,
+		    (Sprite){
+			.pos = {104.0f, 80.0f},
+			.hitbox_size = {96.0f, 64.0f},
+			// TODO texture here gets saved in savefile
+			.texture = texture_get(resources, CLASSROOM_PREVIEW),
+			.z_index = 7,
+			.visible = false,
+		    });
 
-	menu->theater_button = (Sprite){
-	    .pos = {0.0f, 128.0f},
-	    .size = {128.0f, 64.0f},
-	    .hitbox_size = {64.0f, 32.0f},
-	    .texture = &textures[THEATER_BUTTON_INACTIVE],
-	    .visible = false,
-	    .z_index = 4,
-	};
+	make_sprite(&menu->theater_button,
+		    (Sprite){
+			.pos = {0.0f, 128.0f},
+			.hitbox_size = {64.0f, 32.0f},
+			.texture = texture_get(resources, THEATER_BUTTON),
+			.z_index = 4,
+			.visible = false,
+		    });
 
-	menu->bear_icon = (Sprite){
-	    .pos = {56.0f, 56.0f},
-	    .size = {32.0f, 32.0f},
-	    .hitbox_size = {32.0f, 32.0f},
-	    .texture_index = 4,
-	    .texture = &textures[BEAR_ICON_INACTIVE],
-	    .visible = false,
-	    .z_index = 1,
-	};
+	make_sprite(&menu->bear_icon,
+		    (Sprite){
+			.pos = {56.0f, 56.0f},
+			.hitbox_size = {32.0f, 32.0f},
+			.texture = texture_get(resources, BEAR_ICON),
+			.z_index = 1,
+			.visible = false,
+		    });
 
-	menu->screwdriver_icon = (Sprite){
-	    .pos = {56.0f, 56.0f},
-	    .size = {32.0f, 32.0f},
-	    .texture = &textures[SCREWDRIVER_ICON_INACTIVE],
-	    .visible = false,
-	    .z_index = 2,
-	};
+	make_sprite(&menu->screwdriver_icon,
+		    (Sprite){
+			.pos = {56.0f, 56.0f},
+			.texture = texture_get(resources, SCREWDRIVER_ICON),
+			.z_index = 2,
+			.visible = false,
+		    });
 
-	menu->paw_icon = (Sprite){
-	    .pos = {56.0f, 56.0f},
-	    .size = {32.0f, 32.0f},
-	    .texture = &textures[PAW_ICON],
-	    .visible = false,
-	    .z_index = 1,
-	};
+	make_sprite(&menu->paw_icon,
+		    (Sprite){
+			.pos = {56.0f, 56.0f},
+			.texture = texture_get(resources, PAW_ICON),
+			.z_index = 1,
+			.visible = false,
+		    });
 
-	menu->score_preview = (Sprite){.pos = {0.0f, 0.0f},
-				       .size = {200.0f, 88.0f},
-				       .texture_index = 10,
-				       .texture = &textures[SCORE_PREVIEW],
-				       .visible = false,
-				       .z_index = 7};
+	make_sprite(&menu->score_preview,
+		    (Sprite){
+			.pos = {0.0f, 0.0f},
+			.texture = texture_get(resources, SCORE_DISPLAY),
+			.z_index = 7,
+			.visible = false,
+		    });
+
+	make_sprite(&menu->background,
+		    (Sprite){
+			.pos = {0.0f, 0.0f},
+			.texture = texture_get(resources, MENU_BG),
+			.z_index = 0,
+			.visible = true,
+		    });
 }
 
-static void init_menu_text_objects(Menu *menu, Font *fonts,
-				   GameState *game_state)
+static void init_menu_text_objects(Font *fonts, GameState *game_state,
+				   Menu *menu)
 {
 	menu->clock = (Text){.pos = {70.0f, 22.0f},
 			     .glyph_size = {32.0f, 16.0f},
 			     .visible = true,
-			     .font = &fonts[WHITE_FONT]};
+			     .font = &fonts[FONT_WHITE]};
 	get_menu_timestring(menu->clock.current_text, menu);
 
 	menu->score_text = (Text){.pos = {178.0f, 16.0f},
 				  .glyph_size = {10.0f, 16.0f},
 				  .visible = false,
 				  .left_aligned = true,
-				  .font = &fonts[RED_FONT]};
+				  .font = &fonts[FONT_RED]};
 	sprintf(menu->score_text.current_text, "%d", game_state->score);
 }
 
-static void animate_menu_expand(GameState *game_state, Texture *textures,
-				Menu *menu, GLFWwindow *window)
+static void animate_menu(GameState *game_state, Resources *resources,
+			 Menu *menu, GLFWwindow *window)
 {
 	Sprite *main_ui = &menu->main_ui;
 
-	if (!sprite_is_max_frame(main_ui)) {
-		if (main_ui->frame_index == 1) {
-			expand_main_window(window);
+	if (menu->collapsed) {
+		if (main_ui->animation_frame->index == 0) {
+			glfwSetWindowSize(window, EXPANDED_MENU_WIDTH,
+					  EXPANDED_MENU_HEIGHT);
 
 			main_ui->pos = (Vector2D){0.0f, 0.0f};
 			menu->ui_lain.sprite.pos = (Vector2D){40.0f, 40.0f};
@@ -161,47 +177,43 @@ static void animate_menu_expand(GameState *game_state, Texture *textures,
 			menu->screwdriver_icon.visible = true;
 			menu->paw_icon.visible = true;
 		}
-		sprite_try_next_frame(game_state->time, main_ui);
 	} else {
-		// completed expanding
-		menu->state = EXPANDED;
-		menu->dressup_button.visible = true;
-		menu->theater_button.visible = true;
-
-		menu->main_ui_bar.texture = &textures[MAIN_UI_BAR_ACTIVE];
-	}
-}
-
-static void animate_menu_shrink(GameState *game_state, Texture *textures,
-				Menu *menu, GLFWwindow *window)
-{
-	Sprite *main_ui = &menu->main_ui;
-
-	if (main_ui->frame_index > 0) {
-		sprite_try_next_frame(game_state->time, main_ui);
-		if (main_ui->frame_index == main_ui->max_frame - 1) {
+		if (main_ui->animation_frame->index == 1) {
 			menu->dressup_button.visible = false;
 			menu->theater_button.visible = false;
 			menu->score_preview.visible = false;
 			menu->score_text.visible = false;
 		}
-		if (main_ui->frame_index == 1) {
-			shrink_main_window(window);
+		if (main_ui->animation_frame->index == 5) {
+			glfwSetWindowSize(window, COLLAPSED_MENU_WIDTH,
+					  COLLAPSED_MENU_HEIGHT);
+
+			sprite_set_to_origin_pos(main_ui);
+			sprite_set_to_origin_pos(&menu->ui_lain.sprite);
+			sprite_set_to_origin_pos(&menu->main_ui_bar);
+
+			menu->clock.pos = (Vector2D){70.0f, 22.0f};
+
+			menu->bear_icon.visible = false;
+			menu->screwdriver_icon.visible = false;
+			menu->paw_icon.visible = false;
 		}
-	} else {
-		menu->state = SHRINKED;
-		sprite_set_to_origin_pos(main_ui);
-		sprite_set_to_origin_pos(&menu->ui_lain.sprite);
-		sprite_set_to_origin_pos(&menu->main_ui_bar);
-
-		menu->clock.pos = (Vector2D){70.0f, 22.0f};
-
-		menu->bear_icon.visible = false;
-		menu->screwdriver_icon.visible = false;
-		menu->paw_icon.visible = false;
-
-		menu->main_ui_bar.texture = &textures[MAIN_UI_BAR_INACTIVE];
 	}
+
+	if (sprite_animation_is_last_frame(&menu->main_ui)) {
+		menu->collapsed = !menu->collapsed;
+		if (menu->collapsed) {
+			menu->main_ui_bar.texture =
+			    texture_get(resources, MAIN_UI_BAR);
+		} else {
+			menu->main_ui_bar.texture =
+			    texture_get(resources, MAIN_UI_BAR_ACTIVE);
+			menu->dressup_button.visible = true;
+			menu->theater_button.visible = true;
+		}
+	}
+
+	sprite_try_next_frame(game_state->time, &menu->main_ui);
 }
 
 static void update_menu_icons(Menu *menu)
@@ -238,47 +250,77 @@ static void update_menu_icons(Menu *menu)
 		       paw_icon->origin_pos.y + sin(hrs_angle) * radius};
 }
 
+static int get_menu_lain_animation(struct tm *current_time,
+				   MenuLainAnimation animation_type)
+{
+	if (is_bear(current_time)) {
+		switch (animation_type) {
+		case LAUGH: {
+			return UI_BEAR_LAIN_LAUGH_ANIMATION;
+		}
+		case BLINK: {
+			return UI_BEAR_LAIN_BLINK_ANIMATION;
+		}
+		case LAUGH_BLINK: {
+			return UI_BEAR_LAIN_LAUGH_BLINK_ANIMATION;
+		}
+		}
+	} else {
+		switch (animation_type) {
+		case LAUGH: {
+			return UI_DEFAULT_LAIN_LAUGH_ANIMATION;
+		}
+		case BLINK: {
+			return UI_DEFAULT_LAIN_BLINK_ANIMATION;
+		}
+		case LAUGH_BLINK: {
+			return UI_DEFAULT_LAIN_LAUGH_BLINK_ANIMATION;
+		}
+		}
+	}
+}
+
 void update_menu_lain(Resources *resources, GameState *game_state,
 		      struct tm *current_time, MenuLain *lain)
 {
-
-	if ((17 < current_time->tm_hour) || (current_time->tm_hour < 6)) {
-		lain->sprite.texture = &resources->textures[UI_LAIN_BEAR];
-	} else {
-		lain->sprite.texture = &resources->textures[UI_LAIN];
-	}
-
 	if (current_time->tm_sec % 15 == 0) {
 		if (!lain->recently_changed_laugh) {
 			unsigned int quarter = current_time->tm_sec / 15;
 			if (quarter == lain->laugh_quarter) {
 				if (!lain->laughing) {
-					lain->laughing = true;
 					sprite_set_animation(
+					    resources, game_state->time,
 					    &lain->sprite,
-					    &resources->animations
-						 [UI_LAIN_LAUGH_ANIMATION]);
+					    get_menu_lain_animation(
+						current_time, LAUGH));
+
+					lain->laughing = !lain->laughing;
+					lain->recently_changed_laugh = true;
 				} else {
-					lain->laughing = false;
+					lain->laughing = !lain->laughing;
+					lain->recently_changed_laugh = true;
+
 					sprite_set_animation(
+					    resources, game_state->time,
 					    &lain->sprite,
-					    &resources->animations
-						 [UI_LAIN_STOP_LAUGH_ANIMATION]);
+					    get_menu_lain_animation(
+						current_time, BLINK));
 				}
-				lain->recently_changed_laugh = true;
 			} else if (!lain->blinking) {
-				lain->blinking = true;
 				if (!lain->laughing) {
 					sprite_set_animation(
+					    resources, game_state->time,
 					    &lain->sprite,
-					    &resources->animations
-						 [UI_LAIN_BLINK_ANIMATION]);
+					    get_menu_lain_animation(
+						current_time, BLINK));
 				} else {
 					sprite_set_animation(
+					    resources, game_state->time,
 					    &lain->sprite,
-					    &resources->animations
-						 [UI_LAIN_LAUGH_BLINK_ANIMATION]);
+					    get_menu_lain_animation(
+						current_time, LAUGH_BLINK));
 				}
+				lain->blinking = true;
 			}
 		}
 	} else {
@@ -296,7 +338,7 @@ void update_menu(Menu *menu, GameState *game_state, GLFWwindow *window,
 {
 	update_menu_time(menu);
 
-	char timestring[11];
+	char timestring[16];
 	get_menu_timestring(timestring, menu);
 	update_text(&menu->clock, timestring);
 
@@ -311,17 +353,8 @@ void update_menu(Menu *menu, GameState *game_state, GLFWwindow *window,
 
 	update_scene(&menu->scene);
 
-	switch (menu->state) {
-	case EXPANDING:
-		animate_menu_expand(game_state, resources->textures, menu,
-				    window);
-		break;
-	case SHRINKING:
-		animate_menu_shrink(game_state, resources->textures, menu,
-				    window);
-		break;
-	default:
-		break;
+	if (menu->main_ui.animation != NULL) {
+		animate_menu(game_state, resources, menu, window);
 	}
 }
 
@@ -329,16 +362,16 @@ void init_menu(Menu *menu, GameState *game_state, Resources *resources)
 {
 	update_menu_time(menu);
 
-	menu->state = SHRINKED;
+	menu->collapsed = true;
 
 	menu->ui_lain.recently_changed_laugh = false;
 	menu->ui_lain.laughing = false;
 	menu->ui_lain.blinking = false;
 	menu->ui_lain.laugh_quarter = menu->current_time->tm_sec / 15;
 
-	init_menu_sprites(menu, resources->textures);
+	init_menu_sprites(menu->current_time, resources, menu);
 
-	init_menu_text_objects(menu, resources->fonts, game_state);
+	init_menu_text_objects(resources->fonts, game_state, menu);
 
 	Sprite *sprites[] = {
 	    &menu->ui_lain.sprite,   &menu->main_ui,
@@ -346,6 +379,7 @@ void init_menu(Menu *menu, GameState *game_state, Resources *resources)
 	    &menu->theater_button,   &menu->bear_icon,
 	    &menu->screwdriver_icon, &menu->paw_icon,
 	    &menu->theater_preview,  &menu->score_preview,
+	    &menu->background,
 	};
 	uint8_t sprite_count = sizeof(sprites) / sizeof(sprites[0]);
 
@@ -367,27 +401,41 @@ void init_menu(Menu *menu, GameState *game_state, Resources *resources)
 			     .click_event = BEAR_ICON_CLICK},
 
 	    (SpriteBehavior){.sprite = &menu->dressup_button,
-			     .click_event = DRESSUP_TOGGLE}
+			     .click_event = DRESSUP_TOGGLE},
+
+	    (SpriteBehavior){.sprite = &menu->theater_preview,
+			     .click_event = THEATER_TOGGLE}
 
 	};
 	uint8_t sprite_behavior_count =
 	    sizeof(sprite_behaviors) / sizeof(sprite_behaviors[0]);
 
-	// TODO delete this
-	// only here to check actual clickboxes of sprites, temporary.
-	/* Sprite click_barriers[] = { */
-	/*     make_click_barrier(136, 73, 192, 79), */
-	/*     make_click_barrier(125, 111, 168, 145), */
-	/*     make_click_barrier(36, 145, 101, 177), */
-	/* }; */
-
-	/* uint8_t click_barrier_count = */
-	/*     sizeof(click_barriers) / sizeof(click_barriers[0]); */
-
 	init_scene(&menu->scene, sprites, sprite_count, sprite_behaviors,
 		   sprite_behavior_count, text_objs, text_obj_count, NULL, 0);
+}
 
-	/* menu->scene.draw_barriers = true; */
+static TextureID get_next_theater_preview(GameState *game_state,
+					  TextureID current_texture_id)
+{
+	switch (current_texture_id) {
+	case CLASSROOM_PREVIEW:
+		return SCHOOL_PREVIEW;
+	case SCHOOL_PREVIEW:
+		return LAIN_ROOM_NIGHT_PREVIEW;
+	case LAIN_ROOM_NIGHT_PREVIEW:
+		return ARISU_ROOM_PREVIEW;
+	case ARISU_ROOM_PREVIEW:
+		return CYBERIA_PREVIEW;
+	case CYBERIA_PREVIEW:
+		return STREET_PREVIEW;
+	case STREET_PREVIEW:
+		return game_state->score >= 2000 ? BRIDGE_PREVIEW
+						 : CLASSROOM_PREVIEW;
+	case BRIDGE_PREVIEW:
+		return CLASSROOM_PREVIEW;
+	default:
+		return 0;
+	}
 }
 
 void handle_menu_event(MenuEvent event, void *game)
@@ -400,25 +448,21 @@ void handle_menu_event(MenuEvent event, void *game)
 	case MAIN_UI_BAR_CLICK: {
 		Sprite *theater_preview = &menu->theater_preview;
 		Sprite *main_ui = &menu->main_ui;
-		Animation *animations = resources->animations;
 
 		if (theater_preview->visible) {
-			if (!sprite_is_max_frame(theater_preview)) {
-				theater_preview->frame_index++;
-			} else {
-				theater_preview->frame_index = 0;
-			}
+			menu->theater_preview.texture = texture_get(
+			    resources, get_next_theater_preview(
+					   &engine->game_state,
+					   menu->theater_preview.texture->id));
 		} else {
-			if (engine->menu.state == SHRINKED) {
-				menu->state = EXPANDING;
+			if (engine->menu.collapsed) {
 				sprite_set_animation(
-				    main_ui,
-				    &animations[MAIN_UI_EXPAND_ANIMATION]);
-			} else {
-				menu->state = SHRINKING;
+				    resources, engine->game_state.time, main_ui,
+				    MAIN_UI_EXPAND_ANIMATION);
+			} else if (engine->minigame.type != DRESSUP) {
 				sprite_set_animation(
-				    main_ui,
-				    &animations[MAIN_UI_SHRINK_ANIMATION]);
+				    resources, engine->game_state.time, main_ui,
+				    MAIN_UI_COLLAPSE_ANIMATION);
 			}
 		}
 		break;
@@ -427,17 +471,16 @@ void handle_menu_event(MenuEvent event, void *game)
 		Sprite *theater_preview = &menu->theater_preview;
 		theater_preview->visible = !theater_preview->visible;
 
-		menu->theater_button.texture =
-		    &resources->textures[theater_preview->visible
-					     ? THEATER_BUTTON_ACTIVE
-					     : THEATER_BUTTON_INACTIVE];
+		menu->theater_button.texture = texture_get(
+		    resources, theater_preview->visible ? THEATER_BUTTON_ACTIVE
+							: THEATER_BUTTON);
 		break;
 	}
 	case TOGGLE_SCORE_PREVIEW: {
 		Sprite *score_preview = &menu->score_preview;
 		Text *score = &menu->score_text;
 
-		if (menu->state == EXPANDED) {
+		if (!menu->collapsed) {
 			score_preview->visible = !score_preview->visible;
 			score->visible = !score->visible;
 		}
@@ -445,7 +488,6 @@ void handle_menu_event(MenuEvent event, void *game)
 	}
 	case BEAR_ICON_CLICK: {
 		MinigameType minigame_type = engine->minigame.type;
-
 		switch (minigame_type) {
 		case DRESSUP: {
 			glfwSetWindowShouldClose(engine->minigame_window, 1);
@@ -483,6 +525,11 @@ void handle_menu_event(MenuEvent event, void *game)
 		}
 		}
 
+		break;
+	}
+	case THEATER_TOGGLE: {
+		// TODO some stuff here depends on state, add that
+		engine->minigame.queued_start = start_theater;
 		break;
 	}
 	}
