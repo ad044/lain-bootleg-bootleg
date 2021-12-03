@@ -449,10 +449,13 @@ void handle_menu_event(MenuEvent event, Engine *engine)
 		Sprite *main_ui = &menu->main_ui;
 
 		if (theater_preview->visible) {
-			menu->theater_preview.texture = texture_get(
-			    resources, get_next_theater_preview(
-					   &engine->game_state,
-					   menu->theater_preview.texture->id));
+			if (engine->minigame.type != THEATER) {
+				menu->theater_preview.texture = texture_get(
+				    resources,
+				    get_next_theater_preview(
+					&engine->game_state,
+					menu->theater_preview.texture->id));
+			}
 		} else {
 			if (engine->menu.collapsed) {
 				sprite_set_animation(
@@ -467,12 +470,15 @@ void handle_menu_event(MenuEvent event, Engine *engine)
 		break;
 	}
 	case TOGGLE_THEATER_PREVIEW: {
-		Sprite *theater_preview = &menu->theater_preview;
-		theater_preview->visible = !theater_preview->visible;
-
-		menu->theater_button.texture = texture_get(
-		    resources, theater_preview->visible ? THEATER_BUTTON_ACTIVE
-							: THEATER_BUTTON);
+		if (engine->minigame.type != THEATER &&
+		    engine->minigame.type != DRESSUP) {
+			Sprite *theater_preview = &menu->theater_preview;
+			theater_preview->visible = !theater_preview->visible;
+			menu->theater_button.texture =
+			    texture_get(resources, theater_preview->visible
+						       ? THEATER_BUTTON_ACTIVE
+						       : THEATER_BUTTON);
+		}
 		break;
 	}
 	case TOGGLE_SCORE_PREVIEW: {
@@ -488,6 +494,7 @@ void handle_menu_event(MenuEvent event, Engine *engine)
 	case BEAR_ICON_CLICK: {
 		MinigameType minigame_type = engine->minigame.type;
 		switch (minigame_type) {
+		case THEATER:
 		case DRESSUP: {
 			glfwSetWindowShouldClose(engine->minigame_window, 1);
 			engine->minigame.queued_minigame = KUMASHOOT;
@@ -522,13 +529,33 @@ void handle_menu_event(MenuEvent event, Engine *engine)
 			engine->minigame.queued_minigame = DRESSUP;
 			break;
 		}
+		case THEATER:
+			break;
 		}
 
 		break;
 	}
 	case THEATER_TOGGLE: {
-		// TODO some stuff here depends on state, add that
-		engine->minigame.queued_minigame = THEATER;
+		MinigameType minigame_type = engine->minigame.type;
+
+		switch (minigame_type) {
+		case DRESSUP: {
+			break;
+		}
+		case KUMASHOOT: {
+			glfwSetWindowShouldClose(engine->minigame_window, 1);
+			engine->minigame.queued_minigame = DRESSUP;
+			break;
+		}
+		case THEATER: {
+			glfwSetWindowShouldClose(engine->minigame_window, 1);
+			break;
+		}
+		case NO_MINIGAME: {
+			engine->minigame.queued_minigame = THEATER;
+			break;
+		}
+		}
 		break;
 	}
 	}
