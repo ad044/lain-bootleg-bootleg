@@ -2,7 +2,9 @@
 #include <time.h>
 
 #include "animations.h"
+#include "dressup.h"
 #include "engine.h"
+#include "kumashoot.h"
 #include "menu.h"
 #include "minigame.h"
 #include "resources.h"
@@ -10,6 +12,7 @@
 #include "shader.h"
 #include "state.h"
 #include "texture.h"
+#include "theater.h"
 #include "window.h"
 
 #include "input.h"
@@ -33,7 +36,7 @@ int engine_init(Engine *engine)
 	init_menu(&engine->menu, &engine->game_state, &engine->resources);
 
 	engine->minigame_window = NULL;
-	engine->minigame.queued_start = NULL;
+	engine->minigame.queued_minigame = NO_MINIGAME;
 	engine->minigame.type = NO_MINIGAME;
 
 	// set user pointer to access engine inside callback function
@@ -66,10 +69,25 @@ static void engine_render(Engine *engine, double now)
 
 	glfwSwapBuffers(main_window);
 
-	if (minigame->type == NO_MINIGAME && minigame->queued_start != NULL) {
-		minigame->queued_start(menu, resources, game_state, minigame,
-				       &engine->minigame_window, main_window);
-		minigame->queued_start = NULL;
+	if (minigame->type == NO_MINIGAME &&
+	    minigame->queued_minigame != NO_MINIGAME) {
+		switch (minigame->queued_minigame) {
+		case KUMASHOOT:
+			start_kumashoot(menu, resources, game_state, minigame,
+					&engine->minigame_window, main_window);
+			break;
+		case DRESSUP:
+			start_dressup(menu, resources, game_state, minigame,
+				      &engine->minigame_window, main_window);
+			break;
+		case THEATER:
+			start_theater(menu, resources, game_state, minigame,
+				      &engine->minigame_window, main_window);
+			break;
+		default:
+			break;
+		}
+		minigame->queued_minigame = NO_MINIGAME;
 	}
 
 	if (minigame->type != NO_MINIGAME && can_refresh(now, minigame)) {
@@ -78,8 +96,22 @@ static void engine_render(Engine *engine, double now)
 		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		minigame->update(resources, menu, game_state, minigame_window,
-				 minigame);
+		switch (minigame->type) {
+		case KUMASHOOT:
+			update_kumashoot(resources, menu, game_state,
+					 minigame_window, minigame);
+			break;
+		case DRESSUP:
+			update_dressup(resources, menu, game_state,
+				       minigame_window, minigame);
+			break;
+		case THEATER:
+			update_theater(resources, menu, game_state,
+				       minigame_window, minigame);
+			break;
+		default:
+			break;
+		}
 
 		if (minigame->type != NO_MINIGAME) {
 			draw_scene(minigame->scene, minigame_window,

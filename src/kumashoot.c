@@ -420,9 +420,8 @@ static void update_bear(GameState *game_state, Scene *scene, Bear *bear)
 	}
 }
 
-static void update_kumashoot(Resources *resources, Menu *menu,
-			     GameState *game_state, GLFWwindow *window,
-			     Minigame *minigame)
+void update_kumashoot(Resources *resources, Menu *menu, GameState *game_state,
+		      GLFWwindow *window, Minigame *minigame)
 {
 	KumaShoot *kumashoot = (KumaShoot *)minigame->current;
 	Scene *scene = &kumashoot->scene;
@@ -576,7 +575,6 @@ void start_kumashoot(Menu *menu, Resources *resources, GameState *game_state,
 			     kumashoot);
 
 	minigame->current = kumashoot;
-	minigame->update = update_kumashoot;
 	minigame->scene = &kumashoot->scene;
 	minigame->type = KUMASHOOT;
 	minigame->last_updated = game_state->time;

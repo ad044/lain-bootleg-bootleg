@@ -490,7 +490,7 @@ void handle_menu_event(MenuEvent event, Engine *engine)
 		switch (minigame_type) {
 		case DRESSUP: {
 			glfwSetWindowShouldClose(engine->minigame_window, 1);
-			engine->minigame.queued_start = start_kumashoot;
+			engine->minigame.queued_minigame = KUMASHOOT;
 			break;
 		}
 		case KUMASHOOT: {
@@ -498,7 +498,7 @@ void handle_menu_event(MenuEvent event, Engine *engine)
 			break;
 		}
 		case NO_MINIGAME: {
-			engine->minigame.queued_start = start_kumashoot;
+			engine->minigame.queued_minigame = KUMASHOOT;
 			break;
 		}
 		}
@@ -515,11 +515,11 @@ void handle_menu_event(MenuEvent event, Engine *engine)
 		}
 		case KUMASHOOT: {
 			glfwSetWindowShouldClose(engine->minigame_window, 1);
-			engine->minigame.queued_start = start_dressup;
+			engine->minigame.queued_minigame = DRESSUP;
 			break;
 		}
 		case NO_MINIGAME: {
-			engine->minigame.queued_start = start_dressup;
+			engine->minigame.queued_minigame = DRESSUP;
 			break;
 		}
 		}
@@ -528,7 +528,7 @@ void handle_menu_event(MenuEvent event, Engine *engine)
 	}
 	case THEATER_TOGGLE: {
 		// TODO some stuff here depends on state, add that
-		engine->minigame.queued_start = start_theater;
+		engine->minigame.queued_minigame = THEATER;
 		break;
 	}
 	}

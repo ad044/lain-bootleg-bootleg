@@ -264,9 +264,8 @@ static void init_dressup_scene(Resources *resources, GameState *game_state,
 		   sprite_behavior_count, NULL, 0, NULL, 0);
 }
 
-static void update_dressup(Resources *resources, Menu *menu,
-			   GameState *game_state, GLFWwindow *window,
-			   Minigame *minigame)
+void update_dressup(Resources *resources, Menu *menu, GameState *game_state,
+		    GLFWwindow *window, Minigame *minigame)
 {
 	DressUp *dressup = (DressUp *)minigame->current;
 	DressUpLain *lain = &dressup->lain;
@@ -367,7 +366,6 @@ void start_dressup(Menu *menu, Resources *resources, GameState *game_state,
 	init_dressup_scene(resources, game_state, &dressup->scene, dressup);
 
 	minigame->current = dressup;
-	minigame->update = update_dressup;
 	minigame->scene = &dressup->scene;
 	minigame->type = DRESSUP;
 	minigame->last_updated = game_state->time;

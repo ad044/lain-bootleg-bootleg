@@ -227,7 +227,7 @@ static void init_theater(Resources *resources, GameState *game_state,
 		   NULL, 0, NULL, 0);
 }
 
-static void update_theater(Resources *resources, Menu *menu,
+void update_theater(Resources *resources, Menu *menu,
 			   GameState *game_state, GLFWwindow *window,
 			   Minigame *minigame)
 {
@@ -275,7 +275,6 @@ void start_theater(Menu *menu, Resources *resources, GameState *game_state,
 		     menu->theater_preview.texture->id);
 
 	minigame->current = theater;
-	minigame->update = update_theater;
 	minigame->scene = &theater->scene;
 	minigame->type = THEATER;
 	minigame->last_updated = game_state->time;

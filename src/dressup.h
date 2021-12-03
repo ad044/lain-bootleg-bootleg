@@ -40,3 +40,5 @@ void start_dressup(Menu *menu, Resources *resources, GameState *game_state,
 		   Minigame *minigame, GLFWwindow **minigame_window,
 		   GLFWwindow *main_window);
 void handle_dressup_event(DressUpEvent event, void *object, Engine *engine);
+void update_dressup(Resources *resources, Menu *menu, GameState *game_state,
+		    GLFWwindow *window, Minigame *minigame);

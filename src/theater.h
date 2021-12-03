@@ -33,3 +33,5 @@ typedef struct {
 void start_theater(Menu *menu, Resources *resources, GameState *game_state,
 		   Minigame *minigame, GLFWwindow **minigame_window,
 		   GLFWwindow *main_window);
+void update_theater(Resources *resources, Menu *menu, GameState *game_state,
+		    GLFWwindow *window, Minigame *minigame);

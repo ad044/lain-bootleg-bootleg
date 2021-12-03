@@ -63,3 +63,5 @@ void start_kumashoot(Menu *menu, Resources *resources, GameState *game_state,
 		     Minigame *minigame, GLFWwindow **minigame_window,
 		     GLFWwindow *main_window);
 void handle_kumashoot_event(KumaShootEvent event, Bear *bear, Engine *engine);
+void update_kumashoot(Resources *resources, Menu *menu, GameState *game_state,
+		      GLFWwindow *window, Minigame *minigame);
