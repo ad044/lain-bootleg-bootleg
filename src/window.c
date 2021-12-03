@@ -5,6 +5,9 @@
 #include "scene.h"
 #include "window.h"
 
+#define MIN(a, b) (((a) < (b)) ? (a) : (b))
+#define MAX(a, b) (((a) > (b)) ? (a) : (b))
+
 static void GLAPIENTRY gl_debug_message_callback(GLenum source, GLenum type,
 						 GLuint id, GLenum severity,
 						 GLsizei length,
@@ -38,8 +41,8 @@ static GLFWmonitor *get_current_monitor(GLFWwindow *window)
 		mw = mode->width;
 		mh = mode->height;
 
-		overlap = max(0, min(wx + ww, mx + mw) - max(wx, mx)) *
-			  max(0, min(wy + wh, my + mh) - max(wy, my));
+		overlap = MAX(0, MIN(wx + ww, mx + mw) - MAX(wx, mx)) *
+			  MAX(0, MIN(wy + wh, my + mh) - MAX(wy, my));
 
 		if (bestoverlap < overlap) {
 			bestoverlap = overlap;
