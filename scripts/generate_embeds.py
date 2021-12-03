@@ -1,6 +1,7 @@
 import os
 from os import path
 
+
 def get_file_bytes(src):
     f = open(src, "rb")
     try:
@@ -10,6 +11,7 @@ def get_file_bytes(src):
 
     return byte_array
 
+
 def format_bytes_to_str(byte_array):
     byte_str = ""
     for ch in byte_array:
@@ -17,7 +19,9 @@ def format_bytes_to_str(byte_array):
 
     return byte_str
 
+
 DEBUG = False
+
 
 class Resource():
     def __init__(self, index, name, byte_str):
@@ -27,27 +31,35 @@ class Resource():
 
 # byte str is huge so, to inspect output in cases of errors,
 # debug mode replaces it with 0 for a less-laggy browsing experience
+
+
 def init_resource(resource):
     return """
     unsigned char {name}[] = {{{byte_str}}};
     size_t {name}_size = sizeof({name});
-    """.format(name = resource.name, byte_str = 0 if DEBUG else resource.byte_str)
+    """.format(name=resource.name, byte_str=0 if DEBUG else resource.byte_str)
+
 
 def create_load_call(resource):
     return """
     buffer[{index}] = (EmbeddedResource){{.bytes = {name}, .size = {name}_size}};
-    """.format(index = resource.index, name = resource.name)
+    """.format(index=resource.index, name=resource.name)
 
-def create_source(inits, loads):
+
+def create_source(inits, animations_json_bytes, loads):
     return """
     #include "embedded.h"
     #include "texture.h"
 
     {}
 
+    const char animations_json[] = {{{}}};
+    const size_t animations_json_size = sizeof(animations_json);
+
     void load_textures(EmbeddedResource *buffer)
     {{{}}}
-    """.format(inits, loads)
+    """.format(inits, animations_json_bytes, loads)
+
 
 def create_header():
     return """
@@ -62,16 +74,21 @@ def create_header():
         size_t size;
     } EmbeddedResource;
 
+    extern const char animations_json[];
+    extern const size_t animations_json_size;
+
     void load_textures(EmbeddedResource *buffer);
-    """   
+    """
+
 
 def compile_resources(src, dst):
+    sprites_dir = path.join(src, "sprites")
     if not path.isdir(dst):
         print("Destination must be a directory.")
         return
 
     resources = []
-    for f in os.listdir(src):
+    for f in os.listdir(sprites_dir):
         # X?D
         if f == "desktop.ini":
             continue
@@ -82,7 +99,7 @@ def compile_resources(src, dst):
 
         name = f"res_{filename.lower()}_{ext}"
 
-        file_bytes = get_file_bytes(path.join(src, f))
+        file_bytes = get_file_bytes(path.join(sprites_dir, f))
         byte_str = format_bytes_to_str(file_bytes)
 
         rsrc = Resource(filename, name, byte_str)
@@ -100,14 +117,15 @@ def compile_resources(src, dst):
     loads_str = "".join("{}".format(i) for i in resource_loads)
 
     with open(path.join(dst, "embedded.c"), "w") as target_c:
-        target_c.write(create_source(inits_str, loads_str))
+        animations_json_bytes = get_file_bytes(
+            path.join(src, "animations.json"))
+
+        target_c.write(create_source(
+            inits_str, format_bytes_to_str(animations_json_bytes), loads_str))
 
     with open(path.join(dst, "embedded.h"), "w") as target_h:
         target_h.write(create_header())
 
+
 if __name__ == "__main__":
-    compile_resources("../assets/", "../src/")
-
-
-
-    
+    compile_resources("../res/", "../src/")
