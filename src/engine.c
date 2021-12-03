@@ -2,6 +2,8 @@
 #include <time.h>
 
 #include "animations.h"
+#include "cJSON.h"
+#include "cvector.h"
 #include "dressup.h"
 #include "engine.h"
 #include "kumashoot.h"
@@ -16,9 +18,6 @@
 #include "window.h"
 
 #include "input.h"
-
-// todo
-static void engine_stop(Engine *engine);
 
 int engine_init(Engine *engine)
 {
@@ -69,27 +68,6 @@ static void engine_render(Engine *engine, double now)
 
 	glfwSwapBuffers(main_window);
 
-	if (minigame->type == NO_MINIGAME &&
-	    minigame->queued_minigame != NO_MINIGAME) {
-		switch (minigame->queued_minigame) {
-		case KUMASHOOT:
-			start_kumashoot(menu, resources, game_state, minigame,
-					&engine->minigame_window, main_window);
-			break;
-		case DRESSUP:
-			start_dressup(menu, resources, game_state, minigame,
-				      &engine->minigame_window, main_window);
-			break;
-		case THEATER:
-			start_theater(menu, resources, game_state, minigame,
-				      &engine->minigame_window, main_window);
-			break;
-		default:
-			break;
-		}
-		minigame->queued_minigame = NO_MINIGAME;
-	}
-
 	if (minigame->type != NO_MINIGAME && can_refresh(now, minigame)) {
 		glfwMakeContextCurrent(minigame_window);
 
@@ -123,6 +101,27 @@ static void engine_render(Engine *engine, double now)
 		}
 	}
 
+	if (minigame->type == NO_MINIGAME &&
+	    minigame->queued_minigame != NO_MINIGAME) {
+		switch (minigame->queued_minigame) {
+		case KUMASHOOT:
+			start_kumashoot(menu, resources, game_state, minigame,
+					&engine->minigame_window, main_window);
+			break;
+		case DRESSUP:
+			start_dressup(menu, resources, game_state, minigame,
+				      &engine->minigame_window, main_window);
+			break;
+		case THEATER:
+			start_theater(menu, resources, game_state, minigame,
+				      &engine->minigame_window, main_window);
+			break;
+		default:
+			break;
+		}
+		minigame->queued_minigame = NO_MINIGAME;
+	}
+
 	glfwPollEvents();
 
 	game_state->time = now;
@@ -135,11 +134,31 @@ static void engine_renderloop(Engine *engine)
 	}
 }
 
+void engine_stop(Engine *engine)
+{
+	Resources *resources = &engine->resources;
+	Menu *menu = &engine->menu;
+	Minigame *minigame = &engine->minigame;
+
+	cJSON_Delete(resources->animation_data);
+
+	free_scene(&menu->scene);
+	if (minigame->type != NO_MINIGAME) {
+		free_minigame(minigame, engine->minigame_window);
+	}
+
+	for (int i = 0; i < MAX_ANIMATION_COUNT; i++) {
+		animation_free(&resources->animations[i]);
+	}
+
+	glfwTerminate();
+}
+
 void engine_run(Engine *engine)
 {
 	if (!load_save_file(engine)) {
-		printf("Found a save file, but failed to load it.\n");
-		exit(1);
+		printf("Found a save file, but failed to load it. Starting "
+		       "from a fresh save state.\n");
 	};
 
 	engine_renderloop(engine);
@@ -147,6 +166,4 @@ void engine_run(Engine *engine)
 	if (!write_save_file(engine)) {
 		printf("Failed to write save file.\n");
 	};
-
-	glfwTerminate();
 }

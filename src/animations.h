@@ -96,3 +96,4 @@ void animations_init(struct resources *resources);
 Animation *animation_get(struct resources *resources, AnimationID animation_id);
 TheaterAnimation *theater_animation_get(struct resources *resources,
 					TheaterAnimationID animation_id);
+void animation_free(Animation *animation);

@@ -40,8 +40,8 @@ GLfloat *get_pivot_centered_sprite_vertices(GLfloat *buffer, Sprite *sprite);
 void sprite_try_next_frame(double now, Sprite *sprite);
 void sprite_set_animation(struct resources *resources, double now,
 			  Sprite *sprite, AnimationID animation_id);
-void sprite_set_animation_direct(struct resources *resources, double now,
-				 Sprite *sprite, Animation *animation);
+void sprite_set_animation_direct(double now, Sprite *sprite,
+				 Animation *animation);
 void get_hitbox_range(Vector2D pos, Vector2D hitbox_size, float *top,
 		      float *left, float *right, float *bottom);
 void sprite_set_to_origin_pos(Sprite *sprite);

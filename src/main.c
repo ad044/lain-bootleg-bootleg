@@ -34,5 +34,7 @@ int main(void)
 
 	engine_run(&engine);
 
+	engine_stop(&engine);
+
 	return 0;
 }

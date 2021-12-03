@@ -180,8 +180,8 @@ void sprite_try_next_frame(double now, Sprite *sprite)
 	}
 }
 
-void sprite_set_animation_direct(Resources *resources, double now,
-				 Sprite *sprite, Animation *animation)
+void sprite_set_animation_direct(double now, Sprite *sprite,
+				 Animation *animation)
 {
 	sprite->animation = animation;
 	sprite->animation_start_time = now;
@@ -192,7 +192,7 @@ void sprite_set_animation(Resources *resources, double now, Sprite *sprite,
 			  AnimationID animation_id)
 {
 	Animation *animation = animation_get(resources, animation_id);
-	sprite_set_animation_direct(resources, now, sprite, animation);
+	sprite_set_animation_direct(now, sprite, animation);
 }
 
 void sprite_set_to_origin_pos(Sprite *sprite)

@@ -31,29 +31,29 @@ int write_save_file(Engine *engine)
 
 	cJSON *save_state = cJSON_CreateObject();
 	if (save_state == NULL) {
-		goto end;
+		goto fail;
 	}
 
 	score = cJSON_CreateNumber(engine->game_state.score);
 	if (score == NULL) {
-		goto end;
+		goto fail;
 	}
 
 	theater_preview_texture_id =
 	    cJSON_CreateNumber(engine->menu.theater_preview.texture->id);
 	if (theater_preview_texture_id == NULL) {
-		goto end;
+		goto fail;
 	}
 
 	lain_outfit = cJSON_CreateNumber(engine->game_state.lain.outfit);
 	if (lain_outfit == NULL) {
-		goto end;
+		goto fail;
 	}
 
 	lain_tool_state =
 	    cJSON_CreateNumber(engine->game_state.lain.tool_state);
 	if (lain_tool_state == NULL) {
-		goto end;
+		goto fail;
 	}
 
 	cJSON_AddItemToObject(save_state, "score", score);
@@ -65,18 +65,23 @@ int write_save_file(Engine *engine)
 	string = cJSON_Print(save_state);
 	if (string == NULL) {
 		printf("Failed to print save state.\n");
+		goto fail;
 	}
 
 	FILE *f = fopen("./lain_save.json", "w");
 	if (f == NULL) {
 		printf("Failed to open save file.\n");
-		return 0;
+		free(string);
+		goto fail;
 	}
 
 	fprintf(f, "%s\n", string);
 
+	free(string);
+	cJSON_Delete(save_state);
+
 	return 1;
-end:
+fail:
 	cJSON_Delete(save_state);
 	return 0;
 }
@@ -108,23 +113,23 @@ int load_save_file(Engine *engine)
 
 		score = cJSON_GetObjectItem(save_state, "score");
 		if (score == NULL) {
-			goto end;
+			goto fail;
 		}
 
 		theater_preview_texture_id =
 		    cJSON_GetObjectItem(save_state, "theater_preview");
 		if (theater_preview_texture_id == NULL) {
-			goto end;
+			goto fail;
 		}
 
 		lain_tool_state = cJSON_GetObjectItem(save_state, "tool_state");
 		if (lain_tool_state == NULL) {
-			goto end;
+			goto fail;
 		}
 
 		lain_outfit = cJSON_GetObjectItem(save_state, "outfit");
 		if (lain_outfit == NULL) {
-			goto end;
+			goto fail;
 		}
 
 		engine->game_state.score = score->valueint;
@@ -133,10 +138,15 @@ int load_save_file(Engine *engine)
 		engine->menu.theater_preview.texture = texture_get(
 		    &engine->resources, theater_preview_texture_id->valueint);
 
-		return 1;
-	end:
 		cJSON_Delete(save_state);
+		free(data);
+
+		return 1;
+	fail:
+		cJSON_Delete(save_state);
+		free(data);
 		return 0;
 	}
+
 	return 1;
 }

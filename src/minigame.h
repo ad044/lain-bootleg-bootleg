@@ -22,4 +22,5 @@ typedef struct minigame Minigame;
 
 void kill_minigame(Texture *textures, Menu *menu, Minigame *minigame,
 		   GLFWwindow *minigame_window);
+void free_minigame(Minigame *minigame, GLFWwindow *minigame_window);
 _Bool can_refresh(double time, Minigame *minigame);

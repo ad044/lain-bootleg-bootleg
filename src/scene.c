@@ -260,3 +260,11 @@ void draw_scene(Scene *scene, GLFWwindow *window, ShaderProgram shader)
 	glDrawElements(GL_TRIANGLES, scene->quad_count * SPRITE_INDEX_COUNT,
 		       GL_UNSIGNED_INT, 0);
 }
+
+void free_scene(Scene *scene)
+{
+	cvector_free(scene->sprites);
+	cvector_free(scene->click_barriers);
+	cvector_free(scene->text_objects);
+	cvector_free(scene->sprite_behaviors);
+}

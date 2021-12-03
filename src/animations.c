@@ -5,7 +5,6 @@
 #include "texture.h"
 #include "vector2d.h"
 
-
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -178,4 +177,14 @@ void animations_init(Resources *resources)
 	for (int i = 0; i < MAX_THEATER_ANIMATION_COUNT; i++) {
 		resources->theater_animations[i] = (TheaterAnimation){0};
 	};
+}
+
+void animation_free(Animation *animation)
+{
+	AnimationFrame *curr = animation->first;
+	while (curr != NULL) {
+		AnimationFrame *next = curr->next;
+		free(curr);
+		curr = next;
+	}
 }

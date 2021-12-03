@@ -49,8 +49,7 @@ static void load_theater_animation(GameState *game_state, Resources *resources,
 						     .z_index = i,
 						 });
 
-		sprite_set_animation_direct(resources, time, layer,
-					    layer_animation);
+		sprite_set_animation_direct(time, layer, layer_animation);
 	}
 
 	theater->layer_count = animation->layer_count;
