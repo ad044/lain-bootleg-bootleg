@@ -29,9 +29,9 @@ int engine_init(Engine *engine)
 		return 0;
 	}
 
-	init_game_state(&engine->resources, &engine->game_state);
-
 	init_resources(&engine->resources);
+
+	init_game_state(&engine->resources, &engine->game_state);
 
 	init_menu(&engine->menu, &engine->game_state, &engine->resources);
 
