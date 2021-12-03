@@ -19,8 +19,6 @@ typedef enum {
 } TheaterType;
 
 typedef struct {
-	_Bool is_generic;
-
 	TheaterType type;
 
 	uint8_t layer_count;

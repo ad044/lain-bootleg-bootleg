@@ -70,13 +70,10 @@ static void init_theater(Resources *resources, GameState *game_state,
 	case CLASSROOM_PREVIEW: {
 		theater->type = THEATER_CLASSROOM;
 
-		if (lain_outfit == OUTFIT_SCHOOL &&
-		    lain_tool_state == HOLDING_NAVI) {
-			theater->is_generic = false;
+		if (lain_outfit == OUTFIT_SCHOOL) {
 			load_theater_animation(game_state, resources, theater,
 					       THEATER_CLASSROOM_ANIMATION);
 		} else {
-			theater->is_generic = true;
 			make_sprite(&theater->layers[0],
 				    (Sprite){.visible = true,
 					     .pos = {0.0f, 0.0f},
@@ -102,8 +99,8 @@ static void init_theater(Resources *resources, GameState *game_state,
 		break;
 	}
 	case SCHOOL_PREVIEW: {
-		if (lain_outfit == OUTFIT_SCHOOL) {
-			theater->is_generic = false;
+		if (lain_outfit == OUTFIT_SCHOOL &&
+		    lain_tool_state == HOLDING_NAVI) {
 			load_theater_animation(game_state, resources, theater,
 					       THEATER_SCHOOL_ANIMATION);
 		} else {
@@ -227,9 +224,8 @@ static void init_theater(Resources *resources, GameState *game_state,
 		   NULL, 0, NULL, 0);
 }
 
-void update_theater(Resources *resources, Menu *menu,
-			   GameState *game_state, GLFWwindow *window,
-			   Minigame *minigame)
+void update_theater(Resources *resources, Menu *menu, GameState *game_state,
+		    GLFWwindow *window, Minigame *minigame)
 {
 
 	Theater *theater = (Theater *)minigame->current;

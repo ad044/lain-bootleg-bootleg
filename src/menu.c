@@ -83,7 +83,6 @@ static void init_menu_sprites(struct tm *current_time, Resources *resources,
 		    (Sprite){
 			.pos = {104.0f, 80.0f},
 			.hitbox_size = {96.0f, 64.0f},
-			// TODO texture here gets saved in savefile
 			.texture = texture_get(resources, CLASSROOM_PREVIEW),
 			.z_index = 7,
 			.visible = false,
