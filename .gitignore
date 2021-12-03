@@ -1,7 +1,6 @@
-assets/
+res/
 build/
 .vs/
 .cache/
 .dir-locals.el
 embedded.*
-*animations.json*

@@ -438,9 +438,8 @@ static TextureID get_next_theater_preview(GameState *game_state,
 	}
 }
 
-void handle_menu_event(MenuEvent event, void *game)
+void handle_menu_event(MenuEvent event, Engine *engine)
 {
-	Engine *engine = (Engine *)game;
 	Menu *menu = &engine->menu;
 	Resources *resources = &engine->resources;
 

@@ -105,6 +105,16 @@ static void engine_renderloop(Engine *engine)
 
 void engine_run(Engine *engine)
 {
+	if (!load_save_file(engine)) {
+		printf("Found a save file, but failed to load it.\n");
+		exit(1);
+	};
+
 	engine_renderloop(engine);
+
+	if (!write_save_file(engine)) {
+		printf("Failed to write save file.\n");
+	};
+
 	glfwTerminate();
 }

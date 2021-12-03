@@ -5,7 +5,7 @@
 #include "scene.h"
 #include "state.h"
 
-typedef struct {
+typedef struct engine {
 	Resources resources;
 
 	GLFWwindow *main_window;

@@ -29,4 +29,7 @@ typedef struct {
 	Lain lain;
 } GameState;
 
+struct engine;
 int init_game_state(Resources *resources, GameState *game_state);
+int write_save_file(struct engine *engine);
+int load_save_file(struct engine *engine);

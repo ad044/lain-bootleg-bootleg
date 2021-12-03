@@ -50,10 +50,9 @@ typedef struct {
 	Text score_text;
 } Menu;
 
+struct engine;
+
 void init_menu(Menu *menu, GameState *game_state, Resources *resources);
 void update_menu(Menu *menu, GameState *game_state, GLFWwindow *window,
 		 Resources *resources);
-// void * game here is Engine but because header files are cancer
-// i cant pass it directly without creating circular dependencies
-// and forward declaring would likely be messy, perhaps ill take a look
-void handle_menu_event(MenuEvent event, void *game);
+void handle_menu_event(MenuEvent event, struct engine *engine);
