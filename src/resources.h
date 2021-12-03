@@ -16,4 +16,4 @@ typedef struct resources {
 	TheaterAnimation theater_animations[MAX_THEATER_ANIMATION_COUNT];
 } Resources;
 
-void init_resources(Resources *resources);
+int init_resources(Resources *resources);

@@ -249,21 +249,21 @@ void update_theater(Resources *resources, Menu *menu, GameState *game_state,
 	update_scene(&theater->scene);
 }
 
-void start_theater(Menu *menu, Resources *resources, GameState *game_state,
-		   Minigame *minigame, GLFWwindow **minigame_window,
-		   GLFWwindow *main_window)
+int start_theater(Menu *menu, Resources *resources, GameState *game_state,
+		  Minigame *minigame, GLFWwindow **minigame_window,
+		  GLFWwindow *main_window)
 {
 
 	if (!(make_window(minigame_window, MINIGAME_WIDTH, MINIGAME_HEIGHT,
 			  "lain theatre", main_window, true))) {
 		printf("Failed to create theater window.\n");
-		exit(1);
+		return 0;
 	}
 
 	Theater *theater = malloc(sizeof(Theater));
 	if (theater == NULL) {
 		printf("Failed to allocate memory theater struct.\n");
-		exit(1);
+		return 0;
 	}
 
 	init_theater(resources, game_state, theater,
@@ -273,4 +273,6 @@ void start_theater(Menu *menu, Resources *resources, GameState *game_state,
 	minigame->scene = &theater->scene;
 	minigame->type = THEATER;
 	minigame->last_updated = game_state->time;
+
+	return 1;
 }

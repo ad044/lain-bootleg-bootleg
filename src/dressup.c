@@ -342,20 +342,20 @@ void update_dressup(Resources *resources, Menu *menu, GameState *game_state,
 
 	update_scene(&dressup->scene);
 }
-void start_dressup(Menu *menu, Resources *resources, GameState *game_state,
-		   Minigame *minigame, GLFWwindow **minigame_window,
-		   GLFWwindow *main_window)
+int start_dressup(Menu *menu, Resources *resources, GameState *game_state,
+		  Minigame *minigame, GLFWwindow **minigame_window,
+		  GLFWwindow *main_window)
 {
 	if (!(make_window(minigame_window, MINIGAME_WIDTH, MINIGAME_HEIGHT,
 			  "lain dress up", main_window, true))) {
 		printf("Failed to create dressup window.\n");
-		exit(1);
+		return 0;
 	}
 
 	DressUp *dressup = malloc(sizeof(DressUp));
 	if (dressup == NULL) {
 		printf("Failed to allocate memory kuma shoot struct.\n");
-		exit(1);
+		return 0;
 	}
 
 	dressup->lain.move_state = ENTERING;
@@ -372,6 +372,8 @@ void start_dressup(Menu *menu, Resources *resources, GameState *game_state,
 
 	menu->dressup_button.texture =
 	    texture_get(resources, DRESSUP_BUTTON_ACTIVE);
+
+	return 1;
 }
 
 static _Bool can_wear(GameState *game_state, DressUpObject *item, Vector2D pos)

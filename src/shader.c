@@ -116,14 +116,16 @@ static GLint check_shader_program_link_errors(GLuint program)
 	return success;
 }
 
-void shaders_init(ShaderProgram *shaders)
+int shaders_init(ShaderProgram *shaders)
 {
 	ShaderProgram quad_shader = create_shader(quad_vertex, quad_fragment);
 	if (!quad_shader) {
 		printf("Failed to create quad shader.\n");
-		exit(1);
+		return 0;
 	}
 	shaders[SPRITE_SHADER] = quad_shader;
+
+	return 1;
 }
 
 void shader_program_set_texture_samplers(ShaderProgram program,

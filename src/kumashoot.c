@@ -555,20 +555,20 @@ static void init_kumashoot_scene(Resources *resources, GameState *game_state,
 		   click_barriers, click_barrier_count);
 }
 
-void start_kumashoot(Menu *menu, Resources *resources, GameState *game_state,
-		     Minigame *minigame, GLFWwindow **minigame_window,
-		     GLFWwindow *main_window)
+int start_kumashoot(Menu *menu, Resources *resources, GameState *game_state,
+		    Minigame *minigame, GLFWwindow **minigame_window,
+		    GLFWwindow *main_window)
 {
 	if (!(make_window(minigame_window, MINIGAME_WIDTH, MINIGAME_HEIGHT,
 			  "lain kuma shoot", main_window, true))) {
 		printf("Failed to create kuma shoot window.\n");
-		exit(1);
+		return 0;
 	}
 
 	KumaShoot *kumashoot = malloc(sizeof(KumaShoot));
 	if (kumashoot == NULL) {
 		printf("Failed to allocate memory kuma shoot struct.\n");
-		exit(1);
+		return 0;
 	}
 
 	init_kumashoot_scene(resources, game_state, &kumashoot->scene,
@@ -580,6 +580,8 @@ void start_kumashoot(Menu *menu, Resources *resources, GameState *game_state,
 	minigame->last_updated = game_state->time;
 
 	menu->bear_icon.texture = texture_get(resources, BEAR_ICON_ACTIVE);
+
+	return 1;
 }
 
 void handle_kumashoot_event(KumaShootEvent event, Bear *bear, Engine *engine)

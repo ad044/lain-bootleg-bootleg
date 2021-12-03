@@ -11,7 +11,7 @@ enum { SPRITE_SHADER };
 
 typedef GLuint ShaderProgram;
 
-void shaders_init(ShaderProgram *shaders);
+int shaders_init(ShaderProgram *shaders);
 void shader_program_set_texture_samplers(ShaderProgram program,
 					 const GLint *samplers,
 					 const GLint sampler_count);

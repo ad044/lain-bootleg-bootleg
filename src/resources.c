@@ -5,15 +5,20 @@
 #include <stdio.h>
 #include <string.h>
 
-void init_resources(Resources *resources)
+int init_resources(Resources *resources)
 {
 	load_textures(resources->embedded);
 
 	textures_init(resources);
 
-	shaders_init(resources->shaders);
+	if (!shaders_init(resources->shaders)) {
+		printf("Failed to initialize shaders.\n");
+		return 0;
+	};
 
 	fonts_init(resources);
 
 	animations_init(resources);
+
+	return 1;
 }

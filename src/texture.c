@@ -46,7 +46,7 @@ Texture *texture_get(Resources *resources, int texture_id)
 		if (!init_texture(texture, rsrc.bytes, rsrc.size, texture_id)) {
 			printf("Failed to initialize texture %d.\n",
 			       texture_id);
-			exit(1);
+			// TODO not sure what to do here
 		};
 	}
 

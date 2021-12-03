@@ -28,7 +28,10 @@ int engine_init(Engine *engine)
 		return 0;
 	}
 
-	init_resources(&engine->resources);
+	if (!init_resources(&engine->resources)) {
+		printf("Failed to initialize resources.\n");
+		return 0;
+	};
 
 	init_game_state(&engine->resources, &engine->game_state);
 
@@ -103,6 +106,9 @@ static void engine_render(Engine *engine, double now)
 
 	if (minigame->type == NO_MINIGAME &&
 	    minigame->queued_minigame != NO_MINIGAME) {
+		// NOTE:
+		// start functions here return 0 if they fail
+		// i am not quite sure what to do in that case :D
 		switch (minigame->queued_minigame) {
 		case KUMASHOOT:
 			start_kumashoot(menu, resources, game_state, minigame,
