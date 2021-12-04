@@ -514,6 +514,10 @@ void handle_menu_event(MenuEvent event, Engine *engine)
 	case DRESSUP_TOGGLE: {
 		MinigameType minigame_type = engine->minigame.type;
 
+		if (menu->theater_preview.visible) {
+			return;
+		}
+
 		switch (minigame_type) {
 		case DRESSUP: {
 			glfwSetWindowShouldClose(engine->minigame_window, 1);
