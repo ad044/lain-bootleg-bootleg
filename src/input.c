@@ -37,6 +37,7 @@ static _Bool get_behavior(SpriteBehavior *behavior,
 				found = true;
 				*behavior = curr_behavior;
 				lowest_dist = curr_dist;
+				curr_z_index = sprite->z_index;
 			}
 		}
 	}

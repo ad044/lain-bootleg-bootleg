@@ -101,7 +101,7 @@ void lain_set_outfit(Resources *resources, LainOutfit outfit, Lain *lain)
 		break;
 	}
 	}
-};
+}
 
 static void init_dressup_sprites(Resources *resources, GameState *game_state,
 				 DressUp *dressup)
@@ -306,7 +306,7 @@ void update_dressup(Resources *resources, Menu *menu, GameState *game_state,
 
 			if (game_state->lain.tool_state == HOLDING_NAVI) {
 				dressup->navi.sprite.visible = true;
-				dressup->navi.sprite.z_index = 2;
+				dressup->navi.sprite.z_index = 3;
 				dressup->navi.sprite.pos =
 				    (Vector2D){320.0f, 249.0f};
 			}
@@ -314,7 +314,7 @@ void update_dressup(Resources *resources, Menu *menu, GameState *game_state,
 			if (game_state->lain.tool_state ==
 			    HOLDING_SCREWDRIVER) {
 				dressup->screwdriver.sprite.visible = true;
-				dressup->screwdriver.sprite.z_index = 2;
+				dressup->screwdriver.sprite.z_index = 3;
 				dressup->screwdriver.sprite.pos =
 				    (Vector2D){248.0f, 232.0f};
 			}
@@ -434,21 +434,20 @@ static void wear_item(Resources *resources, GameState *game_state,
 
 		dressup->currently_grabbed->sprite.pos = (Vector2D){0.0f, 0.0f};
 		dressup->currently_grabbed->sprite.visible = false;
-		dressup->currently_grabbed = NULL;
 
 		break;
 	case SCREWDRIVER:
 		dressup->currently_grabbed->sprite.pos =
 		    (Vector2D){248.0f, 232.0f};
 		game_state->lain.tool_state = HOLDING_SCREWDRIVER;
-		dressup->currently_grabbed = NULL;
+		dressup->currently_grabbed->sprite.z_index = 3;
 
 		break;
 	case NAVI:
 		dressup->currently_grabbed->sprite.pos =
 		    (Vector2D){320.0f, 249.0f};
 		game_state->lain.tool_state = HOLDING_NAVI;
-		dressup->currently_grabbed = NULL;
+		dressup->currently_grabbed->sprite.z_index = 3;
 
 		break;
 	}
@@ -469,7 +468,7 @@ void handle_dressup_event(DressUpEvent event, void *object, Engine *engine)
 	case ITEM_GRAB: {
 		dressup->currently_grabbed = object;
 		dressup->currently_grabbed->sprite.visible = true;
-		dressup->currently_grabbed->sprite.z_index = 5;
+		dressup->currently_grabbed->sprite.z_index = 4;
 
 		depth_sort(dressup->scene.sprites,
 			   cvector_size(dressup->scene.sprites));
@@ -503,8 +502,9 @@ void handle_dressup_event(DressUpEvent event, void *object, Engine *engine)
 			    &dressup->currently_grabbed->sprite);
 
 			dressup->currently_grabbed->sprite.z_index = 1;
-			dressup->currently_grabbed = NULL;
 		}
+
+		dressup->currently_grabbed = NULL;
 
 		depth_sort(dressup->scene.sprites,
 			   cvector_size(dressup->scene.sprites));
