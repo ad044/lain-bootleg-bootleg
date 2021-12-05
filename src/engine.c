@@ -1,3 +1,4 @@
+#include <portaudio.h>
 #include <stdio.h>
 #include <time.h>
 
@@ -157,6 +158,7 @@ void engine_stop(Engine *engine)
 		animation_free(&resources->animations[i]);
 	}
 
+	Pa_Terminate();
 	glfwTerminate();
 }
 

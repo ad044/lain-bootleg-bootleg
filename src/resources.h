@@ -4,6 +4,7 @@
 #include "cJSON.h"
 #include "embedded.h"
 #include "shader.h"
+#include "sound.h"
 #include "text.h"
 
 typedef struct resources {
@@ -14,6 +15,9 @@ typedef struct resources {
 	cJSON *animation_data;
 	Animation animations[MAX_ANIMATION_COUNT];
 	TheaterAnimation theater_animations[MAX_THEATER_ANIMATION_COUNT];
+
+	SoundData sounds[SOUND_COUNT];
+	PaStream *audio_stream;
 } Resources;
 
 int init_resources(Resources *resources);

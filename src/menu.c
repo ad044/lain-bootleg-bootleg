@@ -12,6 +12,7 @@
 #include "resources.h"
 #include "scene.h"
 #include "shader.h"
+#include "sound.h"
 #include "sprite.h"
 #include "state.h"
 #include "text.h"

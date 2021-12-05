@@ -1,6 +1,7 @@
 #include <stdio.h>
 
 #include "engine.h"
+#include "portaudio.h"
 
 static void error_callback(int error, const char *description)
 {
@@ -23,6 +24,11 @@ static int init_glfw()
 int main(void)
 {
 	if (!init_glfw()) {
+		return -1;
+	}
+
+	if (Pa_Initialize() != paNoError) {
+		printf("Problem initializing PortAudio.\n");
 		return -1;
 	}
 

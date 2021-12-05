@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 3.2)
 
 project(lain-bootleg-bootleg)
 
-set(CMAKE_CXX_STANDARD 18)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_C_STANDARD 23)
+set(CMAKE_C_STANDARD_REQUIRED ON)
 
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
@@ -36,15 +36,12 @@ set(SOURCES
    src/theater.c
    src/cJSON.c
    src/resources.c
+   src/sound.c
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 
-if(MSVC)
-  target_compile_options(${PROJECT_NAME} PRIVATE /W4)
-else()
-  target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic)
-endif()
+target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic)
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_SOURCE_DIR}/src)
 
@@ -57,3 +54,9 @@ target_link_libraries(${PROJECT_NAME} PRIVATE libglew_static)
 
 add_subdirectory(${CMAKE_SOURCE_DIR}/external/glfw EXCLUDE_FROM_ALL)
 target_link_libraries(${PROJECT_NAME} PRIVATE glfw)
+
+add_subdirectory(${CMAKE_SOURCE_DIR}/external/portaudio EXCLUDE_FROM_ALL)
+target_link_libraries(${PROJECT_NAME} PRIVATE portaudio)
+
+add_subdirectory(${CMAKE_SOURCE_DIR}/external/libsndfile EXCLUDE_FROM_ALL)
+target_link_libraries(${PROJECT_NAME} PRIVATE sndfile)

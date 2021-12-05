@@ -10,3 +10,6 @@
 [submodule "external/portaudio"]
 	path = external/portaudio
 	url = https://github.com/PortAudio/portaudio.git
+[submodule "external/libsndfile"]
+	path = external/libsndfile
+	url = https://github.com/libsndfile/libsndfile.git

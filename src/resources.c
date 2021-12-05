@@ -1,5 +1,5 @@
 #include "resources.h"
-#include "embedded.h"
+#include "sound.h"
 #include "texture.h"
 
 #include <stdio.h>
@@ -19,6 +19,8 @@ int init_resources(Resources *resources)
 	fonts_init(resources);
 
 	animations_init(resources);
+
+	sounds_init(resources->sounds);
 
 	return 1;
 }
