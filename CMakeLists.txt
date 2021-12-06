@@ -5,6 +5,8 @@ project(lain-bootleg-bootleg)
 set(CMAKE_C_STANDARD 23)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
@@ -56,7 +58,7 @@ add_subdirectory(${CMAKE_SOURCE_DIR}/external/glfw EXCLUDE_FROM_ALL)
 target_link_libraries(${PROJECT_NAME} PRIVATE glfw)
 
 add_subdirectory(${CMAKE_SOURCE_DIR}/external/portaudio EXCLUDE_FROM_ALL)
-target_link_libraries(${PROJECT_NAME} PRIVATE portaudio)
+target_link_libraries(${PROJECT_NAME} PRIVATE PortAudio)
 
 add_subdirectory(${CMAKE_SOURCE_DIR}/external/libsndfile EXCLUDE_FROM_ALL)
 target_link_libraries(${PROJECT_NAME} PRIVATE sndfile)
