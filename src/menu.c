@@ -548,7 +548,7 @@ void handle_menu_event(MenuEvent event, Engine *engine)
 		}
 		case KUMASHOOT: {
 			glfwSetWindowShouldClose(engine->minigame_window, 1);
-			engine->minigame.queued_minigame = DRESSUP;
+			engine->minigame.queued_minigame = THEATER;
 			break;
 		}
 		case THEATER: {

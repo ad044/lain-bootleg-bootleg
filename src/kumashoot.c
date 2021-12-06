@@ -349,7 +349,7 @@ static void update_character(Scene *scene, GameState *game_state,
 		sprite->pos.x += bear->vel_x;
 
 		break;
-	default:
+	default: {
 		double delta = now - character->time_revealed;
 		if (delta > 2.0) {
 			set_sprite_to_smoke(resources, now, sprite);
@@ -357,6 +357,7 @@ static void update_character(Scene *scene, GameState *game_state,
 		} else {
 			sprite_try_next_frame(now, sprite);
 		}
+	}
 	}
 }
 
