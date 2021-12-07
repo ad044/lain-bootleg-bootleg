@@ -225,7 +225,6 @@ static void update_bear_position(Bear *bear)
 static void explode_scene(GameState *game_state, Resources *resources,
 			  Bear bears[3])
 {
-
 	for (int i = 0; i < 3; i++) {
 		Bear *bear = &bears[i];
 		if (!bear->revealed && !bear->is_smoke) {
@@ -234,6 +233,21 @@ static void explode_scene(GameState *game_state, Resources *resources,
 			set_sprite_to_smoke(resources, game_state->time,
 					    &bear->sprite);
 			bear->is_smoke = true;
+		}
+	}
+}
+
+static void increase_score(GameState *game_state, int by)
+{
+	int item_unlock_points[] = {10, 100, 200, 500, 900, 1400, 2000};
+
+	// TODO original might behave a bit differently, look into that
+	long initial_score = game_state->score;
+	game_state->score += by;
+	for (int i = 0; i < 7; i++) {
+		if (initial_score < item_unlock_points[i] &&
+		    game_state->score >= item_unlock_points[i]) {
+			enqueue_sound(&game_state->queued_sounds, SND_120);
 		}
 	}
 }
@@ -259,7 +273,7 @@ static void update_character(Scene *scene, GameState *game_state,
 		if (sprite_animation_is_last_frame(sprite)) {
 			character->scored = true;
 			character->time_scored = now;
-			game_state->score += character->score_value;
+			increase_score(game_state, character->score_value);
 		} else {
 			sprite_try_next_frame(now, sprite);
 		}
@@ -269,6 +283,10 @@ static void update_character(Scene *scene, GameState *game_state,
 
 	switch (character->type) {
 	case SCREWDRIVER_LAIN: {
+		if (sprite->animation_frame->index == 20) {
+			enqueue_sound(&game_state->queued_sounds, SND_119);
+		}
+
 		if (sprite->animation_frame->index == 6 &&
 		    !character->has_additional_sprite) {
 			Sprite screws;
@@ -369,7 +387,7 @@ static void reveal_bear(GameState *game_state, Bear *bear)
 		hidden_character->scored = true;
 		hidden_character->sprite.visible = false;
 
-		game_state->score += hidden_character->score_value;
+		increase_score(game_state, hidden_character->score_value);
 
 		bear->sprite.visible = false;
 		bear->revealed = true;
@@ -587,7 +605,11 @@ int start_kumashoot(Menu *menu, Resources *resources, GameState *game_state,
 
 void handle_kumashoot_event(KumaShootEvent event, Bear *bear, Engine *engine)
 {
+	Resources *resources = &engine->resources;
+
 	if (event == CHARACTER_CLICK && !bear->revealed && !bear->is_smoke) {
+		enqueue_sound(&engine->game_state.queued_sounds, SND_118);
+
 		KumaShoot *kumashoot = (KumaShoot *)engine->minigame.current;
 
 		set_sprite_to_smoke(&engine->resources, engine->game_state.time,

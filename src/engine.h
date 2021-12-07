@@ -5,6 +5,8 @@
 #include "scene.h"
 #include "state.h"
 
+#include <pthread.h>
+
 typedef struct engine {
 	Resources resources;
 
@@ -15,6 +17,9 @@ typedef struct engine {
 	Minigame minigame;
 
 	GameState game_state;
+
+	PaStream *audio_stream;
+	pthread_t audio_thread;
 } Engine;
 
 int engine_init(Engine *engine);

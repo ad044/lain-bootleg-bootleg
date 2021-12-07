@@ -1,9 +1,11 @@
 #pragma once
 
-#include <sndfile.h>
 #include <portaudio.h>
+#include <sndfile.h>
 
 #define SOUND_COUNT 11
+
+#define MAX_SOUND_QUEUE_SIZE 32
 
 typedef enum {
 	SND_110,
@@ -26,5 +28,13 @@ typedef struct {
 	SNDFILE *file;
 } SoundData;
 
+typedef struct {
+	int size;
+	SoundID arr[MAX_SOUND_QUEUE_SIZE];
+} SoundQueue;
+
 int sounds_init(SoundData *sound_files);
-void play_sound(SoundData *data, PaStream *stream);
+void close_audio_stream(void *user_data);
+void enqueue_sound(SoundQueue *queue, SoundID id);
+void dequeue_sound(SoundQueue *queue, SoundID *target);
+void sound_loop(void *data);

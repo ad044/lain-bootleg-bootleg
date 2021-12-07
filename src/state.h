@@ -24,9 +24,10 @@ typedef struct {
 } Lain;
 
 typedef struct {
-	int score;
+	long score;
 	double time;
 	Lain lain;
+	SoundQueue queued_sounds;
 } GameState;
 
 struct engine;

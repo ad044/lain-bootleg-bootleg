@@ -1,4 +1,5 @@
 #include <portaudio.h>
+#include <pthread.h>
 #include <stdio.h>
 #include <time.h>
 
@@ -13,6 +14,7 @@
 #include "resources.h"
 #include "scene.h"
 #include "shader.h"
+#include "sound.h"
 #include "state.h"
 #include "texture.h"
 #include "theater.h"
@@ -46,6 +48,11 @@ int engine_init(Engine *engine)
 	glfwSetWindowUserPointer(engine->main_window, engine);
 	// set callbacks
 	glfwSetMouseButtonCallback(engine->main_window, handle_menu_click);
+
+	// init audio
+	pthread_create(&engine->audio_thread, NULL, sound_loop, (void *)engine);
+
+	// TODO add audio stream finish callback
 
 	return 1;
 }

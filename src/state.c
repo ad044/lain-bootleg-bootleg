@@ -15,8 +15,10 @@ int init_game_state(Resources *resources, GameState *game_state)
 {
 	game_state->score = 0;
 
-	game_state->lain = (Lain){0};
+	game_state->lain = (Lain){.tool_state = NO_TOOLS};
 	lain_set_outfit(resources, OUTFIT_DEFAULT, &game_state->lain);
+
+	game_state->queued_sounds.size = 0;
 
 	return 1;
 }

@@ -1,10 +1,17 @@
 #include "sound.h"
 #include "embedded.h"
+#include "engine.h"
 #include "sndfile.h"
 
 #include <portaudio.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+
+typedef struct {
+	SoundData *data;
+	PaStream *stream;
+} PlaySoundArgs;
 
 static sf_count_t vfget_filelen(void *user_data)
 {
@@ -129,26 +136,57 @@ static int callback(const void *input, void *output, unsigned long frame_count,
 
 	return paContinue;
 }
-void play_sound(SoundData *data, PaStream *stream)
+
+static void play_sound(SoundData *data, PaStream *stream)
 {
 	if (Pa_OpenDefaultStream(&stream, 0, data->info.channels, paFloat32,
 				 data->info.samplerate,
 				 paFramesPerBufferUnspecified, callback,
 				 data) != paNoError) {
 		printf("Problem opening default audio stream.\n");
-		return;
 	}
 
 	if (Pa_StartStream(stream) != paNoError) {
 		printf("Problem opening audio stream.\n");
-		return;
 	}
+}
 
-	while (Pa_IsStreamActive(stream))
-		;
-
+void close_audio_stream(void *user_data)
+{
+	PaStream *stream = (PaStream *)user_data;
 	if (Pa_CloseStream(stream) != paNoError) {
 		printf("Problem closing audio stream.\n");
-		return;
+	}
+}
+
+void enqueue_sound(SoundQueue *queue, SoundID id)
+{
+	if (queue->size < MAX_SOUND_QUEUE_SIZE) {
+		queue->size++;
+		queue->arr[queue->size - 1] = id;
+	}
+}
+
+void dequeue_sound(SoundQueue *queue, SoundID *target)
+{
+	if (queue->size > 0) {
+		*target = queue->arr[queue->size - 1];
+		queue->size--;
+	}
+}
+
+_Bool sound_queue_empty(SoundQueue *queue) { return queue->size == 0; }
+
+void sound_loop(void *data)
+{
+	Engine *engine = (Engine *)data;
+	while (1) {
+		if (!sound_queue_empty(&engine->game_state.queued_sounds)) {
+			SoundID id;
+			dequeue_sound(&engine->game_state.queued_sounds, &id);
+
+			play_sound(&engine->resources.sounds[id],
+				   engine->audio_stream);
+		}
 	}
 }

@@ -271,7 +271,10 @@ void update_dressup(Resources *resources, Menu *menu, GameState *game_state,
 	DressUpLain *lain = &dressup->lain;
 
 	if (glfwWindowShouldClose(window) && lain->move_state != LEAVING) {
+		enqueue_sound(&game_state->queued_sounds, SND_116);
+
 		lain->move_state = LEAVING;
+
 		sprite_set_animation(resources, game_state->time, &lain->sprite,
 				     game_state->lain.leave_animation);
 
@@ -372,6 +375,8 @@ int start_dressup(Menu *menu, Resources *resources, GameState *game_state,
 
 	menu->dressup_button.texture =
 	    texture_get(resources, DRESSUP_BUTTON_ACTIVE);
+
+	enqueue_sound(&game_state->queued_sounds, SND_115);
 
 	return 1;
 }
@@ -490,6 +495,8 @@ void handle_dressup_event(DressUpEvent event, void *object, Engine *engine)
 		Vector2D pos = (Vector2D){x, y};
 
 		if (can_wear(game_state, dressup->currently_grabbed, pos)) {
+			enqueue_sound(&game_state->queued_sounds, SND_117);
+
 			wear_item(resources, game_state, dressup,
 				  dressup->currently_grabbed);
 		} else {
