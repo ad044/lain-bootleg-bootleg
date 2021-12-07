@@ -37,4 +37,4 @@ int sounds_init(SoundData *sound_files);
 void close_audio_stream(void *user_data);
 void enqueue_sound(SoundQueue *queue, SoundID id);
 void dequeue_sound(SoundQueue *queue, SoundID *target);
-void sound_loop(void *data);
+void *sound_loop(void *data);

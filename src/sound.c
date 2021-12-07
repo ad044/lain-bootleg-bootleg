@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 typedef struct {
 	SoundData *data;
@@ -144,10 +145,12 @@ static void play_sound(SoundData *data, PaStream *stream)
 				 paFramesPerBufferUnspecified, callback,
 				 data) != paNoError) {
 		printf("Problem opening default audio stream.\n");
+		return;
 	}
 
 	if (Pa_StartStream(stream) != paNoError) {
 		printf("Problem opening audio stream.\n");
+		return;
 	}
 }
 
@@ -177,10 +180,10 @@ void dequeue_sound(SoundQueue *queue, SoundID *target)
 
 _Bool sound_queue_empty(SoundQueue *queue) { return queue->size == 0; }
 
-void sound_loop(void *data)
+void *sound_loop(void *data)
 {
 	Engine *engine = (Engine *)data;
-	while (1) {
+	while (engine->running) {
 		if (!sound_queue_empty(&engine->game_state.queued_sounds)) {
 			SoundID id;
 			dequeue_sound(&engine->game_state.queued_sounds, &id);
@@ -189,4 +192,6 @@ void sound_loop(void *data)
 				   engine->audio_stream);
 		}
 	}
+
+	return NULL;
 }

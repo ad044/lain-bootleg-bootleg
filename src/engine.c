@@ -50,9 +50,16 @@ int engine_init(Engine *engine)
 	glfwSetMouseButtonCallback(engine->main_window, handle_menu_click);
 
 	// init audio
-	pthread_create(&engine->audio_thread, NULL, sound_loop, (void *)engine);
+	if (Pa_OpenDefaultStream(&engine->audio_stream, 0, 1, paFloat32, 22050,
+				 paFramesPerBufferUnspecified, NULL,
+				 NULL) != paNoError) {
+		printf("Problem opening audio stream.\n");
+		return 0;
+	};
+	Pa_SetStreamFinishedCallback(engine->audio_stream, close_audio_stream);
+	pthread_create(&engine->audio_thread, NULL, sound_loop, engine);
 
-	// TODO add audio stream finish callback
+	engine->running = true;
 
 	return 1;
 }
@@ -150,6 +157,8 @@ static void engine_renderloop(Engine *engine)
 
 void engine_stop(Engine *engine)
 {
+	engine->running = false;
+
 	Resources *resources = &engine->resources;
 	Menu *menu = &engine->menu;
 	Minigame *minigame = &engine->minigame;
@@ -157,12 +166,18 @@ void engine_stop(Engine *engine)
 	cJSON_Delete(resources->animation_data);
 
 	free_scene(&menu->scene);
+
 	if (minigame->type != NO_MINIGAME) {
 		free_minigame(minigame, engine->minigame_window);
 	}
 
 	for (int i = 0; i < MAX_ANIMATION_COUNT; i++) {
 		animation_free(&resources->animations[i]);
+	}
+
+	close_audio_stream(engine->audio_stream);
+	for (int i = 0; i < SOUND_COUNT; i++) {
+		sf_close(resources->sounds[i].file);
 	}
 
 	Pa_Terminate();

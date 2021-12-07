@@ -20,6 +20,8 @@ typedef struct engine {
 
 	PaStream *audio_stream;
 	pthread_t audio_thread;
+
+	_Bool running;
 } Engine;
 
 int engine_init(Engine *engine);
