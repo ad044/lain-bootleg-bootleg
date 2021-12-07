@@ -47,6 +47,7 @@ target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic)
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_SOURCE_DIR}/src)
 
+set(CGLM_STATIC on)
 add_subdirectory(${CMAKE_SOURCE_DIR}/external/cglm/ EXCLUDE_FROM_ALL)
 target_link_libraries(${PROJECT_NAME} PRIVATE cglm)
 
