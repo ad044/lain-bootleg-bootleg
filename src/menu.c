@@ -42,8 +42,8 @@ static void get_menu_timestring(char *target, Menu *menu)
 	strftime(target, sizeof(char) * 16, "%p%I:%M:%S", menu->current_time);
 }
 
-static void init_menu_sprites(struct tm *current_time, Resources *resources,
-			      Menu *menu)
+static void init_menu_sprites(struct tm *current_time, GameState *game_state,
+			      Resources *resources, Menu *menu)
 {
 	// texture for this gets set later on
 	make_sprite(
@@ -84,7 +84,8 @@ static void init_menu_sprites(struct tm *current_time, Resources *resources,
 		    (Sprite){
 			.pos = {104.0f, 80.0f},
 			.hitbox_size = {96.0f, 64.0f},
-			.texture = texture_get(resources, CLASSROOM_PREVIEW),
+			.texture = texture_get(
+			    resources, game_state->current_theater_preview),
 			.z_index = 7,
 			.visible = false,
 		    });
@@ -154,7 +155,7 @@ static void init_menu_text_objects(Font *fonts, GameState *game_state,
 				  .visible = false,
 				  .left_aligned = true,
 				  .font = &fonts[FONT_RED]};
-	sprintf(menu->score_text.current_text, "%d", game_state->score);
+	sprintf(menu->score_text.current_text, "%ld", game_state->score);
 }
 
 static void animate_menu(GameState *game_state, Resources *resources,
@@ -369,7 +370,7 @@ void init_menu(Menu *menu, GameState *game_state, Resources *resources)
 	menu->ui_lain.blinking = false;
 	menu->ui_lain.laugh_quarter = menu->current_time->tm_sec / 15;
 
-	init_menu_sprites(menu->current_time, resources, menu);
+	init_menu_sprites(menu->current_time, game_state, resources, menu);
 
 	init_menu_text_objects(resources->fonts, game_state, menu);
 

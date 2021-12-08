@@ -186,10 +186,6 @@ void engine_stop(Engine *engine)
 
 void engine_run(Engine *engine)
 {
-	if (!load_save_file(engine)) {
-		printf("Found a save file, but failed to load it. Starting "
-		       "from a fresh save state.\n");
-	};
 
 	engine_renderloop(engine);
 

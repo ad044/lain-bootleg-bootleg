@@ -13,12 +13,20 @@
 
 int init_game_state(Resources *resources, GameState *game_state)
 {
-	game_state->score = 0;
 
-	game_state->lain = (Lain){.tool_state = NO_TOOLS};
-	lain_set_outfit(resources, OUTFIT_DEFAULT, &game_state->lain);
+	if (!load_save_file(resources, game_state)) {
+		printf("Found a save file, but failed to load it. Starting "
+		       "from a fresh save state.\n");
 
-	game_state->queued_sounds.size = 0;
+		game_state->score = 0;
+
+		game_state->current_theater_preview = CLASSROOM_PREVIEW;
+
+		game_state->lain = (Lain){.tool_state = NO_TOOLS};
+		lain_set_outfit(resources, OUTFIT_DEFAULT, &game_state->lain);
+
+		game_state->queued_sounds.size = 0;
+	}
 
 	return 1;
 }
@@ -88,7 +96,7 @@ fail:
 	return 0;
 }
 
-int load_save_file(Engine *engine)
+int load_save_file(Resources *resources, GameState *game_state)
 {
 	if (access("./lain_save.json", 0) == 0) {
 		FILE *f = NULL;
@@ -134,11 +142,15 @@ int load_save_file(Engine *engine)
 			goto fail;
 		}
 
-		engine->game_state.score = score->valueint;
-		engine->game_state.lain.tool_state = lain_tool_state->valueint;
-		engine->game_state.lain.outfit = lain_outfit->valueint;
-		engine->menu.theater_preview.texture = texture_get(
-		    &engine->resources, theater_preview_texture_id->valueint);
+		game_state->score = score->valueint;
+		game_state->lain.tool_state = lain_tool_state->valueint;
+
+		game_state->lain.outfit = lain_outfit->valueint;
+		lain_set_outfit(resources, game_state->lain.outfit,
+				&game_state->lain);
+
+		game_state->current_theater_preview =
+		    theater_preview_texture_id->valueint;
 
 		cJSON_Delete(save_state);
 		free(data);

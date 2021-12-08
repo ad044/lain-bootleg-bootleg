@@ -27,10 +27,11 @@ typedef struct {
 	long score;
 	double time;
 	Lain lain;
+	int current_theater_preview;
 	SoundQueue queued_sounds;
 } GameState;
 
 struct engine;
 int init_game_state(Resources *resources, GameState *game_state);
 int write_save_file(struct engine *engine);
-int load_save_file(struct engine *engine);
+int load_save_file(Resources *resources, GameState *game_state);
