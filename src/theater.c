@@ -227,7 +227,7 @@ void update_theater(Resources *resources, Menu *menu, GameState *game_state,
 		    GLFWwindow *window, Minigame *minigame)
 {
 
-	Theater *theater = (Theater *)minigame->current;
+	Theater *theater = &minigame->current.theater;
 
 	// hacky way of detecting whether or not the theater is over
 	// if it wasnt animated, that means no animation in the scene has a next
@@ -243,7 +243,7 @@ void update_theater(Resources *resources, Menu *menu, GameState *game_state,
 
 	if (!was_animated || glfwWindowShouldClose(window)) {
 		enqueue_sound(&game_state->queued_sounds, SND_111);
-		kill_minigame(resources->textures, menu, minigame, window);
+		destroy_minigame(resources->textures, menu, minigame, window);
 		return;
 	}
 
@@ -261,17 +261,9 @@ int start_theater(Menu *menu, Resources *resources, GameState *game_state,
 		return 0;
 	}
 
-	Theater *theater = malloc(sizeof(Theater));
-	if (theater == NULL) {
-		printf("Failed to allocate memory theater struct.\n");
-		return 0;
-	}
-
-	init_theater(resources, game_state, theater,
+	init_theater(resources, game_state, &minigame->current.theater,
 		     menu->theater_preview.texture->id);
 
-	minigame->current = theater;
-	minigame->scene = &theater->scene;
 	minigame->type = THEATER;
 	minigame->last_updated = game_state->time;
 

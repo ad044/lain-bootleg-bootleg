@@ -81,7 +81,8 @@ void handle_minigame_event(GLFWwindow *window, int button, int action, int mods)
 	glfwGetCursorPos(window, &x, &y);
 	Vector2D click_pos = (Vector2D){x, y};
 
-	Scene scene = *engine->minigame.scene;
+	Scene scene;
+	get_minigame_scene(&engine->minigame, &scene);
 
 	for (int i = 0; i < cvector_size(scene.click_barriers); i++) {
 		ClickBarrier barrier = scene.click_barriers[i];

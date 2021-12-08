@@ -267,7 +267,7 @@ static void init_dressup_scene(Resources *resources, GameState *game_state,
 void update_dressup(Resources *resources, Menu *menu, GameState *game_state,
 		    GLFWwindow *window, Minigame *minigame)
 {
-	DressUp *dressup = (DressUp *)minigame->current;
+	DressUp *dressup = &minigame->current.dressup;
 	DressUpLain *lain = &dressup->lain;
 
 	if (glfwWindowShouldClose(window) && lain->move_state != LEAVING) {
@@ -332,7 +332,7 @@ void update_dressup(Resources *resources, Menu *menu, GameState *game_state,
 	}
 	case LEAVING: {
 		if (sprite_animation_is_last_frame(&lain->sprite)) {
-			kill_minigame(resources->textures, menu, minigame,
+			destroy_minigame(resources->textures, menu, minigame,
 				      window);
 			return;
 		} else {
@@ -355,11 +355,7 @@ int start_dressup(Menu *menu, Resources *resources, GameState *game_state,
 		return 0;
 	}
 
-	DressUp *dressup = malloc(sizeof(DressUp));
-	if (dressup == NULL) {
-		printf("Failed to allocate memory kuma shoot struct.\n");
-		return 0;
-	}
+	DressUp *dressup = &minigame->current.dressup;
 
 	dressup->lain.move_state = ENTERING;
 	dressup->currently_grabbed = NULL;
@@ -368,8 +364,6 @@ int start_dressup(Menu *menu, Resources *resources, GameState *game_state,
 
 	init_dressup_scene(resources, game_state, &dressup->scene, dressup);
 
-	minigame->current = dressup;
-	minigame->scene = &dressup->scene;
 	minigame->type = DRESSUP;
 	minigame->last_updated = game_state->time;
 
@@ -460,7 +454,7 @@ static void wear_item(Resources *resources, GameState *game_state,
 
 void handle_dressup_event(DressUpEvent event, void *object, Engine *engine)
 {
-	DressUp *dressup = (DressUp *)engine->minigame.current;
+	DressUp *dressup = &engine->minigame.current.dressup;
 	DressUpLain *lain = &dressup->lain;
 	GameState *game_state = &engine->game_state;
 	Resources *resources = &engine->resources;

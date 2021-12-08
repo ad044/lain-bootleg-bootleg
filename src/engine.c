@@ -92,26 +92,11 @@ static void engine_render(Engine *engine, double now)
 		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		switch (minigame->type) {
-		case KUMASHOOT:
-			update_kumashoot(resources, menu, game_state,
-					 minigame_window, minigame);
-			break;
-		case DRESSUP:
-			update_dressup(resources, menu, game_state,
-				       minigame_window, minigame);
-			break;
-		case THEATER:
-			update_theater(resources, menu, game_state,
-				       minigame_window, minigame);
-			break;
-		default:
-			break;
-		}
+		update_minigame(resources, game_state, menu, minigame_window,
+				minigame);
 
 		if (minigame->type != NO_MINIGAME) {
-			draw_scene(minigame->scene, minigame_window,
-				   resources->shaders[SPRITE_SHADER]);
+			draw_minigame(resources, minigame_window, minigame);
 
 			glfwSwapBuffers(minigame_window);
 
@@ -121,26 +106,8 @@ static void engine_render(Engine *engine, double now)
 
 	if (minigame->type == NO_MINIGAME &&
 	    minigame->queued_minigame != NO_MINIGAME) {
-		// NOTE:
-		// start functions here return 0 if they fail
-		// i am not quite sure what to do in that case :D
-		switch (minigame->queued_minigame) {
-		case KUMASHOOT:
-			start_kumashoot(menu, resources, game_state, minigame,
-					&engine->minigame_window, main_window);
-			break;
-		case DRESSUP:
-			start_dressup(menu, resources, game_state, minigame,
-				      &engine->minigame_window, main_window);
-			break;
-		case THEATER:
-			start_theater(menu, resources, game_state, minigame,
-				      &engine->minigame_window, main_window);
-			break;
-		default:
-			break;
-		}
-		minigame->queued_minigame = NO_MINIGAME;
+		start_queued_minigame(resources, game_state, menu, main_window,
+				      &engine->minigame_window, minigame);
 	}
 
 	glfwPollEvents();
@@ -165,11 +132,12 @@ void engine_stop(Engine *engine)
 
 	cJSON_Delete(resources->animation_data);
 
-	free_scene(&menu->scene);
-
 	if (minigame->type != NO_MINIGAME) {
-		free_minigame(minigame, engine->minigame_window);
+		destroy_minigame(resources->textures, menu, minigame,
+				 engine->minigame_window);
 	}
+
+	free_scene(&menu->scene);
 
 	for (int i = 0; i < MAX_ANIMATION_COUNT; i++) {
 		animation_free(&resources->animations[i]);
@@ -186,7 +154,6 @@ void engine_stop(Engine *engine)
 
 void engine_run(Engine *engine)
 {
-
 	engine_renderloop(engine);
 
 	if (!write_save_file(engine)) {

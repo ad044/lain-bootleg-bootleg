@@ -1,6 +1,7 @@
 #include "state.h"
 #include "cJSON.h"
 #include "dressup.h"
+#include "engine.h"
 #include "texture.h"
 
 #include <stdio.h>
@@ -24,9 +25,9 @@ int init_game_state(Resources *resources, GameState *game_state)
 
 		game_state->lain = (Lain){.tool_state = NO_TOOLS};
 		lain_set_outfit(resources, OUTFIT_DEFAULT, &game_state->lain);
-
-		game_state->queued_sounds.size = 0;
 	}
+
+	game_state->queued_sounds.size = 0;
 
 	return 1;
 }

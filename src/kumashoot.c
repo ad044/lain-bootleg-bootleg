@@ -442,11 +442,11 @@ static void update_bear(GameState *game_state, Scene *scene, Bear *bear)
 void update_kumashoot(Resources *resources, Menu *menu, GameState *game_state,
 		      GLFWwindow *window, Minigame *minigame)
 {
-	KumaShoot *kumashoot = (KumaShoot *)minigame->current;
+	KumaShoot *kumashoot = &minigame->current.kumashoot;
 	Scene *scene = &kumashoot->scene;
 
 	if (glfwWindowShouldClose(window)) {
-		kill_minigame(resources->textures, menu, minigame, window);
+		destroy_minigame(resources->textures, menu, minigame, window);
 		return;
 	}
 
@@ -584,17 +584,10 @@ int start_kumashoot(Menu *menu, Resources *resources, GameState *game_state,
 		return 0;
 	}
 
-	KumaShoot *kumashoot = malloc(sizeof(KumaShoot));
-	if (kumashoot == NULL) {
-		printf("Failed to allocate memory kuma shoot struct.\n");
-		return 0;
-	}
+	init_kumashoot_scene(resources, game_state,
+			     &minigame->current.kumashoot.scene,
+			     &minigame->current.kumashoot);
 
-	init_kumashoot_scene(resources, game_state, &kumashoot->scene,
-			     kumashoot);
-
-	minigame->current = kumashoot;
-	minigame->scene = &kumashoot->scene;
 	minigame->type = KUMASHOOT;
 	minigame->last_updated = game_state->time;
 
@@ -605,12 +598,10 @@ int start_kumashoot(Menu *menu, Resources *resources, GameState *game_state,
 
 void handle_kumashoot_event(KumaShootEvent event, Bear *bear, Engine *engine)
 {
-	Resources *resources = &engine->resources;
-
 	if (event == CHARACTER_CLICK && !bear->revealed && !bear->is_smoke) {
 		enqueue_sound(&engine->game_state.queued_sounds, SND_118);
 
-		KumaShoot *kumashoot = (KumaShoot *)engine->minigame.current;
+		KumaShoot *kumashoot = &engine->minigame.current.kumashoot;
 
 		set_sprite_to_smoke(&engine->resources, engine->game_state.time,
 				    &bear->sprite);
