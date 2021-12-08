@@ -23,6 +23,7 @@ typedef struct {
 	_Bool scored;
 	_Bool is_smoke;
 	_Bool has_additional_sprite;
+	_Bool exploded;
 
 	CharacterType type;
 

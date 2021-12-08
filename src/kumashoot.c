@@ -283,8 +283,10 @@ static void update_character(Scene *scene, GameState *game_state,
 
 	switch (character->type) {
 	case SCREWDRIVER_LAIN: {
-		if (sprite->animation_frame->index == 20) {
+		if (sprite->animation_frame->index == 20 &&
+		    !character->exploded) {
 			enqueue_sound(&game_state->queued_sounds, SND_119);
+			character->exploded = true;
 		}
 
 		if (sprite->animation_frame->index == 6 &&
