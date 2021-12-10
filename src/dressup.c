@@ -111,7 +111,7 @@ static void init_dressup_sprites(Resources *resources, GameState *game_state,
 			.pos = {440.0f, 64.0f},
 			.hitbox_size = {40.0f, 131.0f},
 			.texture = texture_get(resources, BEAR_OUTFIT),
-			.visible = game_state->score > 500 &&
+			.visible = game_state->bear_outfit_unlocked &&
 				   game_state->lain.outfit != OUTFIT_BEAR,
 			.z_index = 1,
 		    });
@@ -121,7 +121,7 @@ static void init_dressup_sprites(Resources *resources, GameState *game_state,
 			.pos = {32.0f, 64.0f},
 			.hitbox_size = {40.0f, 131.0f},
 			.texture = texture_get(resources, SCHOOL_OUTFIT),
-			.visible = game_state->score > 100 &&
+			.visible = game_state->school_outfit_unlocked &&
 				   game_state->lain.outfit != OUTFIT_SCHOOL,
 			.z_index = 1,
 		    });
@@ -131,7 +131,7 @@ static void init_dressup_sprites(Resources *resources, GameState *game_state,
 			.pos = {112.0f, 64.0f},
 			.hitbox_size = {40.0f, 131.0f},
 			.texture = texture_get(resources, SWEATER_OUTFIT),
-			.visible = game_state->score > 2000 &&
+			.visible = game_state->sweater_outfit_unlocked &&
 				   game_state->lain.outfit != OUTFIT_SWEATER,
 			.z_index = 1,
 		    });
@@ -141,7 +141,7 @@ static void init_dressup_sprites(Resources *resources, GameState *game_state,
 			.pos = {336.0f, 64.0f},
 			.hitbox_size = {40.0f, 131.0f},
 			.texture = texture_get(resources, CYBERIA_OUTFIT),
-			.visible = game_state->score > 200 &&
+			.visible = game_state->cyberia_outfit_unlocked &&
 				   game_state->lain.outfit != OUTFIT_CYBERIA,
 			.z_index = 1,
 		    });
@@ -151,7 +151,7 @@ static void init_dressup_sprites(Resources *resources, GameState *game_state,
 			.pos = {216.0f, 8.0f},
 			.hitbox_size = {24.0f, 20.0f},
 			.texture = texture_get(resources, DRESSUP_UFO),
-			.visible = game_state->score > 1400 &&
+			.visible = game_state->alien_outfit_unlocked &&
 				   game_state->lain.outfit != OUTFIT_ALIEN,
 			.z_index = 1,
 		    });
@@ -161,7 +161,7 @@ static void init_dressup_sprites(Resources *resources, GameState *game_state,
 			.pos = {32.0f, 112.0f},
 			.hitbox_size = {12.0f, 42.0f},
 			.texture = texture_get(resources, DRESSUP_NAVI),
-			.visible = game_state->score > 900 &&
+			.visible = game_state->navi_unlocked &&
 				   game_state->lain.tool_state != HOLDING_NAVI,
 			.z_index = 1,
 		    });
@@ -172,7 +172,7 @@ static void init_dressup_sprites(Resources *resources, GameState *game_state,
 		.pos = {32.0f, 192.0f},
 		.hitbox_size = {12.0f, 42.0f},
 		.texture = texture_get(resources, DRESSUP_SCREWDRIVER),
-		.visible = game_state->score > 10 &&
+		.visible = game_state->screwdriver_unlocked &&
 			   game_state->lain.tool_state != HOLDING_SCREWDRIVER,
 		.z_index = 1,
 	    });
@@ -190,6 +190,7 @@ static void init_dressup_sprites(Resources *resources, GameState *game_state,
 					       .visible = true,
 					       .z_index = 2,
 					   });
+
 	sprite_set_animation(resources, game_state->time, &dressup->lain.sprite,
 			     game_state->lain.walk_animation);
 }
@@ -333,7 +334,7 @@ void update_dressup(Resources *resources, Menu *menu, GameState *game_state,
 	case LEAVING: {
 		if (sprite_animation_is_last_frame(&lain->sprite)) {
 			destroy_minigame(resources->textures, menu, minigame,
-				      window);
+					 window);
 			return;
 		} else {
 			sprite_try_next_frame(game_state->time, &lain->sprite);

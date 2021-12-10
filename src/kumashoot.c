@@ -237,17 +237,67 @@ static void explode_scene(GameState *game_state, Resources *resources,
 	}
 }
 
-static void increase_score(GameState *game_state, int by)
+static void update_progress(GameState *game_state, int by)
 {
 	int item_unlock_points[] = {10, 100, 200, 500, 900, 1400, 2000};
 
-	// TODO original might behave a bit differently, look into that
-	long initial_score = game_state->score;
 	game_state->score += by;
 	for (int i = 0; i < 7; i++) {
-		if (initial_score < item_unlock_points[i] &&
-		    game_state->score >= item_unlock_points[i]) {
-			enqueue_sound(&game_state->queued_sounds, SND_120);
+		if (game_state->score >= item_unlock_points[i]) {
+			_Bool new_item_unlocked = false;
+			switch (item_unlock_points[i]) {
+			case 10: {
+				if (!game_state->screwdriver_unlocked) {
+					game_state->screwdriver_unlocked = true;
+					new_item_unlocked = true;
+				}
+			case 100: {
+				if (!game_state->school_outfit_unlocked) {
+					game_state->school_outfit_unlocked =
+					    true;
+					new_item_unlocked = true;
+				}
+			}
+			case 200: {
+				if (!game_state->cyberia_outfit_unlocked) {
+					game_state->cyberia_outfit_unlocked =
+					    true;
+					new_item_unlocked = true;
+				}
+			}
+			case 500: {
+				if (!game_state->bear_outfit_unlocked) {
+					game_state->bear_outfit_unlocked = true;
+					new_item_unlocked = true;
+				}
+			}
+			case 900: {
+				if (!game_state->navi_unlocked) {
+					game_state->navi_unlocked = true;
+					new_item_unlocked = true;
+				}
+			}
+			case 1400: {
+				if (!game_state->alien_outfit_unlocked) {
+					game_state->alien_outfit_unlocked =
+					    true;
+					new_item_unlocked = true;
+				}
+			}
+			case 2000: {
+				if (!game_state->sweater_outfit_unlocked) {
+					game_state->sweater_outfit_unlocked =
+					    true;
+					new_item_unlocked = true;
+				}
+			}
+			}
+			}
+
+			if (new_item_unlocked) {
+				enqueue_sound(&game_state->queued_sounds,
+					      SND_120);
+			}
 		}
 	}
 }
@@ -273,7 +323,7 @@ static void update_character(Scene *scene, GameState *game_state,
 		if (sprite_animation_is_last_frame(sprite)) {
 			character->scored = true;
 			character->time_scored = now;
-			increase_score(game_state, character->score_value);
+			update_progress(game_state, character->score_value);
 		} else {
 			sprite_try_next_frame(now, sprite);
 		}
@@ -389,7 +439,7 @@ static void reveal_bear(GameState *game_state, Bear *bear)
 		hidden_character->scored = true;
 		hidden_character->sprite.visible = false;
 
-		increase_score(game_state, hidden_character->score_value);
+		update_progress(game_state, hidden_character->score_value);
 
 		bear->sprite.visible = false;
 		bear->revealed = true;

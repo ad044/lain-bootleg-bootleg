@@ -28,6 +28,14 @@ typedef struct {
 	double time;
 	Lain lain;
 	int current_theater_preview;
+	_Bool school_outfit_unlocked;
+	_Bool cyberia_outfit_unlocked;
+	_Bool sweater_outfit_unlocked;
+	_Bool bear_outfit_unlocked;
+	_Bool alien_outfit_unlocked;
+	_Bool screwdriver_unlocked;
+	_Bool navi_unlocked;
+
 	SoundQueue queued_sounds;
 } GameState;
 
