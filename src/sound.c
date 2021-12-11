@@ -180,10 +180,22 @@ void dequeue_sound(SoundQueue *queue, SoundID *target)
 
 _Bool sound_queue_empty(SoundQueue *queue) { return queue->size == 0; }
 
+static _Bool sound_thread_should_stop(Engine *engine)
+{
+	if (!pthread_mutex_trylock(&engine->running)) {
+		pthread_mutex_unlock(&engine->running);
+		return 1;
+	} else {
+		return 0;
+	}
+
+	return 1;
+}
+
 void *sound_loop(void *data)
 {
 	Engine *engine = (Engine *)data;
-	while (engine->running) {
+	while (!sound_thread_should_stop(engine)) {
 		if (!sound_queue_empty(&engine->game_state.queued_sounds)) {
 			SoundID id;
 			dequeue_sound(&engine->game_state.queued_sounds, &id);

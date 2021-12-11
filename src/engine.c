@@ -57,9 +57,10 @@ int engine_init(Engine *engine)
 		return 0;
 	};
 	Pa_SetStreamFinishedCallback(engine->audio_stream, close_audio_stream);
-	pthread_create(&engine->audio_thread, NULL, sound_loop, engine);
 
-	engine->running = true;
+	pthread_mutex_init(&engine->running, NULL);
+	pthread_mutex_lock(&engine->running);
+	pthread_create(&engine->audio_thread, NULL, sound_loop, engine);
 
 	return 1;
 }
@@ -124,7 +125,8 @@ static void engine_renderloop(Engine *engine)
 
 void engine_stop(Engine *engine)
 {
-	engine->running = false;
+	pthread_mutex_unlock(&engine->running);
+	pthread_join(engine->audio_thread, NULL);
 
 	Resources *resources = &engine->resources;
 	Menu *menu = &engine->menu;
