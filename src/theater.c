@@ -119,7 +119,7 @@ static void init_theater(Resources *resources, GameState *game_state,
 		break;
 	}
 	case LAIN_ROOM_NIGHT_PREVIEW: {
-		if (lain_outfit == OUTFIT_SCHOOL) {
+		if (lain_outfit == OUTFIT_BEAR) {
 			load_theater_animation(
 			    game_state, resources, theater,
 			    THEATER_LAIN_ROOM_NIGHT_ANIMATION);
