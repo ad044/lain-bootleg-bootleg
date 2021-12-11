@@ -7,7 +7,7 @@
 #include "shader.h"
 
 static char quad_fragment[] =
-    "#version 410\n"
+    "#version 330\n"
     "out vec4 FragColor;"
 
     "in vec2 v_TexCoord;"
@@ -26,7 +26,7 @@ static char quad_fragment[] =
     "}";
 
 static char quad_vertex[] =
-    "#version 410\n"
+    "#version 330\n"
     "layout (location = 0) in vec2 a_Pos;"
     "layout (location = 1) in vec2 a_TexCoord;"
     "layout (location = 2) in float a_TexIndex;"
