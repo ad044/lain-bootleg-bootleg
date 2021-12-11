@@ -38,9 +38,6 @@ static void load_theater_animation(GameState *game_state, Resources *resources,
 	TheaterAnimation *animation =
 	    theater_animation_get(resources, animation_id);
 
-	// TODO this is likely hacky, will do for now
-	double time = glfwGetTime();
-
 	for (int i = 0; i < animation->layer_count; i++) {
 		Animation *layer_animation = &animation->layers[i];
 		Sprite *layer = &theater->layers[i];
@@ -49,7 +46,8 @@ static void load_theater_animation(GameState *game_state, Resources *resources,
 						     .z_index = i,
 						 });
 
-		sprite_set_animation_direct(time, layer, layer_animation);
+		sprite_set_animation_direct(resources, game_state->time, layer,
+					    layer_animation);
 	}
 
 	theater->layer_count = animation->layer_count;
@@ -236,7 +234,8 @@ void update_theater(Resources *resources, Menu *menu, GameState *game_state,
 	for (int i = 0; i < cvector_size(theater->scene.sprites); ++i) {
 		Sprite *curr = theater->scene.sprites[i];
 		if (curr->animation != NULL) {
-			sprite_try_next_frame(game_state->time, curr);
+			sprite_try_next_frame(resources, game_state->time,
+					      curr);
 			was_animated = true;
 		}
 	}

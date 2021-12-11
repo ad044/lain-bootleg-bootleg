@@ -214,7 +214,7 @@ static void animate_menu(GameState *game_state, Resources *resources,
 		}
 	}
 
-	sprite_try_next_frame(game_state->time, &menu->main_ui);
+	sprite_try_next_frame(resources, game_state->time, &menu->main_ui);
 }
 
 static void update_menu_icons(Menu *menu)
@@ -330,7 +330,7 @@ void update_menu_lain(Resources *resources, GameState *game_state,
 	}
 
 	if (lain->sprite.animation != NULL) {
-		sprite_try_next_frame(game_state->time, &lain->sprite);
+		sprite_try_next_frame(resources, game_state->time, &lain->sprite);
 	}
 }
 
@@ -344,7 +344,7 @@ void update_menu(Menu *menu, GameState *game_state, GLFWwindow *window,
 	update_text(&menu->clock, timestring);
 
 	char score[16];
-	sprintf(score, "%d", game_state->score);
+	sprintf(score, "%ld", game_state->score);
 	update_text(&menu->score_text, score);
 
 	update_menu_lain(resources, game_state, menu->current_time,

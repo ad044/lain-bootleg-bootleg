@@ -7,6 +7,7 @@
 #include "kumashoot.h"
 #include "minigame.h"
 #include "random.h"
+#include "resources.h"
 #include "scene.h"
 #include "sprite.h"
 #include "state.h"
@@ -251,12 +252,15 @@ static void update_progress(GameState *game_state, int by)
 					game_state->screwdriver_unlocked = true;
 					new_item_unlocked = true;
 				}
+				break;
+			}
 			case 100: {
 				if (!game_state->school_outfit_unlocked) {
 					game_state->school_outfit_unlocked =
 					    true;
 					new_item_unlocked = true;
 				}
+				break;
 			}
 			case 200: {
 				if (!game_state->cyberia_outfit_unlocked) {
@@ -264,18 +268,21 @@ static void update_progress(GameState *game_state, int by)
 					    true;
 					new_item_unlocked = true;
 				}
+				break;
 			}
 			case 500: {
 				if (!game_state->bear_outfit_unlocked) {
 					game_state->bear_outfit_unlocked = true;
 					new_item_unlocked = true;
 				}
+				break;
 			}
 			case 900: {
 				if (!game_state->navi_unlocked) {
 					game_state->navi_unlocked = true;
 					new_item_unlocked = true;
 				}
+				break;
 			}
 			case 1400: {
 				if (!game_state->alien_outfit_unlocked) {
@@ -283,6 +290,7 @@ static void update_progress(GameState *game_state, int by)
 					    true;
 					new_item_unlocked = true;
 				}
+				break;
 			}
 			case 2000: {
 				if (!game_state->sweater_outfit_unlocked) {
@@ -290,7 +298,7 @@ static void update_progress(GameState *game_state, int by)
 					    true;
 					new_item_unlocked = true;
 				}
-			}
+				break;
 			}
 			}
 
@@ -325,7 +333,7 @@ static void update_character(Scene *scene, GameState *game_state,
 			character->time_scored = now;
 			update_progress(game_state, character->score_value);
 		} else {
-			sprite_try_next_frame(now, sprite);
+			sprite_try_next_frame(resources, now, sprite);
 		}
 
 		return;
@@ -363,9 +371,10 @@ static void update_character(Scene *scene, GameState *game_state,
 		} else {
 			if (character->additional_sprite.animation != NULL) {
 				sprite_try_next_frame(
-				    now, &character->additional_sprite);
+				    resources, now,
+				    &character->additional_sprite);
 			}
-			sprite_try_next_frame(now, sprite);
+			sprite_try_next_frame(resources, now, sprite);
 		}
 		break;
 	}
@@ -390,7 +399,7 @@ static void update_character(Scene *scene, GameState *game_state,
 			set_random_velocity(bear);
 		}
 
-		sprite_try_next_frame(now, sprite);
+		sprite_try_next_frame(resources, now, sprite);
 
 		break;
 	}
@@ -403,7 +412,7 @@ static void update_character(Scene *scene, GameState *game_state,
 			sprite->animation->looped = true;
 			sprite->mirrored = bear->vel_x < 0;
 		} else {
-			sprite_try_next_frame(now, sprite);
+			sprite_try_next_frame(resources, now, sprite);
 		}
 		break;
 	case SCHOOL_LAIN:
@@ -414,7 +423,7 @@ static void update_character(Scene *scene, GameState *game_state,
 			return;
 		}
 
-		sprite_try_next_frame(now, sprite);
+		sprite_try_next_frame(resources, now, sprite);
 
 		sprite->pos.x += bear->vel_x;
 
@@ -425,7 +434,7 @@ static void update_character(Scene *scene, GameState *game_state,
 			set_sprite_to_smoke(resources, now, sprite);
 			character->is_smoke = true;
 		} else {
-			sprite_try_next_frame(now, sprite);
+			sprite_try_next_frame(resources, now, sprite);
 		}
 	}
 	}
@@ -468,7 +477,8 @@ static void reveal_bear(GameState *game_state, Bear *bear)
 	}
 }
 
-static void update_bear(GameState *game_state, Scene *scene, Bear *bear)
+static void update_bear(Resources *resources, GameState *game_state,
+			Scene *scene, Bear *bear)
 {
 	if (bear->is_smoke) {
 		if (sprite_animation_is_last_frame(&bear->sprite)) {
@@ -476,14 +486,16 @@ static void update_bear(GameState *game_state, Scene *scene, Bear *bear)
 			depth_sort(scene->sprites,
 				   cvector_size(scene->sprites));
 		} else {
-			sprite_try_next_frame(game_state->time, &bear->sprite);
+			sprite_try_next_frame(resources, game_state->time,
+					      &bear->sprite);
 		}
 	} else {
 		update_bear_position(bear);
 
 		bear->sprite.mirrored = bear->vel_x < 0;
 
-		sprite_try_next_frame(game_state->time, &bear->sprite);
+		sprite_try_next_frame(resources, game_state->time,
+				      &bear->sprite);
 
 		if ((random_int() & 0x3f) == 0) {
 			set_random_velocity(bear);
@@ -527,7 +539,7 @@ void update_kumashoot(Resources *resources, Menu *menu, GameState *game_state,
 			update_character(scene, game_state, resources,
 					 kumashoot, bear);
 		} else {
-			update_bear(game_state, scene, bear);
+			update_bear(resources, game_state, scene, bear);
 		}
 	}
 

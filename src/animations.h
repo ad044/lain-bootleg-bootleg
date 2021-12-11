@@ -68,7 +68,7 @@ typedef enum {
 typedef struct AnimationFrame {
 	uint8_t index;
 	uint16_t timing;
-	Texture *texture;
+	TextureID texture_id;
 	Vector2D pos_offset;
 	_Bool visible;
 	struct AnimationFrame *next;

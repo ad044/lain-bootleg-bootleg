@@ -326,7 +326,7 @@ void update_dressup(Resources *resources, Menu *menu, GameState *game_state,
 			depth_sort(dressup->scene.sprites,
 				   cvector_size(dressup->scene.sprites));
 		} else {
-			sprite_try_next_frame(game_state->time, &lain->sprite);
+			sprite_try_next_frame(resources, game_state->time, &lain->sprite);
 		}
 
 		break;
@@ -337,7 +337,8 @@ void update_dressup(Resources *resources, Menu *menu, GameState *game_state,
 					 window);
 			return;
 		} else {
-			sprite_try_next_frame(game_state->time, &lain->sprite);
+			sprite_try_next_frame(resources, game_state->time,
+					      &lain->sprite);
 		}
 
 		break;

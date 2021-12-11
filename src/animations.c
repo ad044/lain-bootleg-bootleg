@@ -71,8 +71,7 @@ static int animation_load(Resources *resources, Animation *animation,
 			*frame = (AnimationFrame){
 			    .index = index->valueint,
 			    .timing = timing->valueint,
-			    .texture =
-				texture_get(resources, rsrc_id->valueint),
+			    .texture_id = rsrc_id->valueint,
 			    .pos_offset =
 				(Vector2D){pos_x->valueint, pos_y->valueint},
 			    .visible = true,

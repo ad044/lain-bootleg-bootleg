@@ -1,6 +1,8 @@
 #include "sprite.h"
 #include "animations.h"
 #include "engine.h"
+#include "resources.h"
+#include "texture.h"
 #include "vector2d.h"
 
 #include <stdint.h>
@@ -141,13 +143,15 @@ _Bool sprite_animation_is_last_frame(Sprite *sprite)
 	return sprite->animation->last == sprite->animation_frame;
 }
 
-static void sprite_set_frame(AnimationFrame *frame, Sprite *sprite)
+static void sprite_set_frame(Resources *resources, AnimationFrame *frame,
+			     Sprite *sprite)
 {
 	sprite->animation_frame = frame;
 
 	if (sprite->animation_frame->visible) {
 		sprite->visible = true;
-		sprite->texture = sprite->animation_frame->texture;
+		sprite->texture =
+		    texture_get(resources, sprite->animation_frame->texture_id);
 		Vector2D pos_offset = sprite->animation_frame->pos_offset;
 
 		if (pos_offset.x != -1) {
@@ -162,7 +166,7 @@ static void sprite_set_frame(AnimationFrame *frame, Sprite *sprite)
 	}
 }
 
-void sprite_try_next_frame(double now, Sprite *sprite)
+void sprite_try_next_frame(Resources *resources, double now, Sprite *sprite)
 {
 	if (sprite->animation_frame->next == NULL) {
 		if (sprite->animation->looped) {
@@ -176,23 +180,24 @@ void sprite_try_next_frame(double now, Sprite *sprite)
 
 	if (now - sprite->animation_start_time >
 	    sprite->animation_frame->next->timing / 60.0) {
-		sprite_set_frame(sprite->animation_frame->next, sprite);
+		sprite_set_frame(resources, sprite->animation_frame->next,
+				 sprite);
 	}
 }
 
-void sprite_set_animation_direct(double now, Sprite *sprite,
-				 Animation *animation)
+void sprite_set_animation_direct(Resources *resources, double now,
+				 Sprite *sprite, Animation *animation)
 {
 	sprite->animation = animation;
 	sprite->animation_start_time = now;
-	sprite_set_frame(animation->first, sprite);
+	sprite_set_frame(resources, animation->first, sprite);
 }
 
 void sprite_set_animation(Resources *resources, double now, Sprite *sprite,
 			  AnimationID animation_id)
 {
 	Animation *animation = animation_get(resources, animation_id);
-	sprite_set_animation_direct(now, sprite, animation);
+	sprite_set_animation_direct(resources, now, sprite, animation);
 }
 
 void sprite_set_to_origin_pos(Sprite *sprite)
