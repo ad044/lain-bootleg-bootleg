@@ -243,9 +243,9 @@ static void update_progress(GameState *game_state, int by)
 	int item_unlock_points[] = {10, 100, 200, 500, 900, 1400, 2000};
 
 	game_state->score += by;
+	_Bool new_item_unlocked = false;
 	for (int i = 0; i < 7; i++) {
 		if (game_state->score >= item_unlock_points[i]) {
-			_Bool new_item_unlocked = false;
 			switch (item_unlock_points[i]) {
 			case 10: {
 				if (!game_state->screwdriver_unlocked) {
@@ -301,12 +301,11 @@ static void update_progress(GameState *game_state, int by)
 				break;
 			}
 			}
-
-			if (new_item_unlocked) {
-				enqueue_sound(&game_state->queued_sounds,
-					      SND_120);
-			}
 		}
+	}
+
+	if (new_item_unlocked) {
+		enqueue_sound(&game_state->queued_sounds, SND_120);
 	}
 }
 
