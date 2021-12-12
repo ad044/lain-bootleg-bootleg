@@ -326,7 +326,8 @@ void update_dressup(Resources *resources, Menu *menu, GameState *game_state,
 			depth_sort(dressup->scene.sprites,
 				   cvector_size(dressup->scene.sprites));
 		} else {
-			sprite_try_next_frame(resources, game_state->time, &lain->sprite);
+			sprite_try_next_frame(resources, game_state->time,
+					      &lain->sprite);
 		}
 
 		break;
@@ -474,8 +475,10 @@ void handle_dressup_event(DressUpEvent event, void *object, Engine *engine)
 		depth_sort(dressup->scene.sprites,
 			   cvector_size(dressup->scene.sprites));
 
-		if (game_state->lain.tool_state == HOLDING_SCREWDRIVER &&
-		    dressup->currently_grabbed->type == SCREWDRIVER) {
+		if ((game_state->lain.tool_state == HOLDING_SCREWDRIVER &&
+		     dressup->currently_grabbed->type == SCREWDRIVER) ||
+		    (game_state->lain.tool_state == HOLDING_NAVI &&
+		     dressup->currently_grabbed->type == NAVI)) {
 			reset_tools(game_state, dressup);
 		}
 
