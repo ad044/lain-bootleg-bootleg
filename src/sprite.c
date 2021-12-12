@@ -171,6 +171,7 @@ void sprite_try_next_frame(Resources *resources, double now, Sprite *sprite)
 	if (sprite->animation_frame->next == NULL) {
 		if (sprite->animation->looped) {
 			sprite->animation_frame = sprite->animation->first;
+			sprite->animation_start_time = now;
 		} else {
 			sprite->animation = NULL;
 			sprite->animation_frame = NULL;

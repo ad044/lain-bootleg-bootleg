@@ -473,6 +473,8 @@ static void reveal_bear(GameState *game_state, Bear *bear)
 	default:
 		break;
 	}
+
+	bear->sprite.animation_start_time = game_state->time;
 }
 
 static void update_bear(Resources *resources, GameState *game_state,
