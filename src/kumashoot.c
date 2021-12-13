@@ -461,13 +461,14 @@ static void reveal_bear(GameState *game_state, Bear *bear)
 	}
 
 	switch (hidden_character->type) {
-	case SCHOOL_LAIN: {
+	case SCHOOL_LAIN_STANDING: {
+		unsigned int uVar3 = random_int();
+		bear->vel_x = (-(unsigned int)((uVar3 & 1) != 0) & 10) - 5;
 		bear->sprite.mirrored = bear->vel_x < 0;
 		break;
 	}
 	case DEFAULT_LAIN: {
-		unsigned int uVar3 = random_int();
-		bear->vel_x = (-(unsigned int)((uVar3 & 1) != 0) & 10) - 5;
+		bear->sprite.mirrored = bear->vel_x < 0;
 		break;
 	}
 	default:
