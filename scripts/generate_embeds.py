@@ -31,6 +31,8 @@ class Resource():
 
 # byte str is huge so, to inspect output in cases of errors,
 # debug mode replaces it with 0 for a less-laggy browsing experience
+
+
 def init_resource(resource):
     return """
     unsigned char {name}[] = {{{byte_str}}};
@@ -44,7 +46,7 @@ def create_load_call(resource):
     """.format(index=resource.index, name=resource.name)
 
 
-def create_source(texture_inits, sound_inits, animations_json_bytes, texture_loads, sound_loads):
+def create_source(texture_inits, sound_inits, animations_json_bytes, window_icon_bytes, texture_loads, sound_loads):
     return """
     #include "embedded.h"
     #include "texture.h"
@@ -56,12 +58,15 @@ def create_source(texture_inits, sound_inits, animations_json_bytes, texture_loa
     const char animations_json[] = {{{}}};
     const size_t animations_json_size = sizeof(animations_json);
 
+    const char window_icon[] = {{{}}};
+    const size_t window_icon_size = sizeof(window_icon);
+
     void load_textures(EmbeddedResource *buffer)
     {{{}}}
 
     void load_sounds(EmbeddedResource *buffer)
     {{{}}}
-    """.format(texture_inits, sound_inits, animations_json_bytes, texture_loads, sound_loads)
+    """.format(texture_inits, sound_inits, animations_json_bytes, window_icon_bytes, texture_loads, sound_loads)
 
 
 def create_header():
@@ -80,6 +85,9 @@ def create_header():
 
     extern const char animations_json[];
     extern const size_t animations_json_size;
+
+    extern const char window_icon[];
+    extern const size_t window_icon_size;
 
     void load_textures(EmbeddedResource *buffer);
     void load_sounds(EmbeddedResource *buffer);
@@ -154,11 +162,17 @@ def compile_resources(src, dst):
     sound_loads_str = "".join("{}".format(i) for i in sound_resource_loads)
 
     with open(path.join(dst, "embedded.c"), "w") as target_c:
+        print("Compiling animation data...")
+
         animations_json_bytes = get_file_bytes(
             path.join(src, "animations.json"))
 
+        print("Compiling window icon...")
+        window_icon_bytes = get_file_bytes(
+            path.join(src, "window_icon.png"))
+
         target_c.write(create_source(
-            texture_inits_str, sound_inits_str, format_bytes_to_str(animations_json_bytes), texture_loads_str, sound_loads_str))
+            texture_inits_str, sound_inits_str, format_bytes_to_str(animations_json_bytes), format_bytes_to_str(window_icon_bytes), texture_loads_str, sound_loads_str))
 
     with open(path.join(dst, "embedded.h"), "w") as target_h:
         target_h.write(create_header())

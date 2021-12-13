@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "stb_image.h"
+
+#include "embedded.h"
 #include "menu.h"
 #include "scene.h"
 #include "window.h"
@@ -16,6 +19,18 @@ static void GLAPIENTRY gl_debug_message_callback(GLenum source, GLenum type,
 {
 	fprintf(stderr, "\ntype = 0x%x, severity = 0x%x, message = %s\n", type,
 		severity, message);
+}
+
+static void set_window_icon(GLFWwindow *window)
+{
+	stbi_set_flip_vertically_on_load(false);
+
+	GLFWimage images[1];
+	images[0].pixels =
+	    stbi_load_from_memory(window_icon, window_icon_size,
+				  &images[0].width, &images[0].height, 0, 4);
+	glfwSetWindowIcon(window, 1, images);
+	stbi_image_free(images[0].pixels);
 }
 
 static GLFWmonitor *get_current_monitor(GLFWwindow *window)
@@ -90,6 +105,7 @@ int make_window(GLFWwindow **window, int width, int height, char *name,
 	}
 
 	glfwSetWindowPos(*window, posx, posy);
+	set_window_icon(*window);
 
 	glfwShowWindow(*window);
 
