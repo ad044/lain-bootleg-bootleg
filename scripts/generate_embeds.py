@@ -55,10 +55,10 @@ def create_source(texture_inits, sound_inits, animations_json_bytes, window_icon
 
     {}
 
-    const char animations_json[] = {{{}}};
+    const unsigned char animations_json[] = {{{}}};
     const size_t animations_json_size = sizeof(animations_json);
 
-    const char window_icon[] = {{{}}};
+    const unsigned char window_icon[] = {{{}}};
     const size_t window_icon_size = sizeof(window_icon);
 
     void load_textures(EmbeddedResource *buffer)
@@ -83,10 +83,10 @@ def create_header():
         size_t size;
     } EmbeddedResource;
 
-    extern const char animations_json[];
+    extern const unsigned char animations_json[];
     extern const size_t animations_json_size;
 
-    extern const char window_icon[];
+    extern const unsigned char window_icon[];
     extern const size_t window_icon_size;
 
     void load_textures(EmbeddedResource *buffer);
