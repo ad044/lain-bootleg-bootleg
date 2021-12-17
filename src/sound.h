@@ -3,7 +3,7 @@
 #include <portaudio.h>
 #include <sndfile.h>
 
-#define SOUND_COUNT 11
+#define SOUND_COUNT 12
 
 #define MAX_SOUND_QUEUE_SIZE 32
 
@@ -19,6 +19,7 @@ typedef enum {
 	SND_118,
 	SND_119,
 	SND_120,
+	SND_MOVIE_AUDIO
 } SoundID;
 
 typedef struct {
@@ -26,6 +27,7 @@ typedef struct {
 	unsigned char *bytes;
 	SF_INFO info;
 	SNDFILE *file;
+	_Bool stopped;
 } SoundData;
 
 typedef struct {

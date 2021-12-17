@@ -47,6 +47,14 @@ target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic)
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_SOURCE_DIR}/src)
 
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(LIBAV REQUIRED
+    libavformat
+    libavcodec
+    libavutil
+    libswscale
+)
+
 set(CGLM_STATIC on)
 add_subdirectory(${CMAKE_SOURCE_DIR}/external/cglm/ EXCLUDE_FROM_ALL)
 target_link_libraries(${PROJECT_NAME} PRIVATE cglm)
@@ -63,3 +71,5 @@ target_link_libraries(${PROJECT_NAME} PRIVATE PortAudio)
 
 add_subdirectory(${CMAKE_SOURCE_DIR}/external/libsndfile EXCLUDE_FROM_ALL)
 target_link_libraries(${PROJECT_NAME} PRIVATE sndfile)
+
+target_link_libraries(${PROJECT_NAME} PRIVATE ${LIBAV_STATIC_LIBRARIES})

@@ -604,7 +604,6 @@ typedef enum {
 typedef struct {
 	TextureID id;
 	GLuint gl_id;
-	int nr_channels;
 	Vector2D size;
 } Texture;
 

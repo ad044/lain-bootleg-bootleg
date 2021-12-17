@@ -5,7 +5,26 @@
 #include "texture.h"
 #include "vector2d.h"
 
-#include <stdint.h>
+#include <libavcodec/avcodec.h>
+#include <libavformat/avformat.h>
+#include <libswscale/swscale.h>
+
+#define VIDEO_WIDTH 400
+#define VIDEO_HEIGHT 300
+
+typedef struct {
+	_Bool played_first_frame;
+	Texture texture_handle;
+	AVRational time_base;
+	double start_time;
+	uint8_t frame_buffer[VIDEO_WIDTH * VIDEO_HEIGHT * 4];
+
+	AVFormatContext *av_format_ctx;
+	AVCodecContext *av_codec_ctx;
+	AVFrame *av_frame;
+	AVPacket *av_packet;
+	int video_stream_idx;
+} Video;
 
 typedef enum {
 	THEATER_CLASSROOM,
@@ -25,6 +44,9 @@ typedef struct {
 
 	double last_updated;
 	Scene scene;
+
+	_Bool is_movie_playing;
+	Video video;
 } Theater;
 
 struct minigame;

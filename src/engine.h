@@ -24,5 +24,6 @@ typedef struct engine {
 	pthread_mutex_t running;
 } Engine;
 
+int engine_init(Engine *engine);
 void engine_stop(Engine *engine);
 void engine_run(Engine *engine);

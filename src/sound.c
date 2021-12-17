@@ -1,18 +1,5 @@
 #include "sound.h"
-#include "embedded.h"
 #include "engine.h"
-#include "sndfile.h"
-
-#include <portaudio.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-
-typedef struct {
-	SoundData *data;
-	PaStream *stream;
-} PlaySoundArgs;
 
 static sf_count_t vfget_filelen(void *user_data)
 {
@@ -97,9 +84,11 @@ int sounds_init(SoundData *sounds)
 
 	for (int i = 0; i < SOUND_COUNT; i++) {
 		SoundData *data = &sounds[i];
+
 		data->bytes = files[i].bytes;
 		data->length = files[i].size;
 		data->offset = 0;
+		data->stopped = false;
 
 		memset(&data->info, 0, sizeof(data->info));
 		data->info.format = SF_FORMAT_WAV | SF_FORMAT_PCM_16;
@@ -130,7 +119,7 @@ static int callback(const void *input, void *output, unsigned long frame_count,
 	sf_count_t num_read = sf_read_float(
 	    sound_data->file, out, frame_count * sound_data->info.channels);
 
-	if (num_read < frame_count) {
+	if (num_read < frame_count || sound_data->stopped) {
 		sf_seek(sound_data->file, 0, SEEK_SET);
 		return paComplete;
 	}

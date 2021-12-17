@@ -22,7 +22,6 @@ static int init_texture(Texture *texture, const unsigned char *bytes,
 	}
 
 	texture->size = (Vector2D){width, height};
-	texture->nr_channels = nr_channels;
 
 	glGenTextures(1, &texture->gl_id);
 	glBindTexture(GL_TEXTURE_2D, texture->gl_id);

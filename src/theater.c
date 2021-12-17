@@ -1,17 +1,189 @@
+#include <libavutil/avutil.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "animations.h"
 #include "minigame.h"
+#include "portaudio.h"
 #include "resources.h"
 #include "scene.h"
+#include "sndfile.h"
+#include "sound.h"
 #include "sprite.h"
 #include "state.h"
 #include "texture.h"
 #include "theater.h"
 #include "vector2d.h"
 #include "window.h"
+
+static int movie_video_init(Video *v)
+{
+	v->played_first_frame = false;
+
+	// allocate context
+	v->av_format_ctx = avformat_alloc_context();
+	if (v->av_format_ctx == NULL) {
+		printf("Failed to allocate format context.\n");
+		return 0;
+	}
+
+	// open file
+	if (avformat_open_input(&v->av_format_ctx, "./lain_mov.dat", NULL,
+				NULL) != 0) {
+		printf("Couldnt open video file.\n");
+		return 0;
+	};
+
+	// find stream index
+	v->video_stream_idx = -1;
+	AVCodecParameters *av_codec_params;
+	AVCodec *av_codec;
+	for (int i = 0; i < v->av_format_ctx->nb_streams; i++) {
+		AVStream *stream = v->av_format_ctx->streams[i];
+		av_codec_params = stream->codecpar;
+		av_codec = avcodec_find_decoder(av_codec_params->codec_id);
+
+		if (av_codec == NULL) {
+			continue;
+		}
+
+		if (av_codec_params->codec_type == AVMEDIA_TYPE_VIDEO) {
+			v->video_stream_idx = i;
+			v->time_base = stream->time_base;
+			break;
+		}
+	}
+
+	v->av_codec_ctx = avcodec_alloc_context3(av_codec);
+	if (v->av_codec_ctx == NULL) {
+		printf("Couldn't allocate codec context.\n");
+		return 0;
+	}
+
+	if (avcodec_parameters_to_context(v->av_codec_ctx, av_codec_params) <
+	    0) {
+		printf("Couldn't initialize codec context.\n");
+		return 0;
+	}
+
+	if (avcodec_open2(v->av_codec_ctx, av_codec, NULL) < 0) {
+		printf("Failed to open codec.\n");
+		return 0;
+	}
+
+	v->av_frame = av_frame_alloc();
+	if (v->av_frame == NULL) {
+		printf("Couldn't allocate frame memory.\n");
+		return 0;
+	}
+
+	v->av_packet = av_packet_alloc();
+	if (v->av_packet == NULL) {
+		printf("Couldn't allocate packet memory.\n");
+		return 0;
+	}
+
+	return 1;
+}
+
+static int movie_video_read_frame(Video *v, int64_t *pts, uint8_t *frame_buffer)
+{
+	int response;
+	while (av_read_frame(v->av_format_ctx, v->av_packet) >= 0) {
+		if (v->av_packet->stream_index != v->video_stream_idx) {
+			continue;
+		}
+
+		response = avcodec_send_packet(v->av_codec_ctx, v->av_packet);
+		if (response < 0) {
+			printf("Failed to decode packet: %s\n",
+			       av_err2str(response));
+			return 0;
+		}
+
+		response = avcodec_receive_frame(v->av_codec_ctx, v->av_frame);
+		if (response == AVERROR(EAGAIN) || response == AVERROR_EOF) {
+			continue;
+		} else if (response < 0) {
+			printf("Failed to decode packet: %s\n",
+			       av_err2str(response));
+			return 0;
+		}
+		av_packet_unref(v->av_packet);
+		break;
+	}
+
+	struct SwsContext *sws_ctx = sws_getContext(
+	    v->av_frame->width, v->av_frame->height, v->av_codec_ctx->pix_fmt,
+	    v->av_frame->width, v->av_frame->height, AV_PIX_FMT_RGB0,
+	    SWS_BILINEAR, NULL, NULL, NULL);
+
+	if (sws_ctx == NULL) {
+		printf("Failed to create sws context.\n");
+		return 0;
+	}
+
+	uint8_t *dest[4] = {frame_buffer, NULL, NULL, NULL};
+	int dest_linesize[4] = {v->av_frame->width * 4, 0, 0, 0};
+
+	// flip the output
+	v->av_frame->data[0] +=
+	    v->av_frame->linesize[0] * (v->av_frame->height - 1);
+	v->av_frame->linesize[0] = -v->av_frame->linesize[0];
+
+	sws_scale(sws_ctx, v->av_frame->data, v->av_frame->linesize, 0,
+		  v->av_frame->height, dest, dest_linesize);
+
+	*pts = v->av_frame->pts;
+	*frame_buffer = dest;
+}
+
+static void movie_video_free(Video *v)
+{
+	avformat_close_input(&v->av_format_ctx);
+	avformat_free_context(v->av_format_ctx);
+	av_frame_free(&v->av_frame);
+	av_packet_free(&v->av_packet);
+	avcodec_free_context(&v->av_codec_ctx);
+}
+
+static int init_movie(Theater *theater)
+{
+	Video *v = &theater->video;
+
+	// init video
+	if (!movie_video_init(v)) {
+		printf("Failed to initialize movie state.\n");
+		return 0;
+	}
+
+	glGenTextures(1, &v->texture_handle.gl_id);
+	glBindTexture(GL_TEXTURE_2D, v->texture_handle.gl_id);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+	v->texture_handle.size = (Vector2D){VIDEO_WIDTH, VIDEO_HEIGHT};
+
+	// init scene
+	// TODO free current scene if there is one
+	Sprite *sprites[5] = {&theater->layers[0]};
+
+	make_sprite(&theater->layers[0],
+		    (Sprite){.visible = true,
+			     .pos = {300.0f, 200.0f},
+			     .pivot_centered = true,
+			     .texture = &v->texture_handle});
+
+	init_scene(&theater->scene, sprites, 1, NULL, 0, NULL, 0, NULL, 0);
+
+	// finalize
+	theater->is_movie_playing = true;
+
+	return 1;
+}
 
 static inline int get_lain_walk_animation(LainOutfit outfit)
 {
@@ -62,6 +234,10 @@ static void init_theater(Resources *resources, GameState *game_state,
 	Sprite *sprites[5] = {&theater->layers[0], &theater->layers[1],
 			      &theater->layers[2], &theater->layers[3],
 			      &theater->layers[4]};
+
+	init_movie(theater);
+
+	return;
 
 	switch (preview) {
 	case CLASSROOM_PREVIEW: {
@@ -219,6 +395,8 @@ static void init_theater(Resources *resources, GameState *game_state,
 
 	init_scene(&theater->scene, sprites, theater->layer_count, NULL, 0,
 		   NULL, 0, NULL, 0);
+
+	theater->is_movie_playing = false;
 }
 
 void update_theater(Resources *resources, Menu *menu, GameState *game_state,
@@ -231,16 +409,49 @@ void update_theater(Resources *resources, Menu *menu, GameState *game_state,
 	// if it wasnt animated, that means no animation in the scene has a next
 	// frame, which means its over.
 	_Bool was_animated = false;
-	for (int i = 0; i < cvector_size(theater->scene.sprites); ++i) {
-		Sprite *curr = theater->scene.sprites[i];
-		if (curr->animation != NULL) {
-			sprite_try_next_frame(resources, game_state->time,
-					      curr);
-			was_animated = true;
+	if (theater->is_movie_playing) {
+		Video *v = &theater->video;
+
+		int64_t pts;
+		movie_video_read_frame(v, &pts, v->frame_buffer);
+
+		if (!v->played_first_frame) {
+			v->played_first_frame = true;
+			v->start_time = game_state->time;
+			resources->sounds[SND_MOVIE_AUDIO].stopped = false;
+			enqueue_sound(&game_state->queued_sounds,
+				      SND_MOVIE_AUDIO);
+		}
+
+		double pt_in_seconds =
+		    pts * (double)v->time_base.num / (double)v->time_base.den;
+
+		while (pt_in_seconds > glfwGetTime() - v->start_time) {
+			glfwWaitEventsTimeout(pt_in_seconds -
+					      (glfwGetTime() - v->start_time));
+		}
+
+		glBindTexture(GL_TEXTURE_2D, v->texture_handle.gl_id);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, VIDEO_WIDTH,
+			     VIDEO_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+			     v->frame_buffer);
+
+		// TODO check if video has finished playing
+		was_animated = true;
+	} else {
+		for (int i = 0; i < cvector_size(theater->scene.sprites); ++i) {
+			Sprite *curr = theater->scene.sprites[i];
+			if (curr->animation != NULL) {
+				sprite_try_next_frame(resources,
+						      game_state->time, curr);
+				was_animated = true;
+			}
 		}
 	}
 
 	if (!was_animated || glfwWindowShouldClose(window)) {
+		movie_video_free(&theater->video);
+		resources->sounds[SND_MOVIE_AUDIO].stopped = true;
 		enqueue_sound(&game_state->queued_sounds, SND_111);
 		destroy_minigame(resources->textures, menu, minigame, window);
 		return;

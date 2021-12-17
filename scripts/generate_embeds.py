@@ -23,11 +23,12 @@ def format_bytes_to_str(byte_array):
 DEBUG = False
 
 
-class Resource():
+class Resource:
     def __init__(self, index, name, byte_str):
         self.index = index
         self.name = name
         self.byte_str = byte_str
+
 
 # byte str is huge so, to inspect output in cases of errors,
 # debug mode replaces it with 0 for a less-laggy browsing experience
@@ -37,16 +38,28 @@ def init_resource(resource):
     return """
     unsigned char {name}[] = {{{byte_str}}};
     size_t {name}_size = sizeof({name});
-    """.format(name=resource.name, byte_str=0 if DEBUG else resource.byte_str)
+    """.format(
+        name=resource.name, byte_str=0 if DEBUG else resource.byte_str
+    )
 
 
 def create_load_call(resource):
     return """
     buffer[{index}] = (EmbeddedResource){{.bytes = {name}, .size = {name}_size}};
-    """.format(index=resource.index, name=resource.name)
+    """.format(
+        index=resource.index, name=resource.name
+    )
 
 
-def create_source(texture_inits, sound_inits, animations_json_bytes, window_icon_bytes, texture_loads, sound_loads):
+def create_source(
+    texture_inits,
+    sound_inits,
+    animations_json_bytes,
+    window_icon_bytes,
+    movie_video_bytes,
+    texture_loads,
+    sound_loads,
+):
     return """
     #include "embedded.h"
     #include "texture.h"
@@ -61,12 +74,23 @@ def create_source(texture_inits, sound_inits, animations_json_bytes, window_icon
     const unsigned char window_icon[] = {{{}}};
     const size_t window_icon_size = sizeof(window_icon);
 
+    unsigned char movie_video[] = {{{}}};
+    size_t movie_video_size = sizeof(movie_video);
+
     void load_textures(EmbeddedResource *buffer)
     {{{}}}
 
     void load_sounds(EmbeddedResource *buffer)
     {{{}}}
-    """.format(texture_inits, sound_inits, animations_json_bytes, window_icon_bytes, texture_loads, sound_loads)
+    """.format(
+        texture_inits,
+        sound_inits,
+        animations_json_bytes,
+        window_icon_bytes,
+        movie_video_bytes,
+        texture_loads,
+        sound_loads,
+    )
 
 
 def create_header():
@@ -88,6 +112,9 @@ def create_header():
 
     extern const unsigned char window_icon[];
     extern const size_t window_icon_size;
+
+    extern unsigned char movie_video[];
+    extern size_t movie_video_size;
 
     void load_textures(EmbeddedResource *buffer);
     void load_sounds(EmbeddedResource *buffer);
@@ -141,6 +168,12 @@ def compile_resources(src, dst):
 
         sound_resources.append(rsrc)
 
+    print("Compiling movie audio...")
+    movie_audio_bytes = get_file_bytes(path.join(src, "movie_audio.opus"))
+    movie_audio_byte_str = format_bytes_to_str(movie_audio_bytes)
+    movie_audio = Resource("SND_MOVIE_AUDIO", "res_snd_movie_audio", movie_audio_byte_str)
+    sound_resources.append(movie_audio)
+
     texture_resource_inits = []
     texture_resource_loads = []
 
@@ -164,15 +197,25 @@ def compile_resources(src, dst):
     with open(path.join(dst, "embedded.c"), "w") as target_c:
         print("Compiling animation data...")
 
-        animations_json_bytes = get_file_bytes(
-            path.join(src, "animations.json"))
+        animations_json = get_file_bytes(path.join(src, "animations.json"))
 
         print("Compiling window icon...")
-        window_icon_bytes = get_file_bytes(
-            path.join(src, "window_icon.png"))
+        window_icon = get_file_bytes(path.join(src, "window_icon.png"))
 
-        target_c.write(create_source(
-            texture_inits_str, sound_inits_str, format_bytes_to_str(animations_json_bytes), format_bytes_to_str(window_icon_bytes), texture_loads_str, sound_loads_str))
+        print("Compiling movie video...")
+        movie_video = get_file_bytes(path.join(src, "movie_video.mp4"))
+
+        target_c.write(
+            create_source(
+                texture_inits_str,
+                sound_inits_str,
+                format_bytes_to_str(animations_json),
+                format_bytes_to_str(window_icon),
+                format_bytes_to_str(movie_video),
+                texture_loads_str,
+                sound_loads_str,
+            )
+        )
 
     with open(path.join(dst, "embedded.h"), "w") as target_h:
         target_h.write(create_header())
