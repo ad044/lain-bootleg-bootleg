@@ -24,6 +24,7 @@ typedef struct {
 	AVFrame *av_frame;
 	AVPacket *av_packet;
 	int video_stream_idx;
+	struct SwsContext *sws_ctx;
 } Video;
 
 typedef enum {
@@ -33,7 +34,8 @@ typedef enum {
 	THEATER_ARISU_ROOM,
 	THEATER_CYBERIA,
 	THEATER_STREET,
-	THEATER_BRIDGE
+	THEATER_BRIDGE,
+	THEATER_MOVIE
 } TheaterType;
 
 typedef struct {
@@ -45,7 +47,6 @@ typedef struct {
 	double last_updated;
 	Scene scene;
 
-	_Bool is_movie_playing;
 	Video video;
 } Theater;
 
@@ -56,3 +57,4 @@ int start_theater(Menu *menu, Resources *resources, GameState *game_state,
 		  GLFWwindow *main_window);
 void update_theater(Resources *resources, Menu *menu, GameState *game_state,
 		    GLFWwindow *window, struct minigame *minigame);
+void movie_video_free(Video *v);

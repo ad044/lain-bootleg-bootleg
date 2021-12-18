@@ -27,7 +27,7 @@ typedef struct {
 	unsigned char *bytes;
 	SF_INFO info;
 	SNDFILE *file;
-	_Bool stopped;
+	_Bool paused;
 } SoundData;
 
 typedef struct {

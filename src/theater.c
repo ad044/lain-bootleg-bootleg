@@ -1,4 +1,5 @@
 #include <libavutil/avutil.h>
+#include <libavutil/error.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -84,14 +85,25 @@ static int movie_video_init(Video *v)
 		return 0;
 	}
 
+	v->sws_ctx = sws_getContext(
+	    VIDEO_WIDTH, VIDEO_HEIGHT, v->av_codec_ctx->pix_fmt, VIDEO_WIDTH,
+	    VIDEO_HEIGHT, AV_PIX_FMT_RGB0, SWS_BILINEAR, NULL, NULL, NULL);
+
+	if (v->sws_ctx == NULL) {
+		printf("Failed to create sws context.\n");
+		return 0;
+	}
+
 	return 1;
 }
 
 static int movie_video_read_frame(Video *v, int64_t *pts, uint8_t *frame_buffer)
 {
-	int response;
-	while (av_read_frame(v->av_format_ctx, v->av_packet) >= 0) {
+	int response, read_frame_status;
+	while ((read_frame_status =
+		    av_read_frame(v->av_format_ctx, v->av_packet) >= 0)) {
 		if (v->av_packet->stream_index != v->video_stream_idx) {
+			av_packet_unref(v->av_packet);
 			continue;
 		}
 
@@ -99,28 +111,26 @@ static int movie_video_read_frame(Video *v, int64_t *pts, uint8_t *frame_buffer)
 		if (response < 0) {
 			printf("Failed to decode packet: %s\n",
 			       av_err2str(response));
+			av_packet_unref(v->av_packet);
 			return 0;
 		}
 
 		response = avcodec_receive_frame(v->av_codec_ctx, v->av_frame);
-		if (response == AVERROR(EAGAIN) || response == AVERROR_EOF) {
+		if (response == AVERROR(EAGAIN)) {
+			av_packet_unref(v->av_packet);
 			continue;
 		} else if (response < 0) {
 			printf("Failed to decode packet: %s\n",
 			       av_err2str(response));
+			av_packet_unref(v->av_packet);
 			return 0;
 		}
 		av_packet_unref(v->av_packet);
 		break;
 	}
 
-	struct SwsContext *sws_ctx = sws_getContext(
-	    v->av_frame->width, v->av_frame->height, v->av_codec_ctx->pix_fmt,
-	    v->av_frame->width, v->av_frame->height, AV_PIX_FMT_RGB0,
-	    SWS_BILINEAR, NULL, NULL, NULL);
-
-	if (sws_ctx == NULL) {
-		printf("Failed to create sws context.\n");
+	if (!read_frame_status) {
+		av_packet_unref(v->av_packet);
 		return 0;
 	}
 
@@ -132,15 +142,18 @@ static int movie_video_read_frame(Video *v, int64_t *pts, uint8_t *frame_buffer)
 	    v->av_frame->linesize[0] * (v->av_frame->height - 1);
 	v->av_frame->linesize[0] = -v->av_frame->linesize[0];
 
-	sws_scale(sws_ctx, v->av_frame->data, v->av_frame->linesize, 0,
+	sws_scale(v->sws_ctx, v->av_frame->data, v->av_frame->linesize, 0,
 		  v->av_frame->height, dest, dest_linesize);
 
 	*pts = v->av_frame->pts;
 	*frame_buffer = dest;
+
+	return 1;
 }
 
-static void movie_video_free(Video *v)
+void movie_video_free(Video *v)
 {
+	sws_freeContext(v->sws_ctx);
 	avformat_close_input(&v->av_format_ctx);
 	avformat_free_context(v->av_format_ctx);
 	av_frame_free(&v->av_frame);
@@ -168,7 +181,9 @@ static int init_movie(Theater *theater)
 	v->texture_handle.size = (Vector2D){VIDEO_WIDTH, VIDEO_HEIGHT};
 
 	// init scene
-	// TODO free current scene if there is one
+	// free old scene
+	free_scene(&theater->scene);
+
 	Sprite *sprites[5] = {&theater->layers[0]};
 
 	make_sprite(&theater->layers[0],
@@ -180,7 +195,7 @@ static int init_movie(Theater *theater)
 	init_scene(&theater->scene, sprites, 1, NULL, 0, NULL, 0, NULL, 0);
 
 	// finalize
-	theater->is_movie_playing = true;
+	theater->type = THEATER_MOVIE;
 
 	return 1;
 }
@@ -235,10 +250,6 @@ static void init_theater(Resources *resources, GameState *game_state,
 			      &theater->layers[2], &theater->layers[3],
 			      &theater->layers[4]};
 
-	init_movie(theater);
-
-	return;
-
 	switch (preview) {
 	case CLASSROOM_PREVIEW: {
 		theater->type = THEATER_CLASSROOM;
@@ -272,6 +283,8 @@ static void init_theater(Resources *resources, GameState *game_state,
 		break;
 	}
 	case SCHOOL_PREVIEW: {
+		theater->type = THEATER_SCHOOL;
+
 		if (lain_outfit == OUTFIT_SCHOOL &&
 		    lain_tool_state == HOLDING_NAVI) {
 			load_theater_animation(game_state, resources, theater,
@@ -295,6 +308,8 @@ static void init_theater(Resources *resources, GameState *game_state,
 		break;
 	}
 	case LAIN_ROOM_NIGHT_PREVIEW: {
+		theater->type = THEATER_LAIN_ROOM_NIGHT;
+
 		if (lain_outfit == OUTFIT_BEAR) {
 			load_theater_animation(
 			    game_state, resources, theater,
@@ -319,6 +334,8 @@ static void init_theater(Resources *resources, GameState *game_state,
 		break;
 	}
 	case ARISU_ROOM_PREVIEW: {
+		theater->type = THEATER_ARISU_ROOM;
+
 		if (lain_outfit == OUTFIT_ALIEN) {
 			load_theater_animation(game_state, resources, theater,
 					       THEATER_ARISU_ROOM_ANIMATION);
@@ -342,6 +359,8 @@ static void init_theater(Resources *resources, GameState *game_state,
 		break;
 	}
 	case CYBERIA_PREVIEW: {
+		theater->type = THEATER_CYBERIA;
+
 		if (lain_outfit == OUTFIT_CYBERIA) {
 			load_theater_animation(game_state, resources, theater,
 					       THEATER_CYBERIA_ANIMATION);
@@ -364,6 +383,8 @@ static void init_theater(Resources *resources, GameState *game_state,
 		break;
 	}
 	case STREET_PREVIEW: {
+		theater->type = THEATER_STREET;
+
 		if (lain_outfit == OUTFIT_SWEATER) {
 			load_theater_animation(game_state, resources, theater,
 					       THEATER_STREET_ANIMATION);
@@ -386,6 +407,8 @@ static void init_theater(Resources *resources, GameState *game_state,
 		break;
 	}
 	case BRIDGE_PREVIEW: {
+		theater->type = THEATER_BRIDGE;
+
 		load_theater_animation(game_state, resources, theater,
 				       THEATER_BRIDGE_ANIMATION);
 
@@ -395,8 +418,6 @@ static void init_theater(Resources *resources, GameState *game_state,
 
 	init_scene(&theater->scene, sprites, theater->layer_count, NULL, 0,
 		   NULL, 0, NULL, 0);
-
-	theater->is_movie_playing = false;
 }
 
 void update_theater(Resources *resources, Menu *menu, GameState *game_state,
@@ -405,40 +426,42 @@ void update_theater(Resources *resources, Menu *menu, GameState *game_state,
 
 	Theater *theater = &minigame->current.theater;
 
-	// hacky way of detecting whether or not the theater is over
-	// if it wasnt animated, that means no animation in the scene has a next
-	// frame, which means its over.
 	_Bool was_animated = false;
-	if (theater->is_movie_playing) {
+	if (theater->type == THEATER_MOVIE) {
 		Video *v = &theater->video;
 
 		int64_t pts;
-		movie_video_read_frame(v, &pts, v->frame_buffer);
 
-		if (!v->played_first_frame) {
-			v->played_first_frame = true;
-			v->start_time = game_state->time;
-			resources->sounds[SND_MOVIE_AUDIO].stopped = false;
-			enqueue_sound(&game_state->queued_sounds,
-				      SND_MOVIE_AUDIO);
+		if (movie_video_read_frame(v, &pts, v->frame_buffer)) {
+			if (!v->played_first_frame) {
+				v->played_first_frame = true;
+				v->start_time = game_state->time;
+				resources->sounds[SND_MOVIE_AUDIO].paused =
+				    false;
+				enqueue_sound(&game_state->queued_sounds,
+					      SND_MOVIE_AUDIO);
+			}
+
+			double pt_in_seconds = pts * (double)v->time_base.num /
+					       (double)v->time_base.den;
+
+			while (pt_in_seconds > glfwGetTime() - v->start_time) {
+				glfwWaitEventsTimeout(
+				    pt_in_seconds -
+				    (glfwGetTime() - v->start_time));
+			}
+
+			glBindTexture(GL_TEXTURE_2D, v->texture_handle.gl_id);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, VIDEO_WIDTH,
+				     VIDEO_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+				     v->frame_buffer);
+
+			was_animated = true;
 		}
-
-		double pt_in_seconds =
-		    pts * (double)v->time_base.num / (double)v->time_base.den;
-
-		while (pt_in_seconds > glfwGetTime() - v->start_time) {
-			glfwWaitEventsTimeout(pt_in_seconds -
-					      (glfwGetTime() - v->start_time));
-		}
-
-		glBindTexture(GL_TEXTURE_2D, v->texture_handle.gl_id);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, VIDEO_WIDTH,
-			     VIDEO_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE,
-			     v->frame_buffer);
-
-		// TODO check if video has finished playing
-		was_animated = true;
 	} else {
+		// hacky way of detecting whether or not the theater is over
+		// if it wasnt animated, that means no animation in the scene
+		// has a next frame, which means its over.
 		for (int i = 0; i < cvector_size(theater->scene.sprites); ++i) {
 			Sprite *curr = theater->scene.sprites[i];
 			if (curr->animation != NULL) {
@@ -449,9 +472,13 @@ void update_theater(Resources *resources, Menu *menu, GameState *game_state,
 		}
 	}
 
+	if (!was_animated && theater->type == THEATER_BRIDGE) {
+		init_movie(theater);
+		was_animated = true;
+	}
+
 	if (!was_animated || glfwWindowShouldClose(window)) {
-		movie_video_free(&theater->video);
-		resources->sounds[SND_MOVIE_AUDIO].stopped = true;
+		resources->sounds[SND_MOVIE_AUDIO].paused = true;
 		enqueue_sound(&game_state->queued_sounds, SND_111);
 		destroy_minigame(resources->textures, menu, minigame, window);
 		return;

@@ -1,4 +1,5 @@
 #include "minigame.h"
+#include "animations.h"
 #include "resources.h"
 #include "scene.h"
 
@@ -17,9 +18,15 @@ void destroy_minigame(Texture *textures, Menu *menu, Minigame *minigame,
 	case DRESSUP:
 		free_scene(&minigame->current.dressup.scene);
 		break;
-	case THEATER:
-		free_scene(&minigame->current.theater.scene);
+	case THEATER: {
+		Theater *theater = &minigame->current.theater;
+		free_scene(&theater->scene);
+		if (theater->type == THEATER_MOVIE) {
+			movie_video_free(&theater->video);
+		}
+
 		break;
+	}
 	default:
 		break;
 	}

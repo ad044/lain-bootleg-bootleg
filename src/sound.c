@@ -88,7 +88,7 @@ int sounds_init(SoundData *sounds)
 		data->bytes = files[i].bytes;
 		data->length = files[i].size;
 		data->offset = 0;
-		data->stopped = false;
+		data->paused = false;
 
 		memset(&data->info, 0, sizeof(data->info));
 		data->info.format = SF_FORMAT_WAV | SF_FORMAT_PCM_16;
@@ -119,7 +119,7 @@ static int callback(const void *input, void *output, unsigned long frame_count,
 	sf_count_t num_read = sf_read_float(
 	    sound_data->file, out, frame_count * sound_data->info.channels);
 
-	if (num_read < frame_count || sound_data->stopped) {
+	if (num_read < frame_count || sound_data->paused) {
 		sf_seek(sound_data->file, 0, SEEK_SET);
 		return paComplete;
 	}
@@ -138,7 +138,7 @@ static void play_sound(SoundData *data, PaStream *stream)
 	}
 
 	if (Pa_StartStream(stream) != paNoError) {
-		printf("Problem opening audio stream.\n");
+		printf("Problem starting audio stream.\n");
 		return;
 	}
 }

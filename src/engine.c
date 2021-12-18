@@ -145,6 +145,15 @@ void engine_stop(Engine *engine)
 		animation_free(&resources->animations[i]);
 	}
 
+	for (int i = 0; i < MAX_THEATER_ANIMATION_COUNT; i++) {
+		TheaterAnimation anim = resources->theater_animations[i];
+		if (anim.initialized) {
+			for (int j = 0; j < anim.layer_count; j++) {
+				animation_free(&anim.layers[j]);
+			}
+		}
+	}
+
 	close_audio_stream(engine->audio_stream);
 	for (int i = 0; i < SOUND_COUNT; i++) {
 		sf_close(resources->sounds[i].file);

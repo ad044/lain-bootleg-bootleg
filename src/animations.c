@@ -35,8 +35,7 @@ static cJSON *parse_animations(char *filename)
 	return cJSON_Parse(data);
 }
 
-static int animation_load(Resources *resources, Animation *animation,
-			  const cJSON *frames)
+static int animation_load(Animation *animation, const cJSON *frames)
 {
 	animation->first = NULL;
 	animation->last = NULL;
@@ -109,7 +108,7 @@ Animation *animation_get(Resources *resources, AnimationID animation_id)
 			return 0;
 		}
 
-		if (!animation_load(resources, animation, frames)) {
+		if (!animation_load(animation, frames)) {
 			printf("Failed to load animation %s.\n ",
 			       ANIMATION_STRING[animation_id]);
 			return 0;
@@ -139,8 +138,7 @@ TheaterAnimation *theater_animation_get(Resources *resources,
 				break;
 			}
 
-			if (!animation_load(resources,
-					    &animation->layers[layer_count],
+			if (!animation_load(&animation->layers[layer_count],
 					    layer)) {
 				printf("Failed to load animation %s.\n ",
 				       THEATER_ANIMATION_STRING[animation_id]);
