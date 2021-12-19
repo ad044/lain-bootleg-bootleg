@@ -7,8 +7,6 @@
 
 int init_resources(Resources *resources)
 {
-	load_textures(resources->embedded);
-
 	textures_init(resources);
 
 	if (!shaders_init(resources->shaders)) {

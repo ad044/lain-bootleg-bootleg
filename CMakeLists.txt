@@ -30,7 +30,6 @@ set(SOURCES
    src/state.c
    src/kumashoot.c
    src/minigame.c
-   src/embedded.c
    src/vector2d.c
    src/random.c
    src/animations.c
@@ -54,6 +53,10 @@ pkg_check_modules(LIBAV REQUIRED
     libavutil
     libswscale
 )
+
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+                   COMMAND ${CMAKE_COMMAND} -E copy_directory
+                       ${CMAKE_SOURCE_DIR}/res $<TARGET_FILE_DIR:${PROJECT_NAME}>/res)
 
 set(CGLM_STATIC on)
 add_subdirectory(${CMAKE_SOURCE_DIR}/external/cglm/ EXCLUDE_FROM_ALL)

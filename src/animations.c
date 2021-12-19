@@ -1,6 +1,5 @@
 #include "animations.h"
 #include "cJSON.h"
-#include "embedded.h"
 #include "resources.h"
 #include "texture.h"
 #include "vector2d.h"
@@ -164,8 +163,7 @@ TheaterAnimation *theater_animation_get(Resources *resources,
 
 void animations_init(Resources *resources)
 {
-	resources->animation_data =
-	    cJSON_ParseWithLength(animations_json, animations_json_size);
+	resources->animation_data = parse_animations("./res/animations.json");
 
 	for (int i = 0; i < MAX_ANIMATION_COUNT; i++) {
 		resources->animations[i] = (Animation){0};

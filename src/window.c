@@ -3,7 +3,6 @@
 
 #include "stb_image.h"
 
-#include "embedded.h"
 #include "menu.h"
 #include "scene.h"
 #include "window.h"
@@ -26,9 +25,8 @@ static void set_window_icon(GLFWwindow *window)
 	stbi_set_flip_vertically_on_load(false);
 
 	GLFWimage images[1];
-	images[0].pixels =
-	    stbi_load_from_memory(window_icon, window_icon_size,
-				  &images[0].width, &images[0].height, 0, 4);
+	images[0].pixels = stbi_load("./res/window_icon.png", &images[0].width,
+				     &images[0].height, 0, 4);
 	glfwSetWindowIcon(window, 1, images);
 	stbi_image_free(images[0].pixels);
 }

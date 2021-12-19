@@ -1,21 +1,23 @@
 #include <stdio.h>
 
-#include "embedded.h"
 #include "resources.h"
 #include "sprite.h"
 #include "stb_image.h"
 #include "texture.h"
 
-static int init_texture(Texture *texture, const unsigned char *bytes,
-			size_t length, TextureID texture_id)
+static int init_texture(Texture *texture, TextureID texture_id)
 {
 	texture->id = texture_id;
 
 	stbi_set_flip_vertically_on_load(true);
 
 	int width, height, nr_channels;
-	unsigned char *data = stbi_load_from_memory(bytes, length, &width,
-						    &height, &nr_channels, 0);
+
+	char file_path[32];
+	sprintf(file_path, "./res/sprites/%d.png", texture_id);
+	unsigned char *data =
+	    stbi_load(file_path, &width, &height, &nr_channels, 0);
+
 	if (data == NULL) {
 		printf("Failed to load texture.\n");
 		return 0;
@@ -41,8 +43,7 @@ Texture *texture_get(Resources *resources, int texture_id)
 	Texture *texture = &resources->textures[texture_id];
 
 	if (!texture->gl_id) {
-		EmbeddedResource rsrc = resources->embedded[texture_id];
-		if (!init_texture(texture, rsrc.bytes, rsrc.size, texture_id)) {
+		if (!init_texture(texture, texture_id)) {
 			printf("Failed to initialize texture %d.\n",
 			       texture_id);
 			// TODO not sure what to do here
