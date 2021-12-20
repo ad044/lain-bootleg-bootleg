@@ -35,8 +35,6 @@ int init_game_state(Resources *resources, GameState *game_state)
 		game_state->navi_unlocked = false;
 	}
 
-	game_state->queued_sounds.size = 0;
-
 	return 1;
 }
 

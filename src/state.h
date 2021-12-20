@@ -35,8 +35,6 @@ typedef struct {
 	_Bool alien_outfit_unlocked;
 	_Bool screwdriver_unlocked;
 	_Bool navi_unlocked;
-
-	SoundQueue queued_sounds;
 } GameState;
 
 struct engine;
