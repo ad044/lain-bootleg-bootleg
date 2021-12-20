@@ -5,8 +5,6 @@
 #include "scene.h"
 #include "state.h"
 
-#include <pthread.h>
-
 typedef struct engine {
 	Resources resources;
 

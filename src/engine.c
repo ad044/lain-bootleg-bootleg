@@ -1,5 +1,3 @@
-#include <portaudio.h>
-#include <pthread.h>
 #include <stdio.h>
 #include <time.h>
 

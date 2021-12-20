@@ -6,10 +6,8 @@
 
 #include "animations.h"
 #include "minigame.h"
-#include "portaudio.h"
 #include "resources.h"
 #include "scene.h"
-#include "sndfile.h"
 #include "sound.h"
 #include "sprite.h"
 #include "state.h"

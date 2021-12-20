@@ -2,9 +2,6 @@
 
 #include "miniaudio.h"
 
-#include <portaudio.h>
-#include <sndfile.h>
-
 #define MAX_SOUND_QUEUE_SIZE 32
 
 typedef enum {
