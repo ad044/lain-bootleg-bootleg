@@ -58,10 +58,6 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
                    COMMAND ${CMAKE_COMMAND} -E copy_directory
                        ${CMAKE_SOURCE_DIR}/res $<TARGET_FILE_DIR:${PROJECT_NAME}>/res)
 
-set(CGLM_STATIC on)
-add_subdirectory(${CMAKE_SOURCE_DIR}/external/cglm/ EXCLUDE_FROM_ALL)
-target_link_libraries(${PROJECT_NAME} PRIVATE cglm)
-
 add_definitions(-DGLEW_STATIC)
 add_subdirectory(${CMAKE_SOURCE_DIR}/external/glew-cmake EXCLUDE_FROM_ALL)
 target_link_libraries(${PROJECT_NAME} PRIVATE libglew_static)

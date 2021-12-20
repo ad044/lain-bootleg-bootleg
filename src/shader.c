@@ -1,4 +1,3 @@
-#include <cglm/types.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -137,8 +136,8 @@ void shader_program_set_texture_samplers(ShaderProgram program,
 }
 
 void shader_program_set_mat4(ShaderProgram program, const GLchar *name,
-			     mat4 mat)
+			     const GLfloat mat4[4][4])
 {
 	glUniformMatrix4fv(glGetUniformLocation(program, name), 1, GL_FALSE,
-			   (const GLfloat *)mat);
+			   (const GLfloat *)mat4);
 }

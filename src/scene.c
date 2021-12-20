@@ -1,4 +1,3 @@
-#include <cglm/cglm.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -14,6 +13,18 @@
 
 #define MAX_SCENE_VBO_SIZE MAX_SCENE_SPRITES *SPRITE_VBO_SIZE
 #define MAX_SCENE_IBO_SIZE MAX_SCENE_SPRITES *SPRITE_INDEX_COUNT
+
+// clang-format off
+#define IDENTITY_MAT4   {{1.0f, 0.0f, 0.0f, 0.0f},                   \
+			{0.0f, 1.0f, 0.0f, 0.0f},                    \
+			{0.0f, 0.0f, 1.0f, 0.0f},                    \
+			{0.0f, 0.0f, 0.0f, 1.0f}}
+
+#define ZEROS_MAT4      {{0.0f, 0.0f, 0.0f, 0.0f},                   \
+			{0.0f, 0.0f, 0.0f, 0.0f},                    \
+			{0.0f, 0.0f, 0.0f, 0.0f},                    \
+			{0.0f, 0.0f, 0.0f, 0.0f}}
+// clang-format on
 
 static GLfloat *get_click_barrier_vertices_vertices(GLfloat *buffer,
 						    ClickBarrier *barrier)
@@ -242,12 +253,22 @@ void draw_scene(Scene *scene, GLFWwindow *window, ShaderProgram shader)
 	shader_program_set_texture_samplers(shader, samplers, texture_count);
 
 	// set up matrices
-	mat4 proj, model, view;
 
-	glm_ortho(0, w, h, 0, -1.0f, 1.0f, proj);
+	const GLfloat view[4][4] = IDENTITY_MAT4;
+	const GLfloat model[4][4] = IDENTITY_MAT4;
 
-	glm_mat4_identity(model);
-	glm_mat4_identity(view);
+	GLfloat proj[4][4] = ZEROS_MAT4;
+	float rl = 1.0f / (w - 0.0f);
+	float tb = 1.0f / (0.0f - h);
+	float fn = -1.0f / (1.0f - -1.0f);
+
+	proj[0][0] = 2.0f * rl;
+	proj[1][1] = 2.0f * tb;
+	proj[2][2] = 2.0f * fn;
+	proj[3][0] = -(w + 0.0f) * rl;
+	proj[3][1] = -(0.0f + h) * tb;
+	proj[3][2] = (1.0f + -1.0f) * fn;
+	proj[3][3] = 1.0f;
 
 	shader_program_set_mat4(shader, "u_Projection", proj);
 	shader_program_set_mat4(shader, "u_Model", model);
