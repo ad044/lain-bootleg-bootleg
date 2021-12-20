@@ -49,19 +49,6 @@ int engine_init(Engine *engine)
 	// set callbacks
 	glfwSetMouseButtonCallback(engine->main_window, handle_menu_click);
 
-	// init audio
-	if (Pa_OpenDefaultStream(&engine->audio_stream, 0, 1, paFloat32, 22050,
-				 paFramesPerBufferUnspecified, NULL,
-				 NULL) != paNoError) {
-		printf("Problem opening audio stream.\n");
-		return 0;
-	};
-	Pa_SetStreamFinishedCallback(engine->audio_stream, close_audio_stream);
-
-	pthread_mutex_init(&engine->running, NULL);
-	pthread_mutex_lock(&engine->running);
-	pthread_create(&engine->audio_thread, NULL, sound_loop, engine);
-
 	return 1;
 }
 
@@ -125,9 +112,6 @@ static void engine_renderloop(Engine *engine)
 
 void engine_stop(Engine *engine)
 {
-	pthread_mutex_unlock(&engine->running);
-	pthread_join(engine->audio_thread, NULL);
-
 	Resources *resources = &engine->resources;
 	Menu *menu = &engine->menu;
 	Minigame *minigame = &engine->minigame;
@@ -154,12 +138,6 @@ void engine_stop(Engine *engine)
 		}
 	}
 
-	close_audio_stream(engine->audio_stream);
-	for (int i = 0; i < SOUND_COUNT; i++) {
-		sf_close(resources->sounds[i].file);
-	}
-
-	Pa_Terminate();
 	glfwTerminate();
 }
 

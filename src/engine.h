@@ -17,11 +17,6 @@ typedef struct engine {
 	Minigame minigame;
 
 	GameState game_state;
-
-	PaStream *audio_stream;
-	pthread_t audio_thread;
-
-	pthread_mutex_t running;
 } Engine;
 
 int engine_init(Engine *engine);

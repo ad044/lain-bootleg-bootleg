@@ -69,10 +69,4 @@ target_link_libraries(${PROJECT_NAME} PRIVATE libglew_static)
 add_subdirectory(${CMAKE_SOURCE_DIR}/external/glfw EXCLUDE_FROM_ALL)
 target_link_libraries(${PROJECT_NAME} PRIVATE glfw)
 
-add_subdirectory(${CMAKE_SOURCE_DIR}/external/portaudio EXCLUDE_FROM_ALL)
-target_link_libraries(${PROJECT_NAME} PRIVATE PortAudio)
-
-add_subdirectory(${CMAKE_SOURCE_DIR}/external/libsndfile EXCLUDE_FROM_ALL)
-target_link_libraries(${PROJECT_NAME} PRIVATE sndfile)
-
 target_link_libraries(${PROJECT_NAME} PRIVATE ${LIBAV_STATIC_LIBRARIES})

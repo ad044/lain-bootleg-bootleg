@@ -18,7 +18,9 @@ int init_resources(Resources *resources)
 
 	animations_init(resources);
 
-	sounds_init(resources->sounds);
+	if (!sounds_init(&resources->audio_engine)) {
+		return 0;
+	};
 
 	return 1;
 }

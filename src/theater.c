@@ -436,10 +436,6 @@ void update_theater(Resources *resources, Menu *menu, GameState *game_state,
 			if (!v->played_first_frame) {
 				v->played_first_frame = true;
 				v->start_time = game_state->time;
-				resources->sounds[SND_MOVIE_AUDIO].paused =
-				    false;
-				enqueue_sound(&game_state->queued_sounds,
-					      SND_MOVIE_AUDIO);
 			}
 
 			double pt_in_seconds = pts * (double)v->time_base.num /
@@ -478,8 +474,7 @@ void update_theater(Resources *resources, Menu *menu, GameState *game_state,
 	}
 
 	if (!was_animated || glfwWindowShouldClose(window)) {
-		resources->sounds[SND_MOVIE_AUDIO].paused = true;
-		enqueue_sound(&game_state->queued_sounds, SND_111);
+		play_sound(&resources->audio_engine, SND_111);
 		destroy_minigame(resources->textures, menu, minigame, window);
 		return;
 	}

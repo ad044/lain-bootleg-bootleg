@@ -238,7 +238,7 @@ static void explode_scene(GameState *game_state, Resources *resources,
 	}
 }
 
-static void update_progress(GameState *game_state, int by)
+static void update_progress(Resources *resources, GameState *game_state, int by)
 {
 	int item_unlock_points[] = {10, 100, 200, 500, 900, 1400, 2000};
 
@@ -305,7 +305,7 @@ static void update_progress(GameState *game_state, int by)
 	}
 
 	if (new_item_unlocked) {
-		enqueue_sound(&game_state->queued_sounds, SND_120);
+		play_sound(&resources->audio_engine, SND_120);
 	}
 }
 
@@ -330,7 +330,8 @@ static void update_character(Scene *scene, GameState *game_state,
 		if (sprite_animation_is_last_frame(sprite)) {
 			character->scored = true;
 			character->time_scored = now;
-			update_progress(game_state, character->score_value);
+			update_progress(resources, game_state,
+					character->score_value);
 		} else {
 			sprite_try_next_frame(resources, now, sprite);
 		}
@@ -342,7 +343,7 @@ static void update_character(Scene *scene, GameState *game_state,
 	case SCREWDRIVER_LAIN: {
 		if (sprite->animation_frame->index == 20 &&
 		    !character->exploded) {
-			enqueue_sound(&game_state->queued_sounds, SND_119);
+			play_sound(&resources->audio_engine, SND_119);
 			character->exploded = true;
 		}
 
@@ -439,7 +440,7 @@ static void update_character(Scene *scene, GameState *game_state,
 	}
 }
 
-static void reveal_bear(GameState *game_state, Bear *bear)
+static void reveal_bear(Resources *resources, GameState *game_state, Bear *bear)
 {
 	Character *hidden_character = &bear->hidden_character;
 	if (hidden_character->type == NO_CHARACTER) {
@@ -447,7 +448,8 @@ static void reveal_bear(GameState *game_state, Bear *bear)
 		hidden_character->scored = true;
 		hidden_character->sprite.visible = false;
 
-		update_progress(game_state, hidden_character->score_value);
+		update_progress(resources, game_state,
+				hidden_character->score_value);
 
 		bear->sprite.visible = false;
 		bear->revealed = true;
@@ -483,7 +485,7 @@ static void update_bear(Resources *resources, GameState *game_state,
 {
 	if (bear->is_smoke) {
 		if (sprite_animation_is_last_frame(&bear->sprite)) {
-			reveal_bear(game_state, bear);
+			reveal_bear(resources, game_state, bear);
 			depth_sort(scene->sprites,
 				   cvector_size(scene->sprites));
 		} else {
@@ -664,7 +666,7 @@ int start_kumashoot(Menu *menu, Resources *resources, GameState *game_state,
 void handle_kumashoot_event(KumaShootEvent event, Bear *bear, Engine *engine)
 {
 	if (event == CHARACTER_CLICK && !bear->revealed && !bear->is_smoke) {
-		enqueue_sound(&engine->game_state.queued_sounds, SND_118);
+		play_sound(&engine->resources.audio_engine, SND_118);
 
 		KumaShoot *kumashoot = &engine->minigame.current.kumashoot;
 
