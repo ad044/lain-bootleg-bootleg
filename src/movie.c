@@ -174,5 +174,5 @@ _Bool movie_render(ShaderProgram shader, Movie *movie)
 void movie_free(Movie *movie)
 {
 	mpv_render_context_free(movie->mpv_render_ctx);
-	mpv_detach_destroy(movie->mpv_handle);
+	mpv_destroy(movie->mpv_handle);
 }
