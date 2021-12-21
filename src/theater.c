@@ -263,6 +263,11 @@ void update_theater(Resources *resources, Menu *menu, GameState *game_state,
 
 		movie_init(&theater->movie);
 		theater->type = THEATER_MOVIE;
+
+		reset_game_state(resources, game_state);
+		menu->theater_preview.texture =
+		    texture_get(resources, game_state->current_theater_preview);
+
 		was_animated = true;
 	}
 
