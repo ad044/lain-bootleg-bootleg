@@ -4,6 +4,7 @@
 #include "minigame.h"
 #include "scene.h"
 #include "sprite.h"
+#include "theater.h"
 #include "vector2d.h"
 
 #include <float.h>
@@ -71,9 +72,12 @@ void handle_menu_click(GLFWwindow *window, int button, int action, int mods)
 void handle_minigame_event(GLFWwindow *window, int button, int action, int mods)
 {
 	Engine *engine = (Engine *)glfwGetWindowUserPointer(window);
+	Minigame *minigame = &engine->minigame;
 
 	if (!(button == GLFW_MOUSE_BUTTON_LEFT) ||
-	    (action == GLFW_RELEASE && engine->minigame.type != DRESSUP)) {
+	    (action == GLFW_RELEASE && engine->minigame.type != DRESSUP) ||
+	    (minigame->type == THEATER &&
+	     minigame->current.theater.type == THEATER_MOVIE)) {
 		return;
 	}
 
@@ -82,7 +86,7 @@ void handle_minigame_event(GLFWwindow *window, int button, int action, int mods)
 	Vector2D click_pos = (Vector2D){x, y};
 
 	Scene scene;
-	get_minigame_scene(&engine->minigame, &scene);
+	get_minigame_scene(minigame, &scene);
 
 	for (int i = 0; i < cvector_size(scene.click_barriers); i++) {
 		ClickBarrier barrier = scene.click_barriers[i];
@@ -103,7 +107,7 @@ void handle_minigame_event(GLFWwindow *window, int button, int action, int mods)
 		int event = behavior.click_event;
 		void *obj = behavior.object;
 
-		switch (engine->minigame.type) {
+		switch (minigame->type) {
 		case KUMASHOOT: {
 			handle_kumashoot_event(event, obj, engine);
 			break;
