@@ -31,7 +31,11 @@ static cJSON *parse_animations(char *filename)
 	data[len] = '\0';
 	fclose(f);
 
-	return cJSON_Parse(data);
+	cJSON *parsed = cJSON_Parse(data);
+
+	free(data);
+	
+	return parsed;
 }
 
 static int animation_load(Animation *animation, const cJSON *frames)
