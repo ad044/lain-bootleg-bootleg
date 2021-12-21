@@ -136,6 +136,7 @@ void engine_stop(Engine *engine)
 		}
 	}
 
+	ma_engine_uninit(&engine->resources.audio_engine);
 	glfwTerminate();
 }
 
