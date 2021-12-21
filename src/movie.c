@@ -51,8 +51,8 @@ static void init_movie_buffers(Movie *movie)
 
 	glGenTextures(1, &movie->texture_buffer);
 	glBindTexture(GL_TEXTURE_2D, movie->texture_buffer);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, MINIGAME_WIDTH, MINIGAME_HEIGHT, 0,
-		     GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, MINIGAME_WIDTH, MINIGAME_HEIGHT,
+		     0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
@@ -135,4 +135,10 @@ void movie_render(ShaderProgram shader, Movie *movie)
 	glBindVertexArray(movie->VAO);
 	glBindTexture(GL_TEXTURE_2D, movie->texture_buffer);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
+}
+
+void movie_free(Movie *movie)
+{
+	mpv_render_context_free(movie->mpv_render_ctx);
+	mpv_detach_destroy(movie->mpv_handle);
 }

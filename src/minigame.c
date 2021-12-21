@@ -25,8 +25,7 @@ void destroy_minigame(Texture *textures, Menu *menu, Minigame *minigame,
 	case THEATER: {
 		Theater *theater = &minigame->current.theater;
 		if (theater->type == THEATER_MOVIE) {
-			mpv_render_context_free(theater->movie.mpv_render_ctx);
-			mpv_detach_destroy(theater->movie.mpv_handle);
+			movie_free(&theater->movie);
 		} else {
 			free_scene(&minigame->current.theater.scene);
 		}
