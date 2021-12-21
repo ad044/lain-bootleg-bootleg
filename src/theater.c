@@ -242,8 +242,8 @@ void update_theater(Resources *resources, Menu *menu, GameState *game_state,
 
 	_Bool was_animated = false;
 	if (theater->type == THEATER_MOVIE) {
-		movie_render(resources->shaders[MOVIE_SHADER], &theater->movie);
-		was_animated = true;
+		was_animated = movie_render(resources->shaders[MOVIE_SHADER],
+					    &theater->movie);
 	} else {
 		// hacky way of detecting whether or not the theater is over
 		// if it wasnt animated, that means no animation in the scene

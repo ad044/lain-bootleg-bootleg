@@ -2,6 +2,7 @@
 #include "window.h"
 
 #include <stdio.h>
+#include <string.h>
 
 #define MOVIE_WIDTH 400
 #define MOVIE_HEIGHT 300
@@ -10,6 +11,9 @@ static void *get_proc_address_mpv(void *fn_ctx, const char *name)
 {
 	return (void *)glfwGetProcAddress(name);
 }
+
+static _Bool mpv_events = false;
+static void on_mpv_events(void *ctx) { mpv_events = true; }
 
 static void init_movie_buffers(Movie *movie)
 {
@@ -102,18 +106,46 @@ int movie_init(Movie *movie)
 		return 0;
 	}
 
+	// set callbacks
+	mpv_set_wakeup_callback(movie->mpv_handle, on_mpv_events, NULL);
+
 	const char *cmd[] = {"loadfile", "./res/lain_mov.dat", NULL};
 	mpv_command_async(movie->mpv_handle, 0, cmd);
 
 	return 1;
 }
 
-void movie_render(ShaderProgram shader, Movie *movie)
+_Bool movie_render(ShaderProgram shader, Movie *movie)
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, movie->FBO);
 
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	if (mpv_events) {
+		mpv_events = false;
+		while (1) {
+			mpv_event *event = mpv_wait_event(movie->mpv_handle, 0);
+
+			if (event->event_id == MPV_EVENT_END_FILE) {
+				return false;
+			}
+
+			if (event->event_id == MPV_EVENT_NONE) {
+
+				break;
+			}
+
+			if (event->event_id == MPV_EVENT_LOG_MESSAGE) {
+				mpv_event_log_message *msg = event->data;
+				if (strstr(msg->text, "DR image"))
+					printf("log: %s", msg->text);
+				continue;
+			}
+
+			printf("event: %s\n", mpv_event_name(event->event_id));
+		}
+	}
 
 	mpv_render_param params[] = {{MPV_RENDER_PARAM_OPENGL_FBO,
 				      &(mpv_opengl_fbo){
@@ -135,6 +167,8 @@ void movie_render(ShaderProgram shader, Movie *movie)
 	glBindVertexArray(movie->VAO);
 	glBindTexture(GL_TEXTURE_2D, movie->texture_buffer);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
+
+	return true;
 }
 
 void movie_free(Movie *movie)

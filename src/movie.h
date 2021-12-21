@@ -17,5 +17,5 @@ typedef struct {
 } Movie;
 
 int movie_init(Movie *movie);
-void movie_render(ShaderProgram shader, Movie *movie);
+_Bool movie_render(ShaderProgram shader, Movie *movie);
 void movie_free(Movie *movie);
