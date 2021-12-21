@@ -38,6 +38,7 @@ set(SOURCES
    src/cJSON.c
    src/resources.c
    src/sound.c
+   src/movie.c
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})
@@ -47,12 +48,7 @@ target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic)
 target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_SOURCE_DIR}/src)
 
 find_package(PkgConfig REQUIRED)
-pkg_check_modules(LIBAV REQUIRED
-    libavformat
-    libavcodec
-    libavutil
-    libswscale
-)
+pkg_check_modules(MPV REQUIRED mpv)
 
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
                    COMMAND ${CMAKE_COMMAND} -E copy_directory
@@ -65,4 +61,4 @@ target_link_libraries(${PROJECT_NAME} PRIVATE libglew_static)
 add_subdirectory(${CMAKE_SOURCE_DIR}/external/glfw EXCLUDE_FROM_ALL)
 target_link_libraries(${PROJECT_NAME} PRIVATE glfw)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE ${LIBAV_STATIC_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} PRIVATE ${MPV_LIBRARIES})

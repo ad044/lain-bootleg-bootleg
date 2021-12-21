@@ -2,6 +2,10 @@
 #include "animations.h"
 #include "resources.h"
 #include "scene.h"
+#include "theater.h"
+
+#include <mpv/client.h>
+#include <mpv/render_gl.h>
 
 void destroy_minigame(Texture *textures, Menu *menu, Minigame *minigame,
 		      GLFWwindow *minigame_window)
@@ -20,9 +24,11 @@ void destroy_minigame(Texture *textures, Menu *menu, Minigame *minigame,
 		break;
 	case THEATER: {
 		Theater *theater = &minigame->current.theater;
-		free_scene(&theater->scene);
 		if (theater->type == THEATER_MOVIE) {
-			movie_video_free(&theater->video);
+			mpv_render_context_free(theater->movie.mpv_render_ctx);
+			mpv_detach_destroy(theater->movie.mpv_handle);
+		} else {
+			free_scene(&minigame->current.theater.scene);
 		}
 
 		break;
@@ -67,10 +73,14 @@ void draw_minigame(Resources *resources, GLFWwindow *minigame_window,
 		draw_scene(&minigame->current.dressup.scene, minigame_window,
 			   resources->shaders[SPRITE_SHADER]);
 		break;
-	case THEATER:
-		draw_scene(&minigame->current.theater.scene, minigame_window,
-			   resources->shaders[SPRITE_SHADER]);
+	case THEATER: {
+		Theater *theater = &minigame->current.theater;
+		if (theater->type != THEATER_MOVIE) {
+			draw_scene(&theater->scene, minigame_window,
+				   resources->shaders[SPRITE_SHADER]);
+		}
 		break;
+	}
 	default:
 		break;
 	}

@@ -5,6 +5,10 @@
 
 #include "shader.h"
 
+static GLuint compile_shader(GLenum shader_type, const GLchar *shader_source);
+static GLint check_shader_compile_errors(GLuint shader);
+static GLint check_shader_program_link_errors(GLuint program);
+
 static char quad_fragment[] =
     "#version 330\n"
     "out vec4 FragColor;"
@@ -44,9 +48,29 @@ static char quad_vertex[] =
     "gl_Position = u_Projection * u_View * u_Model * vec4(a_Pos, 0.0, 1.0);"
     "}";
 
-static GLuint compile_shader(GLenum shader_type, const GLchar *shader_source);
-static GLint check_shader_compile_errors(GLuint shader);
-static GLint check_shader_program_link_errors(GLuint program);
+static char movie_fragment[] = "#version 330 core\n"
+			       "out vec4 FragColor;"
+
+			       "in vec2 v_TexCoords;"
+
+			       "uniform sampler2D u_screenTexture;"
+
+			       "void main()"
+			       "{ "
+			       "FragColor = texture(u_screenTexture, v_TexCoords);"
+			       "}";
+
+static char movie_vertex[] = "#version 330\n"
+			     "layout (location = 0) in vec2 a_Pos;"
+			     "layout (location = 1) in vec2 a_TexCoords;"
+
+			     "out vec2 v_TexCoords;"
+
+			     "void main()"
+			     "{"
+			     "gl_Position = vec4(a_Pos.x, a_Pos.y, 0.0, 1.0);"
+			     "v_TexCoords = a_TexCoords;"
+			     "}";
 
 static ShaderProgram create_shader(const char *vertex, const char *fragment)
 {
@@ -122,7 +146,16 @@ int shaders_init(ShaderProgram *shaders)
 		printf("Failed to create quad shader.\n");
 		return 0;
 	}
+
+	ShaderProgram movie_shader =
+	    create_shader(movie_vertex, movie_fragment);
+	if (!movie_shader) {
+		printf("Failed to create movie shader.\n");
+		return 0;
+	}
+
 	shaders[SPRITE_SHADER] = quad_shader;
+	shaders[MOVIE_SHADER] = movie_shader;
 
 	return 1;
 }

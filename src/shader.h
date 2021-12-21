@@ -4,9 +4,9 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#define MAX_SHADER_COUNT 10
+#define MAX_SHADER_COUNT 8
 
-enum { SPRITE_SHADER };
+enum { SPRITE_SHADER, MOVIE_SHADER };
 
 typedef GLuint ShaderProgram;
 

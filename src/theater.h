@@ -4,28 +4,7 @@
 #include "menu.h"
 #include "texture.h"
 #include "vector2d.h"
-
-#include <libavcodec/avcodec.h>
-#include <libavformat/avformat.h>
-#include <libswscale/swscale.h>
-
-#define VIDEO_WIDTH 400
-#define VIDEO_HEIGHT 300
-
-typedef struct {
-	_Bool played_first_frame;
-	Texture texture_handle;
-	AVRational time_base;
-	double start_time;
-	uint8_t frame_buffer[VIDEO_WIDTH * VIDEO_HEIGHT * 4];
-
-	AVFormatContext *av_format_ctx;
-	AVCodecContext *av_codec_ctx;
-	AVFrame *av_frame;
-	AVPacket *av_packet;
-	int video_stream_idx;
-	struct SwsContext *sws_ctx;
-} Video;
+#include "movie.h"
 
 typedef enum {
 	THEATER_CLASSROOM,
@@ -47,7 +26,7 @@ typedef struct {
 	double last_updated;
 	Scene scene;
 
-	Video video;
+	Movie movie;
 } Theater;
 
 struct minigame;
@@ -57,4 +36,3 @@ int start_theater(Menu *menu, Resources *resources, GameState *game_state,
 		  GLFWwindow *main_window);
 void update_theater(Resources *resources, Menu *menu, GameState *game_state,
 		    GLFWwindow *window, struct minigame *minigame);
-void movie_video_free(Video *v);
