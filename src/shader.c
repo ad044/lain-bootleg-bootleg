@@ -29,7 +29,22 @@ static char quad_fragment[] =
     "void main()"
     "{"
     "int index = int(v_TexIndex);"
-    "FragColor = texture(u_Textures[index], v_TexCoord);"
+    "if (index == 0) FragColor = texture(u_Textures[0], v_TexCoord);"
+    "if (index == 1) FragColor = texture(u_Textures[1], v_TexCoord);"
+    "if (index == 2) FragColor = texture(u_Textures[2], v_TexCoord);"
+    "if (index == 3) FragColor = texture(u_Textures[3], v_TexCoord);"
+    "if (index == 4) FragColor = texture(u_Textures[4], v_TexCoord);"
+    "if (index == 5) FragColor = texture(u_Textures[5], v_TexCoord);"
+    "if (index == 6) FragColor = texture(u_Textures[6], v_TexCoord);"
+    "if (index == 7) FragColor = texture(u_Textures[7], v_TexCoord);"
+    "if (index == 8) FragColor = texture(u_Textures[8], v_TexCoord);"
+    "if (index == 9) FragColor = texture(u_Textures[9], v_TexCoord);"
+    "if (index == 10) FragColor = texture(u_Textures[10], v_TexCoord);"
+    "if (index == 11) FragColor = texture(u_Textures[11], v_TexCoord);"
+    "if (index == 12) FragColor = texture(u_Textures[12], v_TexCoord);"
+    "if (index == 13) FragColor = texture(u_Textures[13], v_TexCoord);"
+    "if (index == 14) FragColor = texture(u_Textures[14], v_TexCoord);"
+    "if (index == 15) FragColor = texture(u_Textures[15], v_TexCoord);"
     "}";
 
 static char quad_vertex[] =
