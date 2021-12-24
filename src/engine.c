@@ -67,8 +67,7 @@ static void engine_render(Engine *engine, double now)
 
 	update_menu(menu, game_state, main_window, resources);
 
-	draw_scene(&menu->scene, main_window,
-		   resources->shaders[SPRITE_SHADER]);
+	draw_scene(&menu->scene, main_window, resources->shaders);
 
 	glfwSwapBuffers(main_window);
 

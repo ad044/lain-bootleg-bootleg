@@ -40,4 +40,5 @@ void init_scene(Scene *scene, Sprite **sprites, uint8_t sprite_count,
 		ClickBarrier *click_barriers, uint8_t click_barrier_count);
 void update_scene(Scene *scene);
 void free_scene(Scene *scene);
-void draw_scene(Scene *scene, GLFWwindow *window, ShaderProgram shader);
+void draw_scene(Scene *scene, GLFWwindow *window, ShaderProgram *shaders);
+

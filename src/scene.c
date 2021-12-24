@@ -26,8 +26,8 @@
 			{0.0f, 0.0f, 0.0f, 0.0f}}
 // clang-format on
 
-static GLfloat *get_click_barrier_vertices_vertices(GLfloat *buffer,
-						    ClickBarrier *barrier)
+static GLfloat *get_click_barrier_vertices(GLfloat *buffer,
+					   ClickBarrier *barrier)
 {
 	GLfloat vertices[] = {
 	    // top right
@@ -201,15 +201,6 @@ void update_scene(Scene *scene)
 		}
 	}
 
-	if (scene->draw_barriers) {
-		for (int i = 0; i < cvector_size(scene->click_barriers); i++) {
-			buffer_ptr = get_click_barrier_vertices_vertices(
-			    buffer_ptr, &scene->click_barriers[i]);
-
-			quad_count++;
-		}
-	}
-
 	scene->quad_count = quad_count;
 
 	glBindBuffer(GL_ARRAY_BUFFER, scene->VBO);
@@ -217,8 +208,11 @@ void update_scene(Scene *scene)
 		     GL_STREAM_DRAW);
 }
 
-void draw_scene(Scene *scene, GLFWwindow *window, ShaderProgram shader)
+void draw_scene(Scene *scene, GLFWwindow *window, ShaderProgram *shaders)
 {
+	ShaderProgram sprite_shader = shaders[SPRITE_SHADER];
+	ShaderProgram barrier_shader = shaders[BARRIER_SHADER];
+
 	// window data
 	int w, h;
 	glfwGetWindowSize(window, &w, &h);
@@ -240,7 +234,7 @@ void draw_scene(Scene *scene, GLFWwindow *window, ShaderProgram shader)
 	}
 
 	// bind shader and set texture samplers
-	glUseProgram(shader);
+	glUseProgram(sprite_shader);
 	GLint samplers[MAX_SCENE_TEXTURES];
 
 	uint8_t texture_count =
@@ -250,10 +244,10 @@ void draw_scene(Scene *scene, GLFWwindow *window, ShaderProgram shader)
 		samplers[i] = i;
 	}
 
-	shader_program_set_texture_samplers(shader, samplers, texture_count);
+	shader_program_set_texture_samplers(sprite_shader, samplers,
+					    texture_count);
 
 	// set up matrices
-
 	const GLfloat view[4][4] = IDENTITY_MAT4;
 	const GLfloat model[4][4] = IDENTITY_MAT4;
 
@@ -270,9 +264,9 @@ void draw_scene(Scene *scene, GLFWwindow *window, ShaderProgram shader)
 	proj[3][2] = (1.0f + -1.0f) * fn;
 	proj[3][3] = 1.0f;
 
-	shader_program_set_mat4(shader, "u_Projection", proj);
-	shader_program_set_mat4(shader, "u_Model", model);
-	shader_program_set_mat4(shader, "u_View", view);
+	shader_program_set_mat4(sprite_shader, "u_Projection", proj);
+	shader_program_set_mat4(sprite_shader, "u_Model", model);
+	shader_program_set_mat4(sprite_shader, "u_View", view);
 
 	// bind vao
 	glBindVertexArray(scene->VAO);
@@ -280,6 +274,34 @@ void draw_scene(Scene *scene, GLFWwindow *window, ShaderProgram shader)
 	// draw
 	glDrawElements(GL_TRIANGLES, scene->quad_count * SPRITE_INDEX_COUNT,
 		       GL_UNSIGNED_INT, 0);
+
+	// if we're debugging barriers, draw them also afterwards
+	if (scene->draw_barriers) {
+		glUseProgram(barrier_shader);
+
+		shader_program_set_mat4(barrier_shader, "u_Projection", proj);
+		shader_program_set_mat4(barrier_shader, "u_Model", model);
+		shader_program_set_mat4(barrier_shader, "u_View", view);
+
+		GLfloat vertices[MAX_SCENE_VBO_SIZE];
+		GLfloat *buffer_ptr = vertices;
+		uint8_t barrier_quad_count = 0;
+
+		for (int i = 0; i < cvector_size(scene->click_barriers); i++) {
+			buffer_ptr = get_click_barrier_vertices(
+			    buffer_ptr, &scene->click_barriers[i]);
+
+			barrier_quad_count++;
+
+			glBindBuffer(GL_ARRAY_BUFFER, scene->VBO);
+			glBufferData(GL_ARRAY_BUFFER, sizeof(vertices),
+				     vertices, GL_STREAM_DRAW);
+
+			glDrawElements(GL_TRIANGLES,
+				       barrier_quad_count * SPRITE_INDEX_COUNT,
+				       GL_UNSIGNED_INT, 0);
+		}
+	}
 }
 
 void free_scene(Scene *scene)

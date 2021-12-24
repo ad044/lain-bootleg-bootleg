@@ -9,6 +9,14 @@ static GLuint compile_shader(GLenum shader_type, const GLchar *shader_source);
 static GLint check_shader_compile_errors(GLuint shader);
 static GLint check_shader_program_link_errors(GLuint program);
 
+static char barrier_quad_fragment[] = "#version 330\n"
+				      "out vec4 FragColor;"
+
+				      "void main()"
+				      "{"
+				      "FragColor = vec4(1.0, 0.0, 0.0, 1.0);"
+				      "}";
+
 static char quad_fragment[] =
     "#version 330\n"
     "out vec4 FragColor;"
@@ -21,11 +29,7 @@ static char quad_fragment[] =
     "void main()"
     "{"
     "int index = int(v_TexIndex);"
-    "if (index == -1) {"
-    "FragColor = vec4(1.0, 0.0, 0.0, 1.0);"
-    "} else {"
     "FragColor = texture(u_Textures[index], v_TexCoord);"
-    "}"
     "}";
 
 static char quad_vertex[] =
@@ -48,17 +52,18 @@ static char quad_vertex[] =
     "gl_Position = u_Projection * u_View * u_Model * vec4(a_Pos, 0.0, 1.0);"
     "}";
 
-static char movie_fragment[] = "#version 330 core\n"
-			       "out vec4 FragColor;"
+static char movie_fragment[] =
+    "#version 330 core\n"
+    "out vec4 FragColor;"
 
-			       "in vec2 v_TexCoords;"
+    "in vec2 v_TexCoords;"
 
-			       "uniform sampler2D u_screenTexture;"
+    "uniform sampler2D u_screenTexture;"
 
-			       "void main()"
-			       "{ "
-			       "FragColor = texture(u_screenTexture, v_TexCoords);"
-			       "}";
+    "void main()"
+    "{ "
+    "FragColor = texture(u_screenTexture, v_TexCoords);"
+    "}";
 
 static char movie_vertex[] = "#version 330\n"
 			     "layout (location = 0) in vec2 a_Pos;"
@@ -154,8 +159,12 @@ int shaders_init(ShaderProgram *shaders)
 		return 0;
 	}
 
+	ShaderProgram barrier_shader =
+	    create_shader(quad_vertex, barrier_quad_fragment);
+
 	shaders[SPRITE_SHADER] = quad_shader;
 	shaders[MOVIE_SHADER] = movie_shader;
+	shaders[BARRIER_SHADER] = barrier_shader;
 
 	return 1;
 }

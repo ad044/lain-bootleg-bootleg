@@ -6,7 +6,7 @@
 
 #define MAX_SHADER_COUNT 8
 
-enum { SPRITE_SHADER, MOVIE_SHADER };
+enum { SPRITE_SHADER, MOVIE_SHADER, BARRIER_SHADER };
 
 typedef GLuint ShaderProgram;
 
