@@ -17,6 +17,8 @@ static char barrier_quad_fragment[] = "#version 330\n"
 				      "FragColor = vec4(1.0, 0.0, 0.0, 1.0);"
 				      "}";
 
+// manually written every index case because having the index as a non-constant
+// expression was causing issues on very old drivers
 static char quad_fragment[] =
     "#version 330\n"
     "out vec4 FragColor;"
