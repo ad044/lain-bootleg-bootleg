@@ -63,7 +63,7 @@ endif (UNIX)
 if (MINGW)
    set(MPV_DIR ${PROJECT_SOURCE_DIR}/external/mpv/)
 
-   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-Bstatic,--whole-archive -lwinpthread -Wl,--no-whole-archive -mwindows") 
+   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -mwindows -Wl,-Bstatic,--whole-archive -lwinpthread -Wl,-Bdynamic,--no-whole-archive")
    target_include_directories(${PROJECT_NAME} PRIVATE ${MPV_DIR}/include)
    target_link_libraries(${PROJECT_NAME} PRIVATE ${MPV_DIR}/mpv-2.dll)
    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
