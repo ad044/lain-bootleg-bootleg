@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.2)
 
 project(lain-bootleg-bootleg)
 
-set(CMAKE_C_STANDARD 23)
+set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -61,12 +61,14 @@ if (UNIX)
 endif (UNIX)
 
 if (MINGW)
-   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-Bstatic,--whole-archive -lwinpthread -Wl,--no-whole-archive -mwindows")
-   target_link_libraries(${PROJECT_NAME} PRIVATE ${PROJECT_SOURCE_DIR}/lib/mpv64/mpv-2.dll)
+   set(MPV_DIR ${PROJECT_SOURCE_DIR}/external/mpv/)
+
+   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-Bstatic,--whole-archive -lwinpthread -Wl,--no-whole-archive -mwindows") 
+   target_include_directories(${PROJECT_NAME} PRIVATE ${MPV_DIR}/include)
+   target_link_libraries(${PROJECT_NAME} PRIVATE ${MPV_DIR}/mpv-2.dll)
    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        ${CMAKE_SOURCE_DIR}/lib/mpv64/mpv-2.dll
+      ${MPV_DIR}/mpv-2.dll
         $<TARGET_FILE_DIR:${PROJECT_NAME}>)
 endif (MINGW)
-
 

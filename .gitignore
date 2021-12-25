@@ -1,6 +1,7 @@
 res/
 build/
 lib/
+external/mpv
 .vs/
 .cache/
 .dir-locals.el
