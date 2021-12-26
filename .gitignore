@@ -4,5 +4,6 @@ lib/
 external/mpv
 .vs/
 .cache/
+scripts/binaries
 .dir-locals.el
 embedded.*
