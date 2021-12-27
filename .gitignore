@@ -4,6 +4,10 @@ lib/
 external/mpv
 .vs/
 .cache/
+scripts/*
+!scripts/lzss.c
+!scripts/make_game_assets.py
+!scripts/extract_n_decompress.py
 scripts/binaries
 .dir-locals.el
 embedded.*
