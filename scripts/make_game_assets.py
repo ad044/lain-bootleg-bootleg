@@ -321,6 +321,8 @@ def make_fonts(curr_dir):
 
 def apply_mask(img_src, mask_src):
     with Image.open(img_src) as img, Image.open(mask_src) as mask:
+        mask_pixels = mask.load()
+        mask_pixels[0, mask.size[1] - 1] = mask_pixels[1, mask.size[1] - 1]
         img = img.convert("RGBA")
         mask = mask.convert("1")
         img.paste(0, mask=mask)
