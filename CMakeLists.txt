@@ -7,10 +7,6 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
-set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-
 set(SOURCES
    src/main.c
    src/engine.c
@@ -59,7 +55,16 @@ else()
    target_link_libraries(${PROJECT_NAME} PRIVATE libglew_static)
 endif()
 
-add_subdirectory(${CMAKE_SOURCE_DIR}/external/glfw EXCLUDE_FROM_ALL)
+option(SYSTEM_GLFW "Use system-installed GLFW instead of vendored one" OFF)
+
+if(SYSTEM_GLFW)
+   find_package(glfw3 REQUIRED)
+else()
+   set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+   set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+   set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+   add_subdirectory(${CMAKE_SOURCE_DIR}/external/glfw EXCLUDE_FROM_ALL)
+endif()
 target_link_libraries(${PROJECT_NAME} PRIVATE glfw)
 
 if (UNIX)
