@@ -47,9 +47,17 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
                    COMMAND ${CMAKE_COMMAND} -E copy_directory
                        ${CMAKE_SOURCE_DIR}/res $<TARGET_FILE_DIR:${PROJECT_NAME}>/res)
 
-add_definitions(-DGLEW_STATIC)
-add_subdirectory(${CMAKE_SOURCE_DIR}/external/glew-cmake EXCLUDE_FROM_ALL)
-target_link_libraries(${PROJECT_NAME} PRIVATE libglew_static)
+option(SYSTEM_GLEW "Use system-installed GLEW instead of vendored one" OFF)
+
+if(SYSTEM_GLEW)
+   find_package(PkgConfig REQUIRED)
+   pkg_check_modules(GLEW REQUIRED glew)
+   target_link_libraries(${PROJECT_NAME} PRIVATE ${GLEW_LIBRARIES})
+else()
+   add_definitions(-DGLEW_STATIC)
+   add_subdirectory(${CMAKE_SOURCE_DIR}/external/glew-cmake EXCLUDE_FROM_ALL)
+   target_link_libraries(${PROJECT_NAME} PRIVATE libglew_static)
+endif()
 
 add_subdirectory(${CMAKE_SOURCE_DIR}/external/glfw EXCLUDE_FROM_ALL)
 target_link_libraries(${PROJECT_NAME} PRIVATE glfw)
