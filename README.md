@@ -56,8 +56,8 @@ This should produce a binary called `lain-bootleg-bootleg`.
 For Windows we will need to download `libmpv` DLLs manually. The usual place to grab them would be
 [shinchiro's builds](https://sourceforge.net/projects/mpv-player-windows/files/libmpv/).
 Download the archive for your target architecture and extract it under `external/mpv`.
-Afterwards, create another directory named `mpv` and move all the contents
-inside it so that the headers of `external/mpv/include` end up in `external/mpv/include/mpv`.
+Afterwards, create another directory named `mpv` inside the `include/` directory and move all the contents
+to it so that the headers of `external/mpv/include` end up in `external/mpv/include/mpv`.
 
 So something like:
 
