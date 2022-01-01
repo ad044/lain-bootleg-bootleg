@@ -7,6 +7,12 @@
 #define MOVIE_WIDTH 400
 #define MOVIE_HEIGHT 300
 
+#ifdef HAVE_MPV_DESTROY
+  #define MPV_DESTROY mpv_destroy
+#else
+  #define MPV_DESTROY mpv_detach_destroy
+#endif
+
 static void *get_proc_address_mpv(void *fn_ctx, const char *name)
 {
 	return (void *)glfwGetProcAddress(name);
@@ -174,5 +180,5 @@ _Bool movie_render(ShaderProgram shader, Movie *movie)
 void movie_free(Movie *movie)
 {
 	mpv_render_context_free(movie->mpv_render_ctx);
-	mpv_destroy(movie->mpv_handle);
+	MPV_DESTROY(movie->mpv_handle);
 }

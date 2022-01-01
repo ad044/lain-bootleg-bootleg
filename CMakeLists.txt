@@ -83,11 +83,22 @@ if (MINGW)
    set(MPV_DIR ${PROJECT_SOURCE_DIR}/external/mpv/)
 
    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -mwindows -Wl,-Bstatic,--whole-archive -lwinpthread -Wl,-Bdynamic,--no-whole-archive")
-   target_include_directories(${PROJECT_NAME} PRIVATE ${MPV_DIR}/include)
-   target_link_libraries(${PROJECT_NAME} PRIVATE ${MPV_DIR}/mpv-2.dll)
+   set(MPV_INCLUDE_DIRS ${MPV_DIR}/include)
+   set(MPV_LIBRARIES ${MPV_DIR}/mpv-2.dll)
+   target_include_directories(${PROJECT_NAME} PRIVATE ${MPV_INCLUDE_DIRS})
+   target_link_libraries(${PROJECT_NAME} PRIVATE ${MPV_LIBRARIES})
    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-      ${MPV_DIR}/mpv-2.dll
+      ${MPV_LIBRARIES}
         $<TARGET_FILE_DIR:${PROJECT_NAME}>)
 endif (MINGW)
 
+# Detect if mpv_detach_destroy or mpv_destroy
+include(CheckSymbolExists)
+set(CMAKE_REQUIRED_INCLUDES ${MPV_INCLUDE_DIRS})
+set(CMAKE_REQUIRED_LIBRARIES ${MPV_LIBRARIES})
+check_symbol_exists(mpv_destroy "mpv/client.h" HAVE_MPV_DESTROY)
+
+if(HAVE_MPV_DESTROY)
+   target_compile_definitions(${PROJECT_NAME} PRIVATE HAVE_MPV_DESTROY)
+endif()
