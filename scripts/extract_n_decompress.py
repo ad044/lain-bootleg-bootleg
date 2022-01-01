@@ -116,7 +116,7 @@ def main():
     pathlib.Path(WAVES_EXTRACTED_DIR).mkdir(parents=True, exist_ok=True)
 
     if not os.path.exists(os.path.join(os.getcwd(), "lzss")):
-        subprocess.run(["gcc", "lzss.c", "-o", "lzss"])
+        subprocess.run([os.environ.get("CC", "cc"), "lzss.c", "-o", "lzss"])
 
     with open(EXE_FILE, "rb") as f:
         pe = pefile.PE(EXE_FILE)
