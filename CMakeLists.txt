@@ -80,10 +80,12 @@ if (UNIX)
    target_link_libraries(${PROJECT_NAME} PRIVATE ${MPV_LIBRARIES})
 endif (UNIX)
 
-if (MINGW)
-   set(MPV_DIR ${PROJECT_SOURCE_DIR}/external/mpv/)
-   set(MPV_FLAGS "-mwindows -Wl,-Bstatic,--whole-archive -lwinpthread -Wl,-Bdynamic,--no-whole-archive")
-   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${MPV_FLAGS}")
+if (WIN32)
+   set(MPV_DIR ${PROJECT_SOURCE_DIR}/external/mpv)
+   if (MINGW)
+      set(MPV_FLAGS "-mwindows -Wl,-Bstatic,--whole-archive -lwinpthread -Wl,-Bdynamic,--no-whole-archive")
+      set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${MPV_FLAGS}")
+   endif (MINGW)
    set(MPV_INCLUDE_DIRS ${MPV_DIR}/include)
    set(MPV_LIBRARIES ${MPV_DIR}/mpv-2.dll)
    target_include_directories(${PROJECT_NAME} PRIVATE ${MPV_INCLUDE_DIRS})
@@ -92,7 +94,7 @@ if (MINGW)
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
       ${MPV_LIBRARIES}
         $<TARGET_FILE_DIR:${PROJECT_NAME}>)
-endif (MINGW)
+endif (WIN32)
 
 # Detect if mpv_detach_destroy or mpv_destroy
 include(CheckSymbolExists)
