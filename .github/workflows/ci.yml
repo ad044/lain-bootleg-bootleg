@@ -37,7 +37,7 @@ jobs:
       - name: Install Dependencies [Windows]
         if: ${{ runner.os == 'Windows' }}
         run: |
-          wget 'https://sourceforge.net/projects/mpv-player-windows/files/libmpv/mpv-dev-x86_64-${{ matrix.config.mpv_version }}.7z/download' -O mpv-dev-x86_64-${{ matrix.config.mpv_version }}.7z
+          curl -Ls 'https://sourceforge.net/projects/mpv-player-windows/files/libmpv/mpv-dev-x86_64-${{ matrix.config.mpv_version }}.7z/download' > mpv-dev-x86_64-${{ matrix.config.mpv_version }}.7z
           mkdir external/mpv
           pushd external/mpv
           7z x ../../mpv-dev-x86_64-${{ matrix.config.mpv_version }}.7z
@@ -72,7 +72,8 @@ jobs:
 
           cmake \
             -B ${GITHUB_WORKSPACE}/build \
-            -DCMAKE_BUILD_TYPE=Release
+            -DCMAKE_BUILD_TYPE=Release \
+            -DSYSTEM_GLFW=${WITH_SYSTEM_LIBS} -DSYSTEM_GLEW=${WITH_SYSTEM_LIBS}
 
       - name: Build
         run: |
