@@ -39,8 +39,13 @@ pull external dependencies if you didn't do it along with the cloning step.
 - **cmake**
 - RECENT version of **mpv** (at least 0.34.0)
 
-GLFW and GLEW are compiled along with the program (submodules) and statically linked, 
-so you don't need to install those.
+GLFW and GLEW will be compiled along with the program (submodules) and statically linked. 
+If you would prefer to use your system-installed versions of these, use the CMake options 
+`SYSTEM_GLFW` and `SYSTEM_GLEW`. For example:
+
+```sh
+cmake -DSYSTEM_GLFW=ON -DSYSTEM_GLEW=ON ..
+```
 
 ## Compiling on Linux
 
