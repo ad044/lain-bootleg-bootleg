@@ -1,0 +1,88 @@
+name: Build
+
+on:
+  push:
+    branches: master
+    tags: 'v*'
+  pull_request:
+    branches: master
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        config:
+          - { name: "Windows", os: windows-latest, mpv_version: 20211226-git-d92cf77 }
+          - { name: "macOS", os: macos-latest }
+          - { name: "Ubuntu", os: ubuntu-18.04 }
+      fail-fast: false
+
+    name: ${{ matrix.config.name }}
+    runs-on: ${{ matrix.config.os }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Setup MSVC Toolchain [Windows]
+        if: ${{ runner.os == 'Windows' }}
+        uses: seanmiddleditch/gha-setup-vsdevenv@v3
+
+      - name: Install Dependencies [Windows]
+        if: ${{ runner.os == 'Windows' }}
+        run: |
+          wget 'https://sourceforge.net/projects/mpv-player-windows/files/libmpv/mpv-dev-x86_64-${{ matrix.config.mpv_version }}.7z/download' -O mpv-dev-x86_64-${{ matrix.config.mpv_version }}.7z
+          mkdir external/mpv
+          pushd external/mpv
+          7z x ../../mpv-dev-x86_64-${{ matrix.config.mpv_version }}.7z
+          cd include
+          mkdir mpv
+          mv *.h mpv/
+          popd
+
+      - name: Install Dependencies [macOS]
+        if: ${{ runner.os == 'macOS' }}
+        run: |
+          export HOMEBREW_NO_INSTALL_CLEANUP=1
+          brew update
+          brew install pkg-config glew glfw
+
+      - name: Install Dependencies [Linux]
+        if: ${{ runner.os == 'Linux' }}
+        run: |
+          sudo apt update
+          sudo apt install libglew-dev libglfw3-dev
+
+      - name: Configure
+        run: |
+          # Create fake assets dir so build works
+          mkdir res
+
+          if [ ! "${{ runner.os }}" == "Windows" ]; then
+            export WITH_SYSTEM_LIBS=ON
+          else
+            export WITH_SYSTEM_LIBS=OFF
+          fi
+
+          cmake \
+            -B ${GITHUB_WORKSPACE}/build \
+            -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: |
+          cmake \
+            --build ${GITHUB_WORKSPACE}/build \
+            --config Release \
+            --parallel 2
+
+      # - name: Install
+      #   run: |
+      #     cmake \
+      #       --install ${GITHUB_WORKSPACE}/build \
+      #       --config Release
