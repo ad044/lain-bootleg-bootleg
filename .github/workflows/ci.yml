@@ -51,13 +51,13 @@ jobs:
         run: |
           export HOMEBREW_NO_INSTALL_CLEANUP=1
           brew update
-          brew install pkg-config glew glfw
+          brew install pkg-config glew glfw mpv
 
       - name: Install Dependencies [Linux]
         if: ${{ runner.os == 'Linux' }}
         run: |
           sudo apt update
-          sudo apt install libglew-dev libglfw3-dev
+          sudo apt install libglew-dev libglfw3-dev libmpv-dev
 
       - name: Configure
         run: |
