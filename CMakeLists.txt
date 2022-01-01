@@ -87,9 +87,9 @@ if (WIN32)
       set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${MPV_FLAGS}")
    endif (MINGW)
    set(MPV_INCLUDE_DIRS ${MPV_DIR}/include)
-   set(MPV_LIBRARIES ${MPV_DIR}/mpv.lib)
+   set(MPV_LDFLAGS ${MPV_DIR}/mpv.lib)
    target_include_directories(${PROJECT_NAME} PRIVATE ${MPV_INCLUDE_DIRS})
-   target_link_libraries(${PROJECT_NAME} PRIVATE ${MPV_LIBRARIES})
+   target_link_libraries(${PROJECT_NAME} PRIVATE ${MPV_LDFLAGS})
    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
       ${MPV_LIBRARIES}

@@ -53,6 +53,7 @@ jobs:
           export HOMEBREW_NO_INSTALL_CLEANUP=1
           brew update
           brew install pkg-config glew glfw mpv
+          pkg-config glew --libs
 
       - name: Install Dependencies [Linux]
         if: ${{ runner.os == 'Linux' }}
