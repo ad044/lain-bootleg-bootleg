@@ -41,6 +41,7 @@ jobs:
           mkdir external/mpv
           pushd external/mpv
           7z x ../../mpv-dev-x86_64-${{ matrix.config.mpv_version }}.7z
+          lib /def:mpv.def /name:mpv-2.dll /out:mpv.lib /MACHINE:X64
           cd include
           mkdir mpv
           mv *.h mpv/
