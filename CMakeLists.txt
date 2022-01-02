@@ -35,7 +35,11 @@ set(SOURCES
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 
-target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic)
+if(MSVC)
+   target_compile_options(${PROJECT_NAME} PRIVATE /W4)
+else()
+   target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic)
+endif()
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_SOURCE_DIR}/src)
 
@@ -47,8 +51,10 @@ option(SYSTEM_GLEW "Use system-installed GLEW instead of vendored one" OFF)
 
 if(SYSTEM_GLEW)
    find_package(PkgConfig REQUIRED)
+   find_package(OpenGL REQUIRED)
    pkg_check_modules(GLEW REQUIRED glew)
-   target_link_libraries(${PROJECT_NAME} PRIVATE ${GLEW_LIBRARIES})
+   target_include_directories(${PROJECT_NAME} PRIVATE ${GLEW_INCLUDE_DIRS} ${OPENGL_INCLUDE_DIR})
+   target_link_libraries(${PROJECT_NAME} PRIVATE ${GLEW_LDFLAGS} ${OPENGL_LIBRARIES})
 else()
    add_definitions(-DGLEW_STATIC)
    add_subdirectory(${CMAKE_SOURCE_DIR}/external/glew-cmake EXCLUDE_FROM_ALL)
@@ -72,18 +78,33 @@ endif()
 if (UNIX)
    find_package(PkgConfig REQUIRED)
    pkg_check_modules(MPV REQUIRED mpv)
-   target_link_libraries(${PROJECT_NAME} PRIVATE ${MPV_LIBRARIES})
+   target_include_directories(${PROJECT_NAME} PRIVATE ${MPV_INCLUDE_DIRS})
+   target_link_libraries(${PROJECT_NAME} PRIVATE ${MPV_LDFLAGS})
 endif (UNIX)
 
-if (MINGW)
-   set(MPV_DIR ${PROJECT_SOURCE_DIR}/external/mpv/)
-
-   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -mwindows -Wl,-Bstatic,--whole-archive -lwinpthread -Wl,-Bdynamic,--no-whole-archive")
-   target_include_directories(${PROJECT_NAME} PRIVATE ${MPV_DIR}/include)
-   target_link_libraries(${PROJECT_NAME} PRIVATE ${MPV_DIR}/mpv-2.dll)
+if (WIN32)
+   set(MPV_DIR ${PROJECT_SOURCE_DIR}/external/mpv)
+   if (MINGW)
+      set(MPV_FLAGS "-mwindows -Wl,-Bstatic,--whole-archive -lwinpthread -Wl,-Bdynamic,--no-whole-archive")
+      set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${MPV_FLAGS}")
+   endif (MINGW)
+   set(MPV_INCLUDE_DIRS ${MPV_DIR}/include)
+   set(MPV_LDFLAGS ${MPV_DIR}/mpv.lib)
+   target_include_directories(${PROJECT_NAME} PRIVATE ${MPV_INCLUDE_DIRS})
+   target_link_libraries(${PROJECT_NAME} PRIVATE ${MPV_LDFLAGS})
    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
       ${MPV_DIR}/mpv-2.dll
         $<TARGET_FILE_DIR:${PROJECT_NAME}>)
-endif (MINGW)
+endif (WIN32)
 
+# Detect if mpv_detach_destroy or mpv_destroy
+include(CheckSymbolExists)
+set(CMAKE_REQUIRED_FLAGS ${MPV_FLAGS})
+set(CMAKE_REQUIRED_INCLUDES ${MPV_INCLUDE_DIRS})
+set(CMAKE_REQUIRED_LIBRARIES ${MPV_LDFLAGS})
+check_symbol_exists(mpv_destroy "mpv/client.h" HAVE_MPV_DESTROY)
+
+if(HAVE_MPV_DESTROY)
+   target_compile_definitions(${PROJECT_NAME} PRIVATE HAVE_MPV_DESTROY)
+endif()
