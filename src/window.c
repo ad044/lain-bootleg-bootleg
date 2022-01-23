@@ -127,7 +127,7 @@ int make_window(GLFWwindow **window, int width, int height, char *name,
 	glGetIntegerv(GL_MAJOR_VERSION, &major);
 	glGetIntegerv(GL_MINOR_VERSION, &minor);
 
-	if (major >= 4 && minor >= 3) {
+	if (major > 4 || (major == 4 && minor >= 3)) {
 		glDebugMessageCallback(gl_debug_message_callback, 0);
 	}
 
