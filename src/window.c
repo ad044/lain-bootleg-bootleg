@@ -122,7 +122,14 @@ int make_window(GLFWwindow **window, int width, int height, char *name,
 	}
 
 	glEnable(GL_DEBUG_OUTPUT);
-	glDebugMessageCallback(gl_debug_message_callback, 0);
+
+	int major, minor;
+	glGetIntegerv(GL_MAJOR_VERSION, &major);
+	glGetIntegerv(GL_MINOR_VERSION, &minor);
+
+	if (major >= 4 && minor >= 3) {
+		glDebugMessageCallback(gl_debug_message_callback, 0);
+	}
 
 	if (shared_ctx != NULL) {
 		Engine *engine = (Engine *)glfwGetWindowUserPointer(shared_ctx);
