@@ -4,6 +4,7 @@ This project aims to reverse-engineer and remake Lain Bootleg, a Serial Experime
 
 # Extracting assets
 
+To run the Python scripts you are going to need [`opencv-python`](https://pypi.org/project/opencv-python/) and [`pefile`](https://pypi.org/project/pefile/).
 
 The repository doesn't contain the game's assets, the extraction is done by automation scripts
 located under the `scripts/` directory.
@@ -37,7 +38,7 @@ pull external dependencies if you didn't do it along with the cloning step.
 - **gcc**
 - **make**
 - **cmake**
-- RECENT version of **mpv** (at least 0.34.0)
+- **mpv** along with it's development headers
 
 GLFW and GLEW will be compiled along with the program (submodules) and statically linked. 
 If you would prefer to use your system-installed versions of these, use the CMake options 
