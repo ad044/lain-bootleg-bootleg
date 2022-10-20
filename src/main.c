@@ -11,7 +11,7 @@ static int init_glfw()
 {
 	if (!glfwInit()) {
 		printf("Failed to initialize glfw.\n");
-		return -1;
+		return 0;
 	}
 
 	glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
