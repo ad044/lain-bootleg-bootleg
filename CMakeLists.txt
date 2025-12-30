@@ -7,6 +7,14 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+if(APPLE)
+    set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15")
+    add_definitions(-DMA_NO_RUNTIME_LINKING)
+    set(CMAKE_MACOSX_RPATH 1)
+    set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+    set(CMAKE_INSTALL_RPATH "@executable_path/../Frameworks" "/opt/homebrew/lib" "/usr/local/lib")
+endif()
+
 set(SOURCES
    src/main.c
    src/engine.c
@@ -33,7 +41,28 @@ set(SOURCES
    src/movie.c
 )
 
-add_executable(${PROJECT_NAME} ${SOURCES})
+if(APPLE)
+    set(ICON_PNG "${PROJECT_SOURCE_DIR}/res/window_icon.png")
+    set(ICON_ICNS "${CMAKE_BINARY_DIR}/generated_app_icon.icns")
+
+    add_custom_command(
+        OUTPUT "${ICON_ICNS}"
+        COMMAND sips -s format icns "${ICON_PNG}" --out "${ICON_ICNS}" > /dev/null
+        DEPENDS "${ICON_PNG}"
+        VERBATIM
+    )
+
+    set_source_files_properties("${ICON_ICNS}" PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+    add_executable(${PROJECT_NAME} MACOSX_BUNDLE ${SOURCES} "${ICON_ICNS}")
+
+    set_target_properties(${PROJECT_NAME} PROPERTIES
+        MACOSX_BUNDLE_BUNDLE_NAME "Lain Bootleg"
+        MACOSX_BUNDLE_GUI_IDENTIFIER "com.lain.bootleg"
+        MACOSX_BUNDLE_ICON_FILE "generated_app_icon.icns"
+    )
+else()
+    add_executable(${PROJECT_NAME} ${SOURCES})
+endif()
 
 if(MSVC)
    target_compile_options(${PROJECT_NAME} PRIVATE /W4)
@@ -43,11 +72,24 @@ endif()
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_SOURCE_DIR}/src)
 
-add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-                   COMMAND ${CMAKE_COMMAND} -E copy_directory
-                       ${CMAKE_SOURCE_DIR}/res $<TARGET_FILE_DIR:${PROJECT_NAME}>/res)
+if(APPLE)
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+                       COMMAND ${CMAKE_COMMAND} -E copy_directory
+                           ${CMAKE_SOURCE_DIR}/res
+                           ${CMAKE_BINARY_DIR}/${PROJECT_NAME}.app/Contents/Resources/res)
+else()
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+                       COMMAND ${CMAKE_COMMAND} -E copy_directory
+                           ${CMAKE_SOURCE_DIR}/res $<TARGET_FILE_DIR:${PROJECT_NAME}>/res)
+endif()
 
-option(SYSTEM_GLEW "Use system-installed GLEW instead of vendored one" OFF)
+if(APPLE)
+    option(SYSTEM_GLFW "Use system-installed GLEW instead of vendored one" ON)
+    option(SYSTEM_GLEW "Use system-installed GLEW instead of vendored one" ON)
+else()
+    option(SYSTEM_GLFW "Use system-installed GLEW instead of vendored one" OFF)
+    option(SYSTEM_GLEW "Use system-installed GLEW instead of vendored one" OFF)
+endif()
 
 if(SYSTEM_GLEW)
    find_package(OpenGL REQUIRED)
@@ -86,6 +128,15 @@ else()
    set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
    add_subdirectory(${CMAKE_SOURCE_DIR}/external/glfw EXCLUDE_FROM_ALL)
    target_link_libraries(${PROJECT_NAME} PRIVATE glfw)
+endif()
+
+# Linking macOS Frameworks
+if(APPLE)
+    target_link_libraries(${PROJECT_NAME} PRIVATE
+        "-framework OpenGL" "-framework Cocoa" "-framework IOKit"
+        "-framework CoreVideo" "-framework CoreAudio" "-framework AudioToolbox"
+        "-framework AudioUnit" "-framework CoreFoundation"
+    )
 endif()
 
 if (UNIX)

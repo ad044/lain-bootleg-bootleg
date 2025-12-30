@@ -6,6 +6,14 @@ This project aims to reverse-engineer and remake Lain Bootleg, a Serial Experime
 
 To run the Python scripts you are going to need [`opencv-python`](https://pypi.org/project/opencv-python/) and [`pefile`](https://pypi.org/project/pefile/).
 
+**Note for macOS users:** You will need also [`pillow`](https://pypi.org/project/pillow/) and `setuptools`. On recent systems preventing global pip installation use a virtual environment with this: 
+
+```sh
+python3 -m venv venv
+source venv/bin/activate
+pip install opencv-python pefile Pillow setuptools
+```
+
 The repository doesn't contain the game's assets, the extraction is done by automation scripts
 located under the `scripts/` directory.
 
@@ -56,6 +64,19 @@ cmake -DSYSTEM_GLFW=ON -DSYSTEM_GLEW=ON ..
 4. `make`
 
 This should produce a binary called `lain-bootleg-bootleg`.
+
+## Compiling on macOS
+
+Ensure you have **Xcode Command Line Tools** installed (run `xcode-select --install`) and I highly suggest to install and use [**Homebrew**](https://brew.sh/) as you can easily install all dependencies with `brew install cmake glfw glew pkg-config mpv`.
+
+To build:
+
+1. `cd` into the repo
+2. `mkdir build && cd build`
+3. `cmake ..`
+4. `make`
+
+This produces a macOS App Bundle named `lain-bootleg-bootleg`.
 
 ## Compiling on Windows using MinGW and MSYS2
 

@@ -83,6 +83,7 @@ int make_window(GLFWwindow **window, int width, int height, char *name,
 {
 	glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 	glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
+	glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_FALSE);
 
 	*window = glfwCreateWindow(width, height, name, NULL, shared_ctx);
 	if (window == NULL) {

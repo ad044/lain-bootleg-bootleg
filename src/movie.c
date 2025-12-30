@@ -96,6 +96,10 @@ int movie_init(Movie *movie)
 	}
 
 	mpv_request_log_messages(movie->mpv_handle, "debug");
+	
+	#ifdef __APPLE__
+		mpv_set_option_string(movie->mpv_handle, "vo", "libmpv");
+	#endif
 
 	mpv_render_param params[] = {
 	    {MPV_RENDER_PARAM_API_TYPE, MPV_RENDER_API_TYPE_OPENGL},
