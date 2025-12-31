@@ -83,7 +83,10 @@ int make_window(GLFWwindow **window, int width, int height, char *name,
 {
 	glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 	glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
+
+	#ifdef __APPLE__
 	glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_FALSE);
+    #endif
 
 	*window = glfwCreateWindow(width, height, name, NULL, shared_ctx);
 	if (window == NULL) {
