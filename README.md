@@ -67,16 +67,22 @@ This should produce a binary called `lain-bootleg-bootleg`.
 
 ## Compiling on macOS
 
-Ensure you have **Xcode Command Line Tools** installed (run `xcode-select --install`) and I highly suggest to install and use [**Homebrew**](https://brew.sh/) as you can easily install all dependencies with `brew install cmake glfw glew pkg-config mpv`.
+Ensure you have **Xcode Command Line Tools** installed (run `xcode-select --install`).
+
+You will need [**Homebrew**](https://brew.sh/) to install dependencies.
+Note that `dylibbundler` is required if you want to create a standalone `.app` that works on other Macs.
+`brew install cmake glfw glew pkg-config mpv dylibbundlerbrew`.
+
 
 To build:
 
 1. `cd` into the repo
 2. `mkdir build && cd build`
 3. `cmake ..`
-4. `make`
 
-This produces a macOS App Bundle named `lain-bootleg-bootleg`.
+From here, you now have two options:
+- `make`: This produces a .app that links dynamically to your local Homebrew libraries.
+- `make bundle`: This runs a script that collects all dependencies, fixes paths for portability, handles Python framework linking, and signs the app.
 
 ## Compiling on Windows using MinGW and MSYS2
 
@@ -104,8 +110,13 @@ This should produce an executable called `lain-bootleg-bootleg.exe`.
 
 # Editing the save file
 
-Upon closing the game for the first time, you will notice a new file in the same directory
-as the executable called `lain_save.json`, which will have a format similar to:
+Upon closing the game for the first time, a save file named `lain_save.json` will be created.
+
+**Location:**
+* **Windows / Linux:** In the same directory as the executable.
+* **macOS:** Inside the App Bundle. Right-click `lain-bootleg-bootleg.app` -> **Show Package Contents**, then navigate to `Contents/Resources/lain_save.json`.
+
+The file format looks like this:
 
 ```
 {

@@ -8,11 +8,8 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 if(APPLE)
-    set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15")
+    set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13")
     add_definitions(-DMA_NO_RUNTIME_LINKING)
-    set(CMAKE_MACOSX_RPATH 1)
-    set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
-    set(CMAKE_INSTALL_RPATH "@executable_path/../Frameworks" "/opt/homebrew/lib" "/usr/local/lib")
 endif()
 
 set(SOURCES
@@ -60,6 +57,11 @@ if(APPLE)
         MACOSX_BUNDLE_GUI_IDENTIFIER "com.lain.bootleg"
         MACOSX_BUNDLE_ICON_FILE "generated_app_icon.icns"
     )
+
+    add_custom_target(bundle
+        COMMAND bash "${PROJECT_SOURCE_DIR}/scripts/bundle.sh" "${CMAKE_BINARY_DIR}" "${PROJECT_NAME}"
+        DEPENDS ${PROJECT_NAME}
+    )
 else()
     add_executable(${PROJECT_NAME} ${SOURCES})
 endif()
@@ -76,20 +78,15 @@ if(APPLE)
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
                        COMMAND ${CMAKE_COMMAND} -E copy_directory
                            ${CMAKE_SOURCE_DIR}/res
-                           ${CMAKE_BINARY_DIR}/${PROJECT_NAME}.app/Contents/Resources/res)
+                           ${CMAKE_BINARY_DIR}/${PROJECT_NAME}.app/Contents/Resources/res
+                       COMMENT "Copia risorse (Development build)...")
 else()
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
                        COMMAND ${CMAKE_COMMAND} -E copy_directory
                            ${CMAKE_SOURCE_DIR}/res $<TARGET_FILE_DIR:${PROJECT_NAME}>/res)
 endif()
 
-if(APPLE)
-    option(SYSTEM_GLFW "Use system-installed GLEW instead of vendored one" ON)
-    option(SYSTEM_GLEW "Use system-installed GLEW instead of vendored one" ON)
-else()
-    option(SYSTEM_GLFW "Use system-installed GLEW instead of vendored one" OFF)
-    option(SYSTEM_GLEW "Use system-installed GLEW instead of vendored one" OFF)
-endif()
+option(SYSTEM_GLEW "Use system-installed GLEW instead of vendored one" OFF)
 
 if(SYSTEM_GLEW)
    find_package(OpenGL REQUIRED)
@@ -130,7 +127,6 @@ else()
    target_link_libraries(${PROJECT_NAME} PRIVATE glfw)
 endif()
 
-# Linking macOS Frameworks
 if(APPLE)
     target_link_libraries(${PROJECT_NAME} PRIVATE
         "-framework OpenGL" "-framework Cocoa" "-framework IOKit"
@@ -139,7 +135,16 @@ if(APPLE)
     )
 endif()
 
-if (UNIX)
+if(APPLE)
+    set(MPV_INCLUDE_DIRS "/opt/homebrew/include")
+    find_library(MPV_LIBRARY mpv PATHS "/opt/homebrew/lib" "/usr/local/lib" REQUIRED)
+
+    target_include_directories(${PROJECT_NAME} PRIVATE ${MPV_INCLUDE_DIRS})
+    target_link_libraries(${PROJECT_NAME} PRIVATE ${MPV_LIBRARY})
+    
+    set(MPV_LINK_LIBRARIES ${MPV_LIBRARY})
+
+elseif(UNIX)
    find_package(PkgConfig)
    if(PKG_CONFIG_FOUND)
       pkg_check_modules(MPV REQUIRED mpv)
@@ -164,7 +169,7 @@ if (UNIX)
          message(FATAL_ERROR "Unable to find MPV!")
       endif()
    endif()
-endif (UNIX)
+endif()
 
 if (WIN32)
    set(MPV_DIR ${PROJECT_SOURCE_DIR}/external/mpv)
