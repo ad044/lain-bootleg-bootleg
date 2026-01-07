@@ -70,8 +70,9 @@ This should produce a binary called `lain-bootleg-bootleg`.
 Ensure you have **Xcode Command Line Tools** installed (run `xcode-select --install`).
 
 You will need [**Homebrew**](https://brew.sh/) to install dependencies.
-Note that `dylibbundler` is required if you want to create a standalone `.app` that works on other Macs.
-`brew install cmake glfw glew pkg-config mpv dylibbundlerbrew`.
+Note that [dylibbundler](https://github.com/auriamg/macdylibbundler) is only required if you want to create a standalone `.app`.
+
+`brew install cmake mpv dylibbundler`.
 
 
 To build:
