@@ -18,7 +18,7 @@ jobs:
         config:
           - { name: "Windows", os: windows-2022, mpv_version: 20211226-git-d92cf77 }
           - { name: "macOS", os: macos-latest }
-          - { name: "Ubuntu", os: ubuntu-20.04 }
+          - { name: "Ubuntu", os: ubuntu-latest }
       fail-fast: false
 
     name: ${{ matrix.config.name }}
@@ -64,6 +64,10 @@ jobs:
         run: |
           # Create fake assets dir so build works
           mkdir res
+
+          if [ "${{ runner.os }}" == "macOS" ]; then
+             sips -s format png /System/Library/CoreServices/CoreTypes.bundle/Contents/Resources/GenericApplicationIcon.icns --out res/window_icon.png
+          fi
 
           if [ ! "${{ runner.os }}" == "Windows" ]; then
             export WITH_SYSTEM_LIBS=ON
