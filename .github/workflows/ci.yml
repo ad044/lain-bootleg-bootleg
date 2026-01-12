@@ -65,6 +65,10 @@ jobs:
           # Create fake assets dir so build works
           mkdir res
 
+          if [ "${{ runner.os }}" == "macOS" ]; then
+             sips -s format png /System/Library/CoreServices/CoreTypes.bundle/Contents/Resources/GenericApplicationIcon.icns --out res/window_icon.png
+          fi
+
           if [ ! "${{ runner.os }}" == "Windows" ]; then
             export WITH_SYSTEM_LIBS=ON
           else
