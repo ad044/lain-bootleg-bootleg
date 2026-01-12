@@ -6,6 +6,14 @@ This project aims to reverse-engineer and remake Lain Bootleg, a Serial Experime
 
 To run the Python scripts you are going to need [`opencv-python`](https://pypi.org/project/opencv-python/) and [`pefile`](https://pypi.org/project/pefile/).
 
+**Note for macOS users:** You will need also [`pillow`](https://pypi.org/project/pillow/) and `setuptools`. On recent systems preventing global pip installation use a virtual environment with this: 
+
+```sh
+python3 -m venv venv
+source venv/bin/activate
+pip install opencv-python pefile Pillow setuptools
+```
+
 The repository doesn't contain the game's assets, the extraction is done by automation scripts
 located under the `scripts/` directory.
 
@@ -57,6 +65,26 @@ cmake -DSYSTEM_GLFW=ON -DSYSTEM_GLEW=ON ..
 
 This should produce a binary called `lain-bootleg-bootleg`.
 
+## Compiling on macOS
+
+Ensure you have **Xcode Command Line Tools** installed (run `xcode-select --install`).
+
+You will need [**Homebrew**](https://brew.sh/) to install dependencies.
+Note that [dylibbundler](https://github.com/auriamg/macdylibbundler) is only required if you want to create a standalone `.app`.
+
+`brew install cmake mpv dylibbundler`.
+
+
+To build:
+
+1. `cd` into the repo
+2. `mkdir build && cd build`
+3. `cmake ..`
+
+From here, you now have two options:
+- `make`: This produces a .app that links dynamically to your local Homebrew libraries.
+- `make bundle`: This runs a script that collects all dependencies, fixes paths for portability, handles Python framework linking, and signs the app.
+
 ## Compiling on Windows using MinGW and MSYS2
 
 For Windows we will need to download `libmpv` DLLs manually. The usual place to grab them would be
@@ -83,8 +111,13 @@ This should produce an executable called `lain-bootleg-bootleg.exe`.
 
 # Editing the save file
 
-Upon closing the game for the first time, you will notice a new file in the same directory
-as the executable called `lain_save.json`, which will have a format similar to:
+Upon closing the game for the first time, a save file named `lain_save.json` will be created.
+
+**Location:**
+* **Windows / Linux:** In the same directory as the executable.
+* **macOS:** Inside the App Bundle. Right-click `lain-bootleg-bootleg.app` -> **Show Package Contents**, then navigate to `Contents/Resources/lain_save.json`.
+
+The file format looks like this:
 
 ```
 {

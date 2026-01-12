@@ -11,3 +11,4 @@ scripts/*
 scripts/binaries
 .dir-locals.el
 embedded.*
+.DS_Store
